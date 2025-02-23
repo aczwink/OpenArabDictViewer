@@ -17,38 +17,46 @@
  * */
 
 import { APIController, Get, NotFound, Path, Query } from "acts-util-apilib";
-import { WordFilterCriteria, WordsController } from "../data-access/WordsController";
+import { FullWordData, WordsController } from "../data-access/WordsController";
 import { OpenArabDictWordType } from "openarabdict-domain";
+import { WordFilterCriteria, WordSearchService } from "../services/WordSearchService";
+import { Of } from "acts-util-core";
 
 type OptionalWordType = OpenArabDictWordType | null;
-type WordSearchDerivation = "any" | "none" | "root" | "verb";
+
+interface SearchResultEntry
+{
+    word: FullWordData;
+    score: number;
+}
 
 @APIController("words")
 class _api_
 {
-    constructor(private wordsController: WordsController)
+    constructor(private wordsController: WordsController, private wordSearchService: WordSearchService)
     {
     }
 
     @Get()
     public async FindWords(
-        @Query wordFilter: string,
-        @Query derivation: WordSearchDerivation,
-        @Query includeRelated: boolean,
-        @Query translation: string,
-        @Query type: OptionalWordType,
+        @Query textFilter: string,
+        @Query wordType: OptionalWordType,
         @Query offset: number,
         @Query limit: number,
     )
     {
         const filterCriteria: WordFilterCriteria = {
-            includeRelated,
-            derivation,
-            word: wordFilter,
-            translation,
-            type
+            textFilter,
+            wordType
         };
-        const words = await this.wordsController.FindWords(filterCriteria, offset, limit);
+        const wordIds = await this.wordSearchService.FindWords(filterCriteria, offset, limit);
+        const words = wordIds.Map(async id => {
+            const word = await this.wordsController.QueryWord(id);
+            return Of<SearchResultEntry>({
+                score: 0,
+                word: word!
+            });
+        }).PromiseAll();
 
         return words;
     }

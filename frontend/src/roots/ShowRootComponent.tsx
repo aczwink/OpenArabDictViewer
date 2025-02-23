@@ -16,33 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Component, Injectable, JSX_CreateElement, ProgressSpinner, Router, RouterState } from "acfrontend";
-import { FullWordData, RootOverviewData, VerbData } from "../../dist/api";
-import { APIService } from "../services/APIService";
-import { VerbPreviewComponent } from "../verbs/VerbPreviewComponent";
+import { Component, Injectable, JSX_CreateElement, ProgressSpinner, RouterState } from "acfrontend";
 import { WordOverviewComponent } from "../words/WordOverviewComponent";
 import { RootToString, RootTypeToPattern, RootTypeToString } from "./general";
-import { ConjugationService } from "../services/ConjugationService";
 import { Buckwalter } from "openarabicconjugation/dist/Transliteration";
 import { Letter } from "openarabicconjugation/src/Definitions";
 import { RootType, VerbRoot } from "openarabicconjugation/src/VerbRoot";
+import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
+import { OpenArabDictRoot } from "openarabdict-domain";
 
 interface ShowRootData
 {
-    root: RootOverviewData;
-    verbs: VerbData[];
+    root: OpenArabDictRoot;
+    words: WordWithConnections[];
 }
 
 @Injectable
 export class ShowRootComponent extends Component
 {
-    constructor(routerState: RouterState, private apiService: APIService, private router: Router, private conjugationService: ConjugationService)
+    constructor(routerState: RouterState, private cachedAPIService: CachedAPIService)
     {
         super();
 
         this.rootId = parseInt(routerState.routeParams.rootId!);
         this.data = null;
-        this.derivedWords = null;
     }
     
     protected Render(): RenderValue
@@ -69,9 +66,6 @@ export class ShowRootComponent extends Component
             </table>
             <a href={"http://ejtaal.net/aa#bwq=" + this.ToEjtaalQuery()} target="_blank">See on Mawrid reader</a>
 
-            <h4>Verbs</h4>
-            {this.data.verbs.map(x => <VerbPreviewComponent root={this.data!.root} verbData={x} />)}
-            <h4>Words</h4>
             {this.RenderDerivedWords()}
         </fragment>;
     }
@@ -79,12 +73,11 @@ export class ShowRootComponent extends Component
     //Private state
     private rootId: number;
     private data: ShowRootData | null;
-    private derivedWords: FullWordData[] | null;
 
     //Private methods
     private RenderDerivedWords()
     {
-        if(this.derivedWords === null)
+        if(this.data === null)
             return <ProgressSpinner />;
 
         return <table className="table table-striped table-hover table-sm">
@@ -95,7 +88,7 @@ export class ShowRootComponent extends Component
                 </tr>
             </thead>
             <tbody>
-                {this.derivedWords.map(x => <WordOverviewComponent word={x} />)}
+                {this.data.words.map(x => <WordOverviewComponent word={x.word} />)}
             </tbody>
         </table>;
     }
@@ -123,18 +116,12 @@ export class ShowRootComponent extends Component
     //Event handlers
     override async OnInitiated(): Promise<void>
     {
-        const response1 = await this.apiService.roots._any_.get(this.rootId);
-        const response2 = await this.apiService.roots._any_.verbs.get(this.rootId);
-
-        if(response1.statusCode != 200)
-            throw new Error("TODO: implement me");
+        const root = await this.cachedAPIService.QueryRootData(this.rootId);
+        const words = await this.cachedAPIService.QueryRootWords(this.rootId);
 
         this.data = {
-            root: response1.data,
-            verbs: response2.data
+            root,
+            words,
         };
-
-        const response3 = await this.apiService.roots._any_.words.get(this.rootId);
-        this.derivedWords = response3.data;
     }
 }

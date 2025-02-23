@@ -27,8 +27,6 @@ export class DialectsService
     constructor(private dialectsController: DialectsController)
     {
         this.dialectMap = new Map();
-
-        this.CacheDialects();
     }
 
     //Public methods
@@ -41,18 +39,26 @@ export class DialectsService
         return GetDialectMetadata(type);
     }
 
-    //Private methods
-    private async CacheDialects()
+    public MapDialectId(dialectId: number)
+    {
+        return this.dialectMap.get(dialectId);
+    }
+
+    public async RebuildIndex()
     {
         const dialects = await this.dialectsController.QueryDialects();
         const conjugatable = [DialectType.ModernStandardArabic, DialectType.Lebanese];
+
+        const map = new Map();
         for (const dialectType of conjugatable)
         {
             const md = GetDialectMetadata(dialectType);
             const dialect = dialects.find(x => (md.glottoCode === x.glottoCode) && (md.iso639code === x.iso639code));
 
-            this.dialectMap.set(dialect!.id, dialectType);
+            map.set(dialect!.id, dialectType);
         }
+        
+        this.dialectMap = map;
     }
 
     //State

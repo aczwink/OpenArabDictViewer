@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -17,7 +17,7 @@
  * */
 
 import { Component, JSX_CreateElement } from "acfrontend";
-import { RootType } from "openarabicconjugation/src/VerbRoot";
+import { VerbType } from "openarabicconjugation/src/Definitions";
 
 export class RomanNumberComponent extends Component<{ num: number; }>
 {
@@ -52,11 +52,11 @@ export class RomanNumberComponent extends Component<{ num: number; }>
     }
 }
 
-export class StemNumberComponent extends Component<{ rootType: RootType; stem: number; }>
+export class StemNumberComponent extends Component<{ verbType: VerbType; stem: number; }>
 {
     protected Render(): RenderValue
     {
-        const suffix = (this.input.rootType === RootType.Quadriliteral) ? "q" : "";
+        const suffix = (this.input.verbType === VerbType.SoundQuadriliteral) ? "q" : "";
         return <fragment>
             <RomanNumberComponent num={this.input.stem} />{suffix}
         </fragment>;

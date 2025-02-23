@@ -16,7 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { OpenArabDictNonVerbDerivationType, OpenArabDictWordRelationshipType, OpenArabDictWordType, WordFunctionData } from "../../dist/api";
+import { OpenArabDictGenderedWord, OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictNonVerbDerivationType, OpenArabDictWord, OpenArabDictWordRelationshipType } from "../../dist/api";
 
 export const allWordTypes = [
     OpenArabDictWordType.Adjective,
@@ -74,9 +75,9 @@ function WordTypeMayHaveGender(wordType: OpenArabDictWordType)
     return false;
 }
 
-export function WordMayHaveGender(word: { functions: WordFunctionData[] })
+export function WordMayHaveGender(word: OpenArabDictWord): word is OpenArabDictGenderedWord
 {
-    return word.functions.Values().Map(x => WordTypeMayHaveGender(x.type)).AnyTrue();
+    return WordTypeMayHaveGender(word.type);
 }
 
 export function WordRelationshipTypeToString(type: OpenArabDictWordRelationshipType)
@@ -112,6 +113,10 @@ export function WordTypeToAbbreviationText(wordType: OpenArabDictWordType)
             return "(particle)";
         case OpenArabDictWordType.Interjection:
             return "(interj.)";
+        case OpenArabDictWordType.Numeral:
+            return "(numeral)";
+        case OpenArabDictWordType.Verb:
+            return "(verb)";
     }
 }
 

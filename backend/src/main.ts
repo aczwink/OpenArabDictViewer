@@ -18,11 +18,29 @@
 import http from "http";
 
 import { OpenAPI } from "acts-util-core";
-import { Factory, HTTP } from "acts-util-node";
+import { Factory, GlobalInjector, HTTP } from "acts-util-node";
 import { APIRegistry } from "acts-util-apilib";
+import { RootsIndexService } from "./services/RootsIndexService";
+import { DialectsService } from "./services/DialectsService";
+import { ArabicTextIndexService } from "./services/ArabicTextIndexService";
+
+async function ComputeIndexes()
+{
+    const dialectsService = GlobalInjector.Resolve(DialectsService);
+    const rootsIndexService = GlobalInjector.Resolve(RootsIndexService);
+    const arabicTextIndexService = GlobalInjector.Resolve(ArabicTextIndexService);
+
+    await dialectsService.RebuildIndex();
+    await rootsIndexService.RebuildIndex();
+    await arabicTextIndexService.RebuildIndex();
+}
 
 async function SetupServer()
 {
+    console.log("Computing indexes...");
+    await ComputeIndexes();
+    console.log("Finished computing indexes...");
+
     const requestHandlerChain = Factory.CreateRequestHandlerChain();
     requestHandlerChain.AddCORSHandler([process.env.ARABDICT_ORIGIN!]);
     requestHandlerChain.AddBodyParser();

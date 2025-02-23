@@ -19,5 +19,4 @@
 import "./api/dialects";
 import "./api/roots";
 import "./api/stats";
-import "./api/verbs";
 import "./api/words";

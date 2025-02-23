@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2024 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,11 +19,11 @@
 import { Component, Injectable, JSX_CreateElement } from "acfrontend";
 import { RenderTranslations } from "../shared/translations";
 import { WordReferenceComponent } from "./WordReferenceComponent";
-import { FullWordData } from "../../dist/api";
-import { WordTypeToAbbreviationText } from "../shared/words";
+import { WordDerivationComponent } from "./WordDerivationComponent";
+import { OpenArabDictWord } from "openarabdict-domain";
 
 @Injectable
-export class WordOverviewComponent extends Component<{ word: FullWordData; }>
+export class WordOverviewComponent extends Component<{ word: OpenArabDictWord; }>
 {
     protected Render(): RenderValue
     {
@@ -38,10 +38,9 @@ export class WordOverviewComponent extends Component<{ word: FullWordData; }>
     //Private methods
     private RenderFunctions()
     {
-        if(this.input.word.functions.length > 1)
-            return <ul>{this.input.word.functions.map(x => <li>{WordTypeToAbbreviationText(x.type)} {RenderTranslations(x.translations)}</li>)}</ul>;
-        if(this.input.word.functions.length === 1)
-            return RenderTranslations(this.input.word.functions[0].translations);
-        return null;
+        const func = this.input.word;
+        if(func.translations.length === 0)
+            return <WordDerivationComponent parent={this.input.word.parent} />;
+        return RenderTranslations(func.translations);
     }
 }

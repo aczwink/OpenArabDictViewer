@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2024 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -17,8 +17,8 @@
  * */
 
 import { Component, JSX_CreateElement } from "acfrontend";
-import { IsValidRootRadical } from "./general";
 import { Letter } from "openarabicconjugation/src/Definitions";
+import { IsValidRootRadical } from "openarabicconjugation/src/Util";
 
 export class RadicalsEditorComponent extends Component<{ radicals: string; onDataChanged: (newValue: string) => void; joinBeginning?: boolean }>
 {

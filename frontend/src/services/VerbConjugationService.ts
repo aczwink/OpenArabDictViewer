@@ -17,13 +17,23 @@
  * */
 
 import { Injectable } from "acfrontend";
-import { Gender, Person, Numerus, Mood, VerbConjugationScheme } from "openarabicconjugation/src/Definitions";
+import { Gender, Person, Numerus, Mood, VerbType, Tense, Voice, StemlessConjugationParams } from "openarabicconjugation/src/Definitions";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
-import { VerbData } from "../../dist/api";
 import { Stem1DataToStem1ContextOptional } from "../verbs/model";
 import { ConjugationService } from "./ConjugationService";
 import { DialectsService } from "./DialectsService";
-import { VocalizedWordTostring } from "openarabicconjugation/src/Vocalization";
+import { OpenArabDictVerb } from "openarabdict-domain";
+import { _TODO_CheckConjugation } from "../verbs/_ConjugationCheck";
+import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
+import { DisplayVocalized } from "openarabicconjugation/src/Vocalization";
+
+interface VerbConjugationParams
+{
+    dialectId: number;
+    soundOverride?: boolean;
+    stem: number;
+    stemParameters?: string;
+}
 
 @Injectable
 export class VerbConjugationService
@@ -32,27 +42,115 @@ export class VerbConjugationService
     {
     }
 
-    public BuildStem1Context(rootRadicals: string, verbData: VerbData)
+    //Public methods
+    public GetType(rootRadicals: string, verb: VerbConjugationParams)
     {
-        const dialectType = this.dialectsService.MapIdToType(verbData.dialectId);
-
         const root = new VerbRoot(rootRadicals);
-        const scheme = (verbData.soundOverride === true) ? VerbConjugationScheme.Sound : root.DeriveDeducedVerbConjugationScheme();
-        const stem1ctx = Stem1DataToStem1ContextOptional(dialectType, scheme, verbData.stem1Context);
+        const scheme = (verb.soundOverride === true) ? VerbType.Sound : root.DeriveDeducedVerbType();
+        return scheme;
+    }
+
+    public BuildStem1Context(rootRadicals: string, verb: VerbConjugationParams)
+    {
+        const dialectType = this.dialectsService.MapIdToType(verb.dialectId);
+
+        const stem1ctx = Stem1DataToStem1ContextOptional(dialectType, this.GetType(rootRadicals, verb), verb.stemParameters);
         return stem1ctx;
     }
 
-    public CreateDisplayVersionOfVerb(rootRadicals: string, verbData: VerbData)
+    public CreateDefaultDisplayVersionOfVerb(rootRadicals: string, verb: VerbConjugationParams)
     {
-        const dialectType = this.dialectsService.MapIdToType(verbData.dialectId);
-        const stem1ctx = this.BuildStem1Context(rootRadicals, verbData);
-        const conjugated = this.conjugationService.Conjugate(dialectType, rootRadicals, verbData.stem, "perfect", "active", Gender.Male, Person.Third, Numerus.Singular, Mood.Indicative, stem1ctx);
+        const result = this.ConjugateVerbContexts(rootRadicals, verb);
+        const strings = result.map(x => this.conjugationService.VocalizedToString(x));
 
-        return conjugated;
+        return this.RenderContexts(strings);
     }
 
-    public CreateDisplayVersionOfVerbAsString(rootRadicals: string, verbData: VerbData)
+    public CreateDefaultDisplayVersionOfVerbWithDiff(rootRadicals: string, verb: VerbConjugationParams, reference: VerbConjugationParams)
     {
-        return VocalizedWordTostring(this.CreateDisplayVersionOfVerb(rootRadicals, verbData));
+        const c1 = this.ConjugateVerbContexts(rootRadicals, verb);
+        const c2 = this.ConjugateVerbContexts(rootRadicals, reference);
+        const diffed = c1.map( (x, i) => RenderWithDiffHighlights(x, c2[i]));
+
+        return this.RenderContexts(diffed);
+    }
+
+    public RenderCheck(rootRadicals: string, verb: OpenArabDictVerb)
+    {
+        const stem1Context = this.BuildStem1Context(rootRadicals, verb);
+        const check = _TODO_CheckConjugation(this.dialectsService.MapIdToType(verb.dialectId), new VerbRoot(rootRadicals), {
+            gender: Gender.Male,
+            voice: Voice.Active,
+            tense: Tense.Perfect,
+            numerus: Numerus.Singular,
+            person: Person.Third,
+            stem: verb.stem as any,
+            stem1Context
+        });
+        return check;
+    }
+
+    //Private methods
+    private ConjugateVerbContexts(rootRadicals: string, verb: VerbConjugationParams)
+    {
+        const dialectType = this.dialectsService.MapIdToType(verb.dialectId);
+        const stem1Context = this.BuildStem1Context(rootRadicals, verb);
+
+        const root = new VerbRoot(rootRadicals);
+        const past = this.conjugationService.Conjugate(dialectType, root, {
+            gender: Gender.Male,
+            tense: Tense.Perfect,
+            numerus: Numerus.Singular,
+            person: Person.Third,
+            stem: verb.stem as any,
+            stem1Context,
+            voice: Voice.Active
+        });
+
+        let requiredContext: StemlessConjugationParams[] = [];
+        if(verb.stem === 1)
+        {
+            const choices = this.dialectsService.GetDialectMetaData(verb.dialectId).GetStem1ContextChoices(root);
+            requiredContext = choices.requiredContext;
+        }
+
+        const result = [past];
+        for (const context of requiredContext)
+        {
+            const conjugated = this.conjugationService.Conjugate(dialectType, root, {
+                ...context,
+                stem: verb.stem as any,
+                stem1Context,
+            });
+            result.push(conjugated);
+        }
+
+        return result;
+    }
+
+    private RenderContexts(contexts: any[])
+    {
+        switch(contexts.length)
+        {
+            case 1:
+                return contexts[0];
+            case 2:
+                return [
+                    contexts[0],
+                    " - ",
+                    contexts[1]
+                ];
+            case 3:
+                return [
+                    contexts[0],
+                    " - ",
+                    contexts[1],
+                    " (",
+                    contexts[2],
+                    ")"
+                ];
+            default:
+                throw new Error("This should never happen!");
+        }
     }
 }

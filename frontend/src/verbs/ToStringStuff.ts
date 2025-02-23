@@ -15,25 +15,26 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
-import { VerbConjugationScheme } from "openarabicconjugation/src/Definitions";
+import { VerbType } from "openarabicconjugation/src/Definitions";
 
-export function ConjugationSchemeToString(scheme: VerbConjugationScheme): string
+export function ConjugationSchemeToString(scheme: VerbType): string
 {
     switch(scheme)
     {
-        case VerbConjugationScheme.Assimilated:
+        case VerbType.Assimilated:
             return "Assimilated";
-        case VerbConjugationScheme.AssimilatedAndDefective:
+        case VerbType.AssimilatedAndDefective:
             return "Assimilated + Defective";
-        case VerbConjugationScheme.Defective:
+        case VerbType.Defective:
             return "Defective";
-        case VerbConjugationScheme.Geminate:
+        case VerbType.Geminate:
             return "Geminate";
-        case VerbConjugationScheme.HamzaOnR1:
+        case VerbType.HamzaOnR1:
             return "Hamza on R1";
-        case VerbConjugationScheme.Hollow:
+        case VerbType.Hollow:
             return "Hollow";
-        case VerbConjugationScheme.Sound:
+        case VerbType.Sound:
+        case VerbType.SoundQuadriliteral:
             return "Sound";
     }
 }

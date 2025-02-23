@@ -17,8 +17,9 @@
  * */
 
 import { RootType, VerbRoot } from "openarabicconjugation/src/VerbRoot";
-import { RootOverviewData } from "../../dist/api";
-import { ExtraTashkil, Letter, Tashkil } from "openarabicconjugation/src/Definitions";
+import { Letter } from "openarabicconjugation/src/Definitions";
+import { IsValidRootRadical } from "openarabicconjugation/src/Util";
+import { OpenArabDictRoot } from "openarabdict-domain";
 
 export function AreValidRootCharacters(rootRadicals: string)
 {
@@ -38,82 +39,7 @@ export function DoRootCharactersFormValidRoot(rootRadicals: string)
     return AreValidRootCharacters(rootRadicals);
 }
 
-function IsArabicChar(char: string)
-{
-    switch(char)
-    {
-        case Letter.Alef:
-        case Letter.AlefHamza:
-        case Letter.AlefHamzaBelow:
-        case Letter.AlefMadda:
-        case Letter.AlefMaksura:
-        case Letter.TaMarbuta:
-        case Letter.WawHamza:
-        case Letter.YaHamza:
-            return true;
-
-        case Tashkil.Dhamma:
-        case Tashkil.Dhammatan:
-        case Tashkil.Fatha:
-        case Tashkil.Fathatan:
-        case Tashkil.Kasra:
-        case Tashkil.Kasratan:
-        case Tashkil.Sukun:
-        case ExtraTashkil.Shadda:
-        case ExtraTashkil.DaggerAlef:
-            return true;
-    }
-    return IsValidRootRadical(char);
-}
-
-export function IsArabicText(text: string)
-{
-    for (const char of text)
-    {
-        if(!IsArabicChar(char))
-            return false;
-    }
-    return true;
-}
-
-export function IsValidRootRadical(char: string)
-{
-    switch(char)
-    {
-        case Letter.Hamza:
-        case Letter.Ba:
-        case Letter.Ta:
-        case Letter.Tha:
-        case Letter.Jiim:
-        case Letter.Hha:
-        case Letter.Kha:
-        case Letter.Dal:
-        case Letter.Thal:
-        case Letter.Ra:
-        case Letter.Zay:
-        case Letter.Siin:
-        case Letter.Shiin:
-        case Letter.Saad:
-        case Letter.Daad:
-        case Letter.Tta:
-        case Letter.Ththa:
-        case Letter.A3ein:
-        case Letter.Ghain:
-        case Letter.Fa:
-        case Letter.Qaf:
-        case Letter.Kaf:
-        case Letter.Lam:
-        case Letter.Mim:
-        case Letter.Nun:
-        case Letter.Ha:
-        case Letter.Waw:
-        case Letter.Ya:
-            return true;
-    }
-    return false;
-}
-
-export function RootToString(rootData: RootOverviewData)
+export function RootToString(rootData: OpenArabDictRoot)
 {
     const root = new VerbRoot(rootData.radicals);
 

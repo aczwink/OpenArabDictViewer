@@ -18,19 +18,19 @@
 
 import { Injectable } from "acfrontend";
 import { APIService } from "./APIService";
-import { FullWordData, RootOverviewData, VerbData } from "../../dist/api";
+import { FullWordData } from "../../dist/api";
 import { NumberDictionary } from "acts-util-core";
+import { OpenArabDictRoot, OpenArabDictVerb, OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
+
+export interface WordWithConnections extends FullWordData
+{
+    word: OpenArabDictWord;
+}
 
 export interface FullVerbData
 {
-    rootData: RootOverviewData;
-    verbData: VerbData;
-}
-
-interface RootCache
-{
-    data: RootOverviewData;
-    verbs?: VerbData[];
+    rootData: OpenArabDictRoot;
+    verbData: OpenArabDictVerb;
 }
 
 @Injectable
@@ -39,8 +39,7 @@ export class CachedAPIService
     constructor(private apiService: APIService)
     {
         this.rootsCache = {};
-        this.rootVerbsCache = {};
-        this.verbsCache = {};
+        this.rootWordsCache = {};
         this.wordsCache = {};
     }
 
@@ -51,7 +50,7 @@ export class CachedAPIService
         return await this.QueryFullVerbDataForVerbData(verbData);
     }
 
-    public async QueryFullVerbDataForVerbData(verbData: VerbData): Promise<FullVerbData>
+    public async QueryFullVerbDataForVerbData(verbData: OpenArabDictVerb): Promise<FullVerbData>
     {
         return {
             rootData: await this.QueryRootData(verbData.rootId),
@@ -72,32 +71,42 @@ export class CachedAPIService
         return response.data;
     }
 
-    public async QueryVerb(verbId: number)
+    public async QueryRootWords(rootId: number)
     {
-        const cached = this.verbsCache[verbId];
-        if(cached !== undefined)
-            return cached;
+        const response = await this.apiService.roots._any_.words.get(rootId);
+        const words = response.data as WordWithConnections[];
 
-        const response = await this.apiService.verbs.get({ verbId });
-        if(response.statusCode !== 200)
-            throw new Error("HERE");
-        this.verbsCache[verbId] = response.data;
-        return response.data;
+        this.rootWordsCache[rootId] = words;
+        for (const word of words)
+            this.wordsCache[word.word.id] = word;
+
+        return words;
     }
 
-    public async QueryVerbsOfRoot(rootId: number)
+    public async QueryVerb(verbId: number)
     {
-        const cached = this.rootVerbsCache[rootId];
-        if(cached !== undefined)
-            return cached;
-
-        const response = await this.apiService.roots._any_.verbs.get(rootId);
-        this.rootVerbsCache[rootId] = response.data;
-
-        return response.data;
+        const word = await this.QueryWord(verbId);
+        if(word.type !== OpenArabDictWordType.Verb)
+            throw new Error("HERE");
+        return word;
     }
 
     public async QueryWord(wordId: number)
+    {
+        const fwd = await this.QueryFullWordData(wordId);
+
+        return fwd.word as OpenArabDictWord;
+    }
+
+    public async QueryWordWithConnections(wordId: number)
+    {
+        const fwd = await this.QueryFullWordData(wordId);
+
+        return fwd as WordWithConnections;
+    }
+
+    //Private methods
+    private async QueryFullWordData(wordId: number)
     {
         const cached = this.wordsCache[wordId];
         if(cached !== undefined)
@@ -112,8 +121,7 @@ export class CachedAPIService
     }
 
     //State
-    private rootsCache: NumberDictionary<RootOverviewData>;
-    private rootVerbsCache: NumberDictionary<VerbData[]>;
-    private verbsCache: NumberDictionary<VerbData>;
+    private rootsCache: NumberDictionary<OpenArabDictRoot>;
+    private rootWordsCache: NumberDictionary<WordWithConnections[]>;
     private wordsCache: NumberDictionary<FullWordData>;
 }

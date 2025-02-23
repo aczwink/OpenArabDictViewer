@@ -16,21 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Anchor, CheckBox, Component, FormField, Injectable, JSX_CreateElement, LineEdit, ProgressSpinner, Select, Switch } from "acfrontend";
+import { Component, FormField, Injectable, JSX_CreateElement, LineEdit, ProgressSpinner, Select, Switch } from "acfrontend";
 import { allWordTypes, WordTypeToText } from "./shared/words";
-import { OpenArabDictWordType, WordSearchDerivation } from "../dist/api";
-import { GlobalSearchService, SearchResultEntry, VerbByConjugationSearchResultEntry } from "./services/GlobalSearchService";
 import { APIService } from "./services/APIService";
 import { WordOverviewComponent } from "./words/WordOverviewComponent";
-import { VerbIdPreviewComponent, VerbPreviewComponent } from "./verbs/VerbPreviewComponent";
-import { Gender, Person, Numerus, Mood } from "openarabicconjugation/src/Definitions";
-import { ConjugationService } from "./services/ConjugationService";
-import { DialectType } from "openarabicconjugation/src/Dialects";
+import { OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
+import { VerbConjugationService } from "./services/VerbConjugationService";
+import { DialectsService } from "./services/DialectsService";
+import { SearchResultEntry } from "../dist/api";
 
 @Injectable
 export class GlobalSearchComponent extends Component
 {
-    constructor(private globalSearchService: GlobalSearchService, private apiService: APIService, private conjugationService: ConjugationService)
+    constructor(private apiService: APIService, private verbConjugationService: VerbConjugationService,
+        private dialectsService: DialectsService
+    )
     {
         super();
 
@@ -38,8 +38,6 @@ export class GlobalSearchComponent extends Component
 
         this.extendedSearch = false;
         this.wordType = null;
-        this.derivation = "any";
-        this.includeRelated = true;
 
         this.isSearching = false;
         this.offset = 0;
@@ -61,8 +59,6 @@ export class GlobalSearchComponent extends Component
 
     private extendedSearch: boolean;
     private wordType: OpenArabDictWordType | null;
-    private derivation: WordSearchDerivation;
-    private includeRelated: boolean;
 
     private isSearching: boolean;
     private offset: number;
@@ -75,39 +71,15 @@ export class GlobalSearchComponent extends Component
         this.isSearching = true;
         this.data = [];
 
-        if(this.extendedSearch)
-        {
-            const response1 = await this.apiService.words.get({
-                wordFilter: this.filter,
-                derivation: this.derivation,
-                includeRelated: this.includeRelated,
-                translation: "",
-                type: this.wordType,
-                offset: this.offset,
-                limit: this.limit
-            });
-            const response2 = await this.apiService.words.get({
-                wordFilter: "",
-                derivation: this.derivation,
-                includeRelated: this.includeRelated,
-                translation: this.filter,
-                type: this.wordType,
-                offset: this.offset,
-                limit: this.limit
-            });
-            this.data = response1.data.concat(response2.data).map( (x, i) => ({
-                type: "word",
-                word: x,
-                score: x.word.length - this.filter.length,
-                byTranslation: (i > response1.data.length),
-                vocalized: [],
-            }));
-            this.data.SortByDescending(x => x.score)
-        }
-        else
-        {
-            await this.globalSearchService.PerformSearch(this.filter, this.offset, this.limit, newData => this.data = newData);
-        }
+        const response = await this.apiService.words.get({
+            textFilter: this.filter,
+            wordType: this.wordType,
+            offset: this.offset,
+            limit: this.limit
+        });
+        this.data = response.data;
+        this.data.SortByDescending(x => x.score);
+
         this.isSearching = false;
     }
 
@@ -122,21 +94,6 @@ export class GlobalSearchComponent extends Component
                         <option selected={this.wordType === null} value={"null"}>Any</option>
                         {allWordTypes.map(x => <option selected={x === this.wordType} value={x}>{WordTypeToText(x)}</option>)}
                     </Select>
-                </FormField>
-            </div>
-            <div className="col">
-                <FormField title="Derivation">
-                    <Select onChanged={newValue => this.derivation = newValue[0] as any}>
-                        <option value="any" selected={this.derivation === "any"}>Any</option>
-                        <option value="none" selected={this.derivation === "none"}>None</option>
-                        <option value="root" selected={this.derivation === "root"}>Root</option>
-                        <option value="verb" selected={this.derivation === "verb"}>Verb</option>
-                    </Select>
-                </FormField>
-            </div>
-            <div className="col">
-                <FormField title="Include related words">
-                    <CheckBox value={this.includeRelated} onChanged={newValue => this.includeRelated = newValue} />
                 </FormField>
             </div>
         </div>;
@@ -163,19 +120,7 @@ export class GlobalSearchComponent extends Component
 
     private RenderResultEntry(entry: SearchResultEntry)
     {
-        switch(entry.type)
-        {
-            case "conjugated":
-                return this.RenderRow(entry);
-
-            case "verb":
-                return <tr>
-                    <td colSpan="2"><VerbPreviewComponent root={entry.verb.rootData} verbData={entry.verb.verbData} /></td>
-                </tr>;
-                
-            case "word":
-                return <WordOverviewComponent word={entry.word} />;
-        }
+        return <WordOverviewComponent word={entry.word.word as OpenArabDictWord} />;
     }
 
     private RenderResults()
@@ -186,7 +131,7 @@ export class GlobalSearchComponent extends Component
         return <table className="table table-striped table-hover table-sm">
             <thead>
                 <tr>
-                    <th>Word / Verb</th>
+                    <th>Word</th>
                     <th>Translation / Root</th>
                 </tr>
             </thead>
@@ -194,27 +139,6 @@ export class GlobalSearchComponent extends Component
                 {this.data.map(this.RenderResultEntry.bind(this))}
             </tbody>
         </table>;
-    }
-
-    private RenderRow(result: VerbByConjugationSearchResultEntry)
-    {
-        if(result.verbId !== undefined)
-        {
-            return <tr>
-                <td colSpan="2"><VerbIdPreviewComponent verbId={result.verbId} /></td>
-            </tr>;
-        }
-
-        const stem1ctx = (result.params.stem === 1) ? result.params.stem1Context : undefined;
-        const base = this.conjugationService.ConjugateToStringArgs(DialectType.ModernStandardArabic, result.root.radicalsAsSeparateLetters.join(""), result.params.stem, "perfect", "active", Gender.Male, Person.Third, Numerus.Singular, Mood.Indicative, stem1ctx);
-
-        const root = (result.rootId !== undefined) ? <Anchor route={"/roots/" + result.rootId}>{result.root.ToString()}</Anchor> : result.root.ToString();
-        const renderedVerb = (result.verbId !== undefined) ? <Anchor route={"/verbs/" + result.verbId}>{base}</Anchor> : base;
-
-        return <tr>
-            <td>{renderedVerb}</td>
-            <td>{root}</td>
-        </tr>;
     }
 
     //Event handlers

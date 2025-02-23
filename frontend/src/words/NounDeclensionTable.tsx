@@ -19,15 +19,16 @@
 import { Component, Injectable, JSX_CreateElement, ProgressSpinner } from "acfrontend";
 import { CachedAPIService } from "../services/CachedAPIService";
 import { Case, Gender, NounState, Numerus } from "openarabicconjugation/src/Definitions";
-import { FullWordData, OpenArabDictNonVerbDerivationType } from "../../dist/api";
+import { OpenArabDictNonVerbDerivationType } from "../../dist/api";
 import { DisplayVocalized, ParseVocalizedText } from "openarabicconjugation/src/Vocalization";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { TargetNounDerivation } from "openarabicconjugation/src/DialectConjugator";
 import { ConjugationService } from "../services/ConjugationService";
 import { DialectType } from "openarabicconjugation/src/Dialects";
+import { OpenArabDictGenderedWord, OpenArabDictWord, OpenArabDictWordParentType } from "openarabdict-domain";
 
 @Injectable
-export class NounDeclensionTable extends Component<{ word: FullWordData }>
+export class NounDeclensionTable extends Component<{ word: OpenArabDictGenderedWord; derivedWordIds: number[]; }>
 {
     constructor(private cachedAPIService: CachedAPIService, private conjugationService: ConjugationService)
     {
@@ -53,7 +54,7 @@ export class NounDeclensionTable extends Component<{ word: FullWordData }>
     }
 
     //State
-    private plurals: FullWordData[] | null;
+    private plurals: OpenArabDictWord[] | null;
 
     //Private methods
     private BuildBaseNoun(referenceWord: DisplayVocalized[], targetGender: Gender, targetNumerus: Numerus)
@@ -75,18 +76,19 @@ export class NounDeclensionTable extends Component<{ word: FullWordData }>
 
     private IsSingular()
     {
-        if(this.input.word.derivation !== undefined)
+        if(this.input.word.parent !== undefined)
         {
-            if("relationType" in this.input.word.derivation)
-                return this.input.word.derivation.relationType !== OpenArabDictNonVerbDerivationType.Plural;
+            if(this.input.word.parent.type === OpenArabDictWordParentType.NonVerbWord)
+                this.input.word.parent.relationType !== OpenArabDictNonVerbDerivationType.Plural;
         }
         return true;
     }
 
     private async LoadPlurals()
     {
-        const plurals = this.input.word.derived.filter(x => x.relationType === OpenArabDictNonVerbDerivationType.Plural);
-        this.plurals = await plurals.Values().Map(x => this.cachedAPIService.QueryWord(x.refWordId)).PromiseAll();
+        const derived = await this.input.derivedWordIds.Values().Map(x => this.cachedAPIService.QueryWord(x)).PromiseAll();
+
+        this.plurals = derived.filter(x => (x.parent?.type === OpenArabDictWordParentType.NonVerbWord) && (x.parent.relationType === OpenArabDictNonVerbDerivationType.Plural));
     }
     
     private RenderNumerus(numerus: Numerus)
@@ -138,7 +140,7 @@ export class NounDeclensionTable extends Component<{ word: FullWordData }>
 
     private RenderNumerusCaseGender(numerus: Numerus, c: Case, gender: Gender)
     {
-        const inputWord = this.input.word.word;
+        const inputWord = this.input.word.text;
         const parsed = ParseVocalizedText(inputWord);
 
         return <fragment>

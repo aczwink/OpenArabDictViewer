@@ -18,16 +18,14 @@
 
 import { Injectable } from "acts-util-node";
 import { DatabaseController } from "./DatabaseController";
-import { RootType, VerbRoot } from "openarabicconjugation/src/VerbRoot";
+import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
 import { Dictionary, ObjectExtensions } from "acts-util-core";
-import { VerbsController, VerbUpdateData } from "./VerbsController";
-import { RootsController } from "./RootsController";
 import { Conjugator } from "openarabicconjugation/src/Conjugator";
-import { WordsController } from "./WordsController";
 import { DisplayVocalized, VocalizedToString } from "openarabicconjugation/src/Vocalization";
-import { AdvancedStemNumber, Stem1Context, VerbConjugationScheme } from "openarabicconjugation/src/Definitions";
+import { AdvancedStemNumber, Stem1Context, VerbType } from "openarabicconjugation/src/Definitions";
 import { DialectsService } from "../services/DialectsService";
-import { OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictVerbDerivationType, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
+import { RootsIndexService } from "../services/RootsIndexService";
 
 interface DialectStatistics
 {
@@ -37,16 +35,16 @@ interface DialectStatistics
 
 interface VerbTypeStatistics
 {
-    scheme: VerbConjugationScheme;
+    scheme: VerbType;
     count: number;
 }
 
 interface VerbalNounFrequencies
 {
     count: number;
-    rootType: RootType;
+    scheme: VerbType;
     stem: number;
-    stemChoiceIndex?: number;
+    stemParameters?: string;
     verbalNounIndex: number;
 }
 
@@ -58,8 +56,9 @@ interface VerbStemStatistics
 
 interface VerbStem1Frequencies
 {
-    rootType: RootType;
-    index: number;
+    dialectId: number;
+    scheme: VerbType;
+    stemParameters: string;
     count: number;
 }
 
@@ -78,8 +77,9 @@ interface DictionaryStatistics
 @Injectable
 export class StatisticsController
 {
-    constructor(private dbController: DatabaseController, private verbsController: VerbsController, private rootsController: RootsController,
-        private wordsController: WordsController, private dialectsService: DialectsService)
+    constructor(private dbController: DatabaseController, private dialectsService: DialectsService,
+        private rootsIndexService: RootsIndexService
+    )
     {
     }
 
@@ -93,20 +93,18 @@ export class StatisticsController
             dialectCounts: await this.QueryDialectCounts(),
             verbTypeCounts: await this.QueryVerbTypeCounts(),
             stemCounts: await this.QueryStemCounts(),
-            /*stem1Freq: await this.QueryStem1Frequencies(),
-            verbalNounFreq: await this.QueryVerbalNounFrequencies()*/
-            stem1Freq: [],
-            verbalNounFreq: []
+            stem1Freq: await this.QueryStem1Frequencies(),
+            verbalNounFreq: await this.QueryVerbalNounFrequencies()
         };
     }
 
     //Private methods
-    private GenerateStemData(verbConjugationScheme: VerbConjugationScheme, verbData: VerbUpdateData): AdvancedStemNumber | Stem1Context
+    private GenerateStemData(VerbType: VerbType, dialectId: number, stem: number, stemParameters?: string): AdvancedStemNumber | Stem1Context
     {
-        if(verbData.stem1Context === undefined)
-            return verbData.stem as AdvancedStemNumber;
+        if(stemParameters === undefined)
+            return stem as AdvancedStemNumber;
 
-        return this.dialectsService.GetDialectMetaData(verbData.dialectId).CreateStem1Context(verbConjugationScheme, verbData.stem1Context);
+        return this.dialectsService.GetDialectMetaData(dialectId).CreateStem1Context(VerbType, stemParameters);
     }
 
     private async QueryDialectCounts()
@@ -140,16 +138,16 @@ export class StatisticsController
             if(word.type !== OpenArabDictWordType.Verb)
                 continue;
 
-            const root = document.roots.find(x => x.id === word.rootId)!;
+            const root = this.rootsIndexService.GetRoot(word.rootId)!;
             const rootInstance = new VerbRoot(root.radicals);
-            const scheme = rootInstance.DeriveDeducedVerbConjugationScheme();
+            const scheme = rootInstance.DeriveDeducedVerbType();
             
             counts[scheme] = (counts[scheme] ?? 0) + 1;
         }
 
         return ObjectExtensions.Entries(counts).Map<VerbTypeStatistics>(kv => ({
             count: kv.value!,
-            scheme: parseInt(kv.key as any) as VerbConjugationScheme
+            scheme: parseInt(kv.key as any) as VerbType
         })).ToArray();
     }
 
@@ -173,28 +171,30 @@ export class StatisticsController
 
     private async QueryStem1Frequencies()
     {
-        const conn = await this.dbController.CreateAnyConnectionQueryExecutor();
-        const rows = await conn.Select("SELECT id FROM verbs WHERE stem = 1");
+        const document = await this.dbController.GetDocumentDB();
 
         const dict: Dictionary<VerbStem1Frequencies> = {};
-        for (const row of rows)
+        for (const word of document.words)
         {
-            const verb = await this.verbsController.QueryVerb(row.id);
-            const rootData = await this.rootsController.QueryRoot(verb!.rootId);
+            if(word.type !== OpenArabDictWordType.Verb)
+                continue;
+            if(word.stem !== 1)
+                continue;
 
+            const rootData = this.rootsIndexService.GetRoot(word.rootId);
             const root = new VerbRoot(rootData!.radicals);
-            const choices = this.dialectsService.GetDialectMetaData(verb!.dialectId).GetStem1ContextChoices(root);
+            const scheme = (word.soundOverride === true) ? VerbType.Sound : root.DeriveDeducedVerbType();
+            const params = word.stemParameters!;
 
-            const index = choices.types.indexOf(verb!.stem1Context!);
-
-            const key = [root.type, index].join("_");
+            const key = [word.dialectId, scheme, params].join("_");
             const obj = dict[key];
             if(obj === undefined)
             {
                 dict[key] = {
+                    dialectId: word.dialectId,
                     count: 1,
-                    index,
-                    rootType: root.type
+                    scheme,
+                    stemParameters: params
                 };
             }
             else
@@ -211,41 +211,43 @@ export class StatisticsController
             return vocalized.Values().Map(VocalizedToString).Join("");
         }
 
+        const document = await this.dbController.GetDocumentDB();
+
         const conjugator = new Conjugator();
 
-        const conn = await this.dbController.CreateAnyConnectionQueryExecutor();
-        const rows = await conn.Select("SELECT wordId, verbId FROM words_verbs WHERE type = 1");
-
         const dict: Dictionary<VerbalNounFrequencies> = {};
-        for (const row of rows)
+        for (const word of document.words)
         {
-            const verbData = await this.verbsController.QueryVerb(row.verbId);
-            const rootData = await this.rootsController.QueryRoot(verbData!.rootId);
+            if(word.type === OpenArabDictWordType.Verb)
+                continue;
+            if(word.parent?.type !== OpenArabDictWordParentType.Verb)
+                continue;
+            if(word.parent.derivation !== OpenArabDictVerbDerivationType.VerbalNoun)
+                continue;
 
+            const verbId = word.parent.verbId;
+            const verb = document.words.find(x => x.id === verbId)!;
+            if(verb.type !== OpenArabDictWordType.Verb)
+                throw new Error("Should never happen");
+
+            const rootData = this.rootsIndexService.GetRoot(verb.rootId);
             const root = new VerbRoot(rootData!.radicals);
-            const generated = conjugator.GenerateAllPossibleVerbalNouns(root, this.GenerateStemData(root.DeriveDeducedVerbConjugationScheme(), verbData!));
+
+            const scheme = (verb.soundOverride === true) ? VerbType.Sound : root.DeriveDeducedVerbType();
+
+            const generated = conjugator.GenerateAllPossibleVerbalNouns(root, this.GenerateStemData(scheme, verb.dialectId, verb.stem, verb.stemParameters));
             const verbalNounPossibilities = generated.map(VocalizedArrayToString);
 
-            const wordData = await this.wordsController.QueryWord(row.wordId);
-            const verbalNounIndex = verbalNounPossibilities.indexOf(wordData!.word);
-
-            let stemKey = verbData!.stem.toString();
-            let stemChoiceIndex;
-            if(verbData?.stem === 1)
-            {
-                stemChoiceIndex = this.dialectsService.GetDialectMetaData(verbData.dialectId).GetStem1ContextChoices(root).types.indexOf(verbData.stem1Context!);
-                stemKey += "_" + stemChoiceIndex;
-            }
-
-            const key = [root.type, stemKey, verbalNounIndex].join("_");
+            const verbalNounIndex = verbalNounPossibilities.indexOf(word.text);
+            const key = [scheme, verb.stem, verb.stemParameters ?? "", verbalNounIndex].join("_");
             const obj = dict[key];
             if(obj === undefined)
             {
                 dict[key] = {
                     count: 1,
-                    rootType: root.type,
-                    stem: verbData!.stem,
-                    stemChoiceIndex,
+                    scheme,
+                    stem: verb.stem,
+                    stemParameters: verb.stemParameters,
                     verbalNounIndex,
                 };
             }

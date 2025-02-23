@@ -18,10 +18,9 @@
 
 import { Injectable } from "acfrontend";
 import { Conjugator } from "openarabicconjugation/src/Conjugator";
-import { ReverseConjugator } from "openarabicconjugation/src/ReverseConjugator";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
-import { DisplayVocalized, ParseVocalizedText, VocalizedToString } from "openarabicconjugation/src/Vocalization";
-import { Stem1Context, ConjugationParams, Person, Tense, Voice, Gender, Numerus, Mood, TenseString, VoiceString, AdjectiveDeclensionParams, NounDeclensionParams, AdvancedStemNumber } from "openarabicconjugation/src/Definitions";
+import { DisplayVocalized, VocalizedToString } from "openarabicconjugation/src/Vocalization";
+import { Stem1Context, ConjugationParams, Person, Tense, Voice, Gender, Numerus, Mood, AdjectiveDeclensionParams, NounDeclensionParams, AdvancedStemNumber } from "openarabicconjugation/src/Definitions";
 import { NounInput, TargetNounDerivation } from "openarabicconjugation/src/DialectConjugator";
 import { DialectType } from "openarabicconjugation/src/Dialects";
 
@@ -34,20 +33,20 @@ export class ConjugationService
     }
 
     //Public methods
-    public AnalyzeConjugation(conjugated: string)
+    public Conjugate(dialect: DialectType, root: VerbRoot, params: ConjugationParams)
     {
-        const reverser = new ReverseConjugator(DialectType.ModernStandardArabic, ParseVocalizedText(conjugated));
-        return reverser.AnalyzeConjugation();
+        const vocalized = this.conjugator.Conjugate(root, params, dialect);
+        return vocalized;
     }
 
-    public Conjugate(dialect: DialectType, rootRadicals: string, stem: number, tense: TenseString, voice: VoiceString, gender: Gender, person: Person, numerus: Numerus, mood: Mood, stem1Context?: Stem1Context)
+    public ConjugateArgs(dialect: DialectType, rootRadicals: string, stem: number, tense: Tense, voice: Voice, gender: Gender, person: Person, numerus: Numerus, mood: Mood, stem1Context?: Stem1Context)
     {
         const root = new VerbRoot(rootRadicals);
 
         return this.conjugator.Conjugate(root, {
             stem: stem as any,
-            tense: (tense === "perfect") ? Tense.Perfect : Tense.Present,
-            voice: (voice === "active" ? Voice.Active : Voice.Passive),
+            tense,
+            voice,
             gender,
             person,
             numerus,
@@ -56,15 +55,9 @@ export class ConjugationService
         }, dialect);
     }
 
-    public ConjugateToString(dialect: DialectType, root: VerbRoot, params: ConjugationParams)
+    public ConjugateToStringArgs(dialect: DialectType, rootRadicals: string, stem: number, tense: Tense, voice: Voice, gender: Gender, person: Person, numerus: Numerus, mood: Mood, stem1Context?: Stem1Context)
     {
-        const vocalized = this.conjugator.Conjugate(root, params, dialect);
-        return this.VocalizedToString(vocalized);
-    }
-
-    public ConjugateToStringArgs(dialect: DialectType, rootRadicals: string, stem: number, tense: TenseString, voice: VoiceString, gender: Gender, person: Person, numerus: Numerus, mood: Mood, stem1Context?: Stem1Context)
-    {
-        const vocalized = this.Conjugate(dialect, rootRadicals, stem, tense, voice, gender, person, numerus, mood, stem1Context);
+        const vocalized = this.ConjugateArgs(dialect, rootRadicals, stem, tense, voice, gender, person, numerus, mood, stem1Context);
         return this.VocalizedToString(vocalized);
     }
 

@@ -43,7 +43,7 @@ resource backend 'Microsoft.Web/sites@2024-04-01' = {
         }
         {
           name: 'ARABDICT_ORIGIN'
-          value: frontend.properties.defaultHostname
+          value: 'https://${frontend.properties.defaultHostname}'
         }
         {
           name: 'ARABDICT_PORT'

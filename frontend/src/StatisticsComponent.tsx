@@ -18,23 +18,21 @@
 
 import { Component, Injectable, JSX_CreateElement, ProgressSpinner } from "acfrontend";
 import { APIService } from "./services/APIService";
-import { DialectStatistics, DictionaryStatistics, RootType, VerbalNounFrequencies } from "../dist/api";
+import { DialectStatistics, DictionaryStatistics, VerbalNounFrequencies, VerbType } from "../dist/api";
 import { DialectsService } from "./services/DialectsService";
 import { Dictionary, KeyValuePair, ObjectExtensions } from "acts-util-core";
 import { ConjugationService } from "./services/ConjugationService";
-import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
-import { AdvancedStemNumber, Stem1Context } from "openarabicconjugation/src/Definitions";
 import { RomanNumberComponent, StemNumberComponent } from "./shared/RomanNumberComponent";
-import { GetDialectMetadata } from "openarabicconjugation/src/DialectsMetadata";
 import { DialectType } from "openarabicconjugation/src/Dialects";
-import { VerbFormComponent } from "./verbs/VerbFormComponent";
-import { RootTypeToPattern, RootTypeToString } from "./roots/general";
 import { ConjugationSchemeToString } from "./verbs/ToStringStuff";
+import { AdvancedStemNumber, Stem1Context } from "openarabicconjugation/src/Definitions";
+import { GetDialectMetadata } from "openarabicconjugation/src/DialectsMetadata";
+import { VerbConjugationService } from "./services/VerbConjugationService";
 
 @Injectable
 export class StatisticsComponent extends Component
 {
-    constructor(private apiService: APIService, private dialectsService: DialectsService, private conjugationService: ConjugationService)
+    constructor(private apiService: APIService, private dialectsService: DialectsService, private conjugationService: ConjugationService, private verbConjugationService: VerbConjugationService)
     {
         super();
 
@@ -74,30 +72,28 @@ export class StatisticsComponent extends Component
             })))}
             
             {this.RenderKeyValueTable("Stem 1 frequencies", {
-                rootType: "Root type",
-                pattern: "Pattern",
+                dialect: "Dialect",
+                verbType: "Verb type",
                 form: "Form",
                 count: "Count"
             }, this.data.stem1Freq.map(x => ({
-                rootType: RootTypeToString(x.rootType),
-                pattern: RootTypeToPattern(x.rootType),
-                form: this.BuildForm(x.rootType, x.index),
+                dialect: this.DialectToString(x.dialectId),
+                verbType: ConjugationSchemeToString(x.scheme),
+                form: this.BuildForm(x.scheme, x.stemParameters, x.dialectId),
                 count: x.count,
             })))}
             
             {this.RenderKeyValueTable("Verbal noun frequencies", {
-                rootType: "Root type",
-                pattern: "Pattern",
+                verbType: "Verb type",
                 stem: "Stem",
                 form: "Form",
                 verbalNoun: "Verbal noun",
                 count: "Count"
             }, this.data.verbalNounFreq.map(x => ({
-                rootType: RootTypeToString(x.rootType),
-                pattern: RootTypeToPattern(x.rootType),
-                stem: <StemNumberComponent rootType={x.rootType} stem={x.stem} />,
-                form: (x.stemChoiceIndex === undefined) ? "" : this.BuildForm(x.rootType, x.stemChoiceIndex),
-                verbalNoun: this.GenerateVerbalNoun(x.rootType, x.stem, x.stemChoiceIndex, x.verbalNounIndex),
+                verbType: ConjugationSchemeToString(x.scheme),
+                stem: <StemNumberComponent verbType={x.scheme} stem={x.stem} />,
+                form: (x.stemParameters === undefined) ? "" : this.BuildForm(x.scheme, x.stemParameters, this.dialectsService.FindDialect(DialectType.ModernStandardArabic)!.id),
+                verbalNoun: this.GenerateVerbalNoun(x.scheme, x.stem, x.stemParameters, x.verbalNounIndex),
                 count: x.count,
             })))}
         </div>;
@@ -109,59 +105,59 @@ export class StatisticsComponent extends Component
     //Private methods
     private BuildDialectRows(dialectCounts: DialectStatistics)
     {
-        const d = this.dialectsService.GetDialect(dialectCounts.dialectId);
-
         return {
-            dialect: d.emojiCodes + " " + d.name,
+            dialect: this.DialectToString(dialectCounts.dialectId),
             wordsCount: dialectCounts.wordsCount,
         };
     }
 
-    private BuildForm(rootType: RootType, index: number)
+    private BuildForm(scheme: VerbType, stemParameters: string, dialectId: number)
     {
-        if(index === -1)
-            return <i>invalid</i>;
-
-        const radicals = this.GetExampleRootRadicals(rootType);
-        const root = new VerbRoot(radicals.join(""));
-        
-        return <VerbFormComponent dialectType={DialectType.ModernStandardArabic} root={root} index={index} stem={1} />;
+        const radicals = this.GetExampleRootRadicals(scheme);
+        return this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(radicals.join(""), {
+            dialectId,
+            stem: 1,
+            stemParameters
+        });
     }
 
-    private GenerateVerbalNoun(rootType: RootType, stem: number, stem1Context: number | undefined, verbalNounIndex: number)
+    private DialectToString(dialectId: number)
     {
-        if(verbalNounIndex === -1)
-            return <i>invalid</i>;
+        const d = this.dialectsService.GetDialect(dialectId);
+        return d.emojiCodes + " " + d.name;
+    }
 
-        const radicals = this.GetExampleRootRadicals(rootType).join("");
-        const root = new VerbRoot(radicals);
+    private GenerateVerbalNoun(scheme: VerbType, stem: number, stemParameters: string | undefined, verbalNounIndex: number)
+    {
+        const radicals = this.GetExampleRootRadicals(scheme).join("");
         const meta = GetDialectMetadata(DialectType.ModernStandardArabic);
-        const choices = meta.GetStem1ContextChoices(root);
-        const choice = choices.types[stem1Context ?? 0];
-        const stemData: AdvancedStemNumber | Stem1Context = (stem1Context === undefined) ? (stem as AdvancedStemNumber) : meta.CreateStem1Context(root.DeriveDeducedVerbConjugationScheme(), choice);
+        const stemData: AdvancedStemNumber | Stem1Context = (stemParameters === undefined) ? (stem as AdvancedStemNumber) : meta.CreateStem1Context(scheme, stemParameters);
 
         const generated = this.conjugationService.GenerateAllPossibleVerbalNouns(radicals, stemData)[verbalNounIndex];
         return generated;
     }
 
-    private GetExampleRootRadicals(rootType: RootType)
+    private GetExampleRootRadicals(scheme: VerbType)
     {
-        switch(rootType)
+        switch(scheme)
         {
-            case RootType.Quadriliteral:
-                return ["ف", "ع", "ل", "ق"];
-            case RootType.InitialWeak:
+            case VerbType.Assimilated:
                 return ["و", "ع", "ل"];
-            case RootType.FinalWeak:
+            case VerbType.AssimilatedAndDefective:
+                return ["و", "ع", "ي"];
+            case VerbType.Defective:
                 return ["ف", "ع", "و"];
-            case RootType.HamzaOnR1:
-                return ["ء", "ع", "ل"];
-            case RootType.MiddleWeak:
-                return ["ف", "و", "ل"];
-            case RootType.SecondConsonantDoubled:
+            case VerbType.Geminate:
                 return ["ف", "ل", "ل"];
+            case VerbType.HamzaOnR1:
+                return ["ء", "ع", "ل"];
+            case VerbType.Hollow:
+                return ["ف", "و", "ل"];
+            case VerbType.Sound:
+                return ["ف", "ع", "ل"];
+            case VerbType.SoundQuadriliteral:
+                return ["ف", "ع", "ل", "ق"];
         }
-        return ["ف", "ع", "ل"];
     }
 
     private RenderColumnTable(heading: string, rows: any[])
@@ -213,7 +209,7 @@ export class StatisticsComponent extends Component
     //Event handlers
     override async OnInitiated(): Promise<void>
     {
-        function FilterComplex(kv: KeyValuePair<RootType, VerbalNounFrequencies[]>)
+        function FilterComplex(kv: KeyValuePair<VerbType, VerbalNounFrequencies[]>)
         {
             const byStem = kv.value.Values().GroupBy(x => x.stem);
             const filtered = byStem.Filter(x => (x.value.length > 1) || (x.value[0].verbalNounIndex === -1));
@@ -228,11 +224,11 @@ export class StatisticsComponent extends Component
         this.data.stemCounts.SortByDescending(x => x.count);
 
         this.data.stem1Freq.SortByDescending(x => x.count);
-        this.data.stem1Freq = this.data.stem1Freq.Values().GroupBy(x => x.rootType)
+        this.data.stem1Freq = this.data.stem1Freq.Values().GroupBy(x => x.scheme)
             .Filter(x => x.value.length > 1)
             .Map(x => x.value.Values().OrderByDescending(x => x.count)).Flatten().ToArray();
 
-        this.data.verbalNounFreq = this.data.verbalNounFreq.Values().GroupBy(x => x.rootType)
+        this.data.verbalNounFreq = this.data.verbalNounFreq.Values().GroupBy(x => x.scheme)
             .Map(FilterComplex)
             .Map(x => x.OrderBy(x => [x.stem, x.count])).Flatten().ToArray();
     }

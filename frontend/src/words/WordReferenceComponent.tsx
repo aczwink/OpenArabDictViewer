@@ -16,19 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Anchor, Component, Injectable, JSX_CreateElement, ProgressSpinner } from "acfrontend";
-import { APIService } from "../services/APIService";
-import { FullWordData, OpenArabDictVerbDerivationType } from "../../dist/api";
+import { Anchor, Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "acfrontend";
 import { WordGenderToAbbreviation, WordMayHaveGender, WordTypeToAbbreviationText } from "../shared/words";
+import { OpenArabDictRoot, OpenArabDictVerbDerivationType, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
+import { CachedAPIService } from "../services/CachedAPIService";
+import { DialectsService } from "../services/DialectsService";
+import { StemNumberComponent } from "../shared/RomanNumberComponent";
+import { VerbConjugationService } from "../services/VerbConjugationService";
+import { ModernStandardArabicStem1ContextType } from "openarabicconjugation/src/DialectsMetadata";
 
-export class WordReferenceComponent extends Component<{ word: FullWordData; }>
+@Injectable
+export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; }>
 {
+    constructor(private dialectsService: DialectsService, private verbConjugationService: VerbConjugationService, private cachedAPIService: CachedAPIService,
+    )
+    {
+        super();
+
+        this.root = null;
+    }
+
     protected Render(): RenderValue
     {
-        const x = this.input.word;
-
         return <fragment>
-            <Anchor route={"/words/" + x.id}>{x.word}</Anchor>
+            <Anchor route={"/words/" + this.input.word.id}>{this.RenderText()}</Anchor>
             {" "}
             {this.TypeToString()}
             {this.RenderGender()}
@@ -44,12 +55,31 @@ export class WordReferenceComponent extends Component<{ word: FullWordData; }>
         return <i>{WordGenderToAbbreviation(this.input.word.isMale)}</i>;
     }
 
+    private RenderText()
+    {
+        const word = this.input.word;
+        if((word.type === OpenArabDictWordType.Verb) && (this.root !== null))
+        {
+            const verbType = this.verbConjugationService.GetType(this.root.radicals, word);
+
+            const verbPresentation = this.verbConjugationService.CreateDefaultDisplayVersionOfVerbWithDiff(this.root.radicals, word, { ...word, stem: 1, stemParameters: ModernStandardArabicStem1ContextType.RegularOrHollow_PastI_PresentI });
+
+            return <>
+                {this.verbConjugationService.RenderCheck(this.root.radicals, word)}
+                {this.dialectsService.GetDialect(word.dialectId).emojiCodes}
+                <StemNumberComponent verbType={verbType} stem={word.stem} />:
+                {verbPresentation}
+            </>;
+        }
+        return word.text;
+    }
+
     private TypeToString()
     {
         const word = this.input.word;
-        if( (word.derivation !== undefined) && ("verbId" in word.derivation) )
+        if( (word.parent !== undefined) && (word.parent.type === OpenArabDictWordParentType.Verb) )
         {
-            switch(word.derivation.type)
+            switch(word.parent.derivation)
             {
                 case OpenArabDictVerbDerivationType.ActiveParticiple:
                     return "(active participle)";
@@ -59,16 +89,24 @@ export class WordReferenceComponent extends Component<{ word: FullWordData; }>
                     return "(verbal noun)";
             }
         }
-        if(this.input.word.functions.length === 1)
-            return WordTypeToAbbreviationText(word.functions[0].type);
-        return null;
+        return WordTypeToAbbreviationText(word.type);
     }
+
+    //Event handlers
+    override async OnInitiated(): Promise<void>
+    {
+        if(this.input.word.type === OpenArabDictWordType.Verb)
+            this.root = await this.cachedAPIService.QueryRootData(this.input.word.rootId);
+    }
+
+    //State
+    private root: OpenArabDictRoot | null;
 }
 
 @Injectable
 export class WordIdReferenceComponent extends Component<{ wordId: number }>
 {
-    constructor(private apiService: APIService)
+    constructor(private cachedAPIService: CachedAPIService)
     {
         super();
 
@@ -84,14 +122,12 @@ export class WordIdReferenceComponent extends Component<{ wordId: number }>
     }
 
     //Private state
-    private word: FullWordData | null;
+    private word: OpenArabDictWord | null;
 
     //Event handlers
     override async OnInitiated(): Promise<void>
     {
-        const response = await this.apiService.words._any_.get(this.input.wordId);
-        if(response.statusCode !== 200)
-            throw new Error("TODO: implement me");
-        this.word = response.data;
+        const word = await this.cachedAPIService.QueryWord(this.input.wordId);
+        this.word = word;
     }
 }

@@ -18,8 +18,8 @@
 
 import { APIController, Get, Path, Query } from "acts-util-apilib";
 import { RootsController } from "../data-access/RootsController";
-import { VerbsController } from "../data-access/VerbsController";
 import { WordsController } from "../data-access/WordsController";
+import { RootsIndexService } from "../services/RootsIndexService";
 
 @APIController("roots")
 class _api_
@@ -40,24 +40,16 @@ class _api_
 @APIController("roots/{rootId}")
 class _api2_
 {
-    constructor(private rootsController: RootsController, private verbsController: VerbsController, private wordsController: WordsController)
+    constructor(private wordsController: WordsController, private rootsIndexService: RootsIndexService,)
     {
     }
 
     @Get()
-    public async QueryRoot(
+    public QueryRoot(
         @Path rootId: number
     )
     {
-        return await this.rootsController.QueryRoot(rootId);
-    }
-
-    @Get("verbs")
-    public async QueryVerbs(
-        @Path rootId: number
-    )
-    {
-        return await this.verbsController.QueryVerbs(rootId);
+        return this.rootsIndexService.GetRoot(rootId);
     }
 
     @Get("words")

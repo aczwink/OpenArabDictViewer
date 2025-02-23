@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Anchor, BootstrapIcon, Component, Injectable, JSX_CreateElement, ProgressSpinner, Router, RouterState } from "acfrontend";
+import { Anchor, BootstrapIcon, Component, Injectable, JSX_CreateElement, ProgressSpinner, RouterState } from "acfrontend";
 import { APIService } from "../services/APIService";
-import { RootOverviewData } from "../../dist/api";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
 import { AreValidRootCharacters, DoRootCharactersFormValidRoot, RootToString } from "./general";
 import { RadicalsEditorComponent } from "./RadicalsEditorComponent";
+import { OpenArabDictRoot } from "openarabdict-domain";
 
 interface AlphabetRange
 {
@@ -40,7 +40,7 @@ const alphabetChars: AlphabetRange[] = [
 @Injectable
 export class ListRootsComponent extends Component
 {
-    constructor(routerState: RouterState, private apiService: APIService, private router: Router)
+    constructor(routerState: RouterState, private apiService: APIService)
     {
         super();
 
@@ -72,7 +72,7 @@ export class ListRootsComponent extends Component
 
     //Private state
     private searchText: string | null;
-    private data: RootOverviewData[] | null;
+    private data: OpenArabDictRoot[] | null;
 
     //Private methods
     private RenderRange(range: AlphabetRange)
@@ -88,7 +88,7 @@ export class ListRootsComponent extends Component
         return elems;
     }
 
-    private RenderRootRow(rootData: RootOverviewData)
+    private RenderRootRow(rootData: OpenArabDictRoot)
     {
         const root = new VerbRoot(rootData.radicals);
         return <tr>

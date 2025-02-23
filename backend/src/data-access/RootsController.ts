@@ -18,14 +18,6 @@
 
 import { Injectable } from "acts-util-node";
 import { DatabaseController } from "./DatabaseController";
-import { Of } from "acts-util-core";
-
-interface RootOverviewData
-{
-    id: number;
-    radicals: string;
-    ya?: boolean;
-}
 
 @Injectable
 export class RootsController
@@ -35,30 +27,11 @@ export class RootsController
     }
 
     //Public methods
-    public async QueryRoot(id: number)
-    {
-        const document = await this.dbController.GetDocumentDB();
-        
-        const root = document.roots.find(x => x.id === id);
-        if(root === undefined)
-            return undefined;
-
-        return Of<RootOverviewData>({
-            id,
-            radicals: root.radicals,
-            ya: root.ya
-        });
-    }
-
     public async QueryRoots(prefix: string)
     {
         const document = await this.dbController.GetDocumentDB();
 
         const filtered = document.roots.Values().Filter(x => x.radicals.startsWith(prefix));
-        return filtered.Map<RootOverviewData>( x => ({
-            id: x.id,
-            radicals: x.radicals,
-            ya: x.ya
-        })).OrderBy(x => x.radicals).ToArray();
+        return filtered.OrderBy(x => x.radicals).ToArray();
     }
 }

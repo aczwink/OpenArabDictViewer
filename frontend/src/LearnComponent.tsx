@@ -16,24 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { CheckBox, Component, FormField, Injectable, JSX_CreateElement, ProgressSpinner } from "acfrontend";
+import { Component, Injectable, JSX_CreateElement, ProgressSpinner } from "acfrontend";
 import { APIService } from "./services/APIService";
-import { FullWordData, WordFunctionData } from "../dist/api";
-import { ConjugationService } from "./services/ConjugationService";
-import { RemoveTashkilButKeepShadda } from "openarabicconjugation/src/Util";
 import { RenderTranslations } from "./shared/translations";
-import { Stem1DataToStem1ContextOptional } from "./verbs/model";
-import { Gender, Numerus, Person, Tense, Voice } from "openarabicconjugation/src/Definitions";
 import { WordTypeToText } from "./shared/words";
 import { DialectsService } from "./services/DialectsService";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
-import { DialectType } from "openarabicconjugation/src/Dialects";
 import { CachedAPIService } from "./services/CachedAPIService";
+import { OpenArabDictWord } from "openarabdict-domain";
+import { VerbConjugationService } from "./services/VerbConjugationService";
 
 @Injectable
 export class LearnComponent extends Component
 {
-    constructor(private apiService: APIService, private cachedAPIService: CachedAPIService, private conjugationService: ConjugationService, private dialectsService: DialectsService)
+    constructor(private apiService: APIService, private cachedAPIService: CachedAPIService, private verbConjugationService: VerbConjugationService, private dialectsService: DialectsService)
     {
         super();
 
@@ -55,7 +51,7 @@ export class LearnComponent extends Component
             numerus: Numerus.Singular,
             person: Person.Third,
             stem: this.data.stem as any,
-            stem1Context: Stem1DataToStem1ContextOptional(DialectType.ModernStandardArabic, root.DeriveDeducedVerbConjugationScheme(), this.data.stem1Context),
+            stem1Context: Stem1DataToStem1ContextOptional(DialectType.ModernStandardArabic, root.DeriveDeducedVerbType(), this.data.stem1Context),
             voice: Voice.Active
         }) : this.data.word;
 
@@ -88,7 +84,7 @@ export class LearnComponent extends Component
     }
 
     //Private state
-    private data: FullWordData | null;
+    private data: OpenArabDictWord | null;
     private rootRadicals: string;
     private showTashkil: boolean;
     private resolve: boolean;
@@ -115,17 +111,12 @@ export class LearnComponent extends Component
         throw new Error("TODO: need root first, i.e. fix diff between verbs and words");
     }
 
-    private RenderFunction(func: WordFunctionData)
+    private RenderFunction(func: OpenArabDictWord)
     {
         return <fragment>
             <h4>{WordTypeToText(func.type)}</h4>
             {RenderTranslations(func.translations)}
         </fragment>;
-    }
-
-    private RenderFunctions(functions: WordFunctionData[]): RenderValue
-    {
-        return functions.map(this.RenderFunction.bind(this))
     }
 
     //Event handlers

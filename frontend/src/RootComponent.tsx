@@ -36,12 +36,19 @@ export class RootComponent extends Component
 
         return <fragment>
             <Navigation>
-                <ul className="nav nav-pills">
-                    <NavItem route="/search"><BootstrapIcon>search</BootstrapIcon></NavItem>
-                    <NavItem route="/roots">Roots</NavItem>
-                    <NavItem route="/learn">Learn</NavItem>
-                    <NavItem route="/statistics">Statistics</NavItem>
-                </ul>
+                <div className="row m-auto">
+                    <div className="col-auto p-1">
+                        <h4>OpenArabDict</h4>
+                    </div>
+                    <div className="col">
+                        <ul className="nav nav-pills">
+                            <NavItem route="/search"><BootstrapIcon>search</BootstrapIcon></NavItem>
+                            <NavItem route="/roots">Roots</NavItem>
+                            <NavItem route="/learn">Learn</NavItem>
+                            <NavItem route="/statistics">Statistics</NavItem>
+                        </ul>
+                    </div>
+                </div>
             </Navigation>
             <div className="container-fluid">
                 <RouterComponent />

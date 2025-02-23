@@ -16,19 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Stem1Context, VerbType } from "openarabicconjugation/src/Definitions";
-import { DialectType } from "openarabicconjugation/src/Dialects";
-import { GetDialectMetadata } from "openarabicconjugation/src/DialectsMetadata";
+import { Anchor, JSX_CreateElement, ProgressSpinner, Use, UseEffectOnce, UseState } from "acfrontend";
+import { RootToString } from "./general";
+import { CachedAPIService } from "../services/CachedAPIService";
+import { Of } from "acts-util-core";
+import { OpenArabDictRoot } from "openarabdict-domain";
 
-export function Stem1DataToStem1Context(dialect: DialectType, VerbType: VerbType, data: string): Stem1Context
+export function RootIdReferenceComponent(input: { rootId: number })
 {
-    return GetDialectMetadata(dialect).CreateStem1Context(VerbType, data);
-}
+    const state = UseState({
+        root: Of<OpenArabDictRoot | null>(null)
+    });
+    UseEffectOnce(async () => {
+        state.root = await Use(CachedAPIService).QueryRootData(input.rootId);
+    });
 
-export function Stem1DataToStem1ContextOptional(dialect: DialectType, VerbType: VerbType, data?: string): Stem1Context | undefined
-{
-    if(data === undefined)
-        return undefined;
+    if(state.root === null)
+        return <ProgressSpinner />;
 
-    return Stem1DataToStem1Context(dialect, VerbType, data);
+    return <Anchor route={"/roots/" + input.rootId}>{RootToString(state.root)}</Anchor>;
 }

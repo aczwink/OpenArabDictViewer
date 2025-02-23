@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { JSX_CreateElement, RootInjector } from "acfrontend";
-import { TranslationEntry } from "../../dist/api";
+import { BootstrapIcon, JSX_CreateElement, RootInjector } from "acfrontend";
 import { DialectsService } from "../services/DialectsService";
+import { OpenArabDictTranslationEntry } from "../../dist/api";
 
 function RenderText(text: string[])
 {
@@ -31,16 +31,41 @@ function RenderText(text: string[])
     </ul>;
 }
 
-function RenderTranslationEntry(translationEntry: TranslationEntry)
+function RenderSource(translationEntry: OpenArabDictTranslationEntry)
 {
-    const d = RootInjector.Resolve(DialectsService).GetDialect(translationEntry.dialectId);
-    return <fragment>
-        {d.emojiCodes}
-        <span style="white-space: pre-wrap;">{RenderText(translationEntry.text)}</span>
-    </fragment>;
+    const isComplete = translationEntry.complete === true;
+    const className = isComplete ? "text-success" : "text-primary";
+    const icon = <BootstrapIcon>{isComplete ? "journal-check" : "journal-text"}</BootstrapIcon>;
+
+    if(translationEntry.url === undefined)
+    {
+        if(isComplete)
+            return icon;
+        return null;
+    }
+
+    return <a target="_blank" className={className} title="Show source" href={translationEntry.url}>
+        {icon}
+    </a>;
 }
 
-export function RenderTranslations(translations: TranslationEntry[])
+function RenderTranslationEntry(translationEntry: OpenArabDictTranslationEntry)
+{
+    const d = RootInjector.Resolve(DialectsService).GetDialect(translationEntry.dialectId);
+    return <div className="row">
+        <div className="col" style="white-space: pre-wrap;">
+            {d.emojiCodes}
+            {" "}
+            {RenderText(translationEntry.text)}
+            {" "}
+        </div>
+        <div className="col-auto">
+            {RenderSource(translationEntry)}
+        </div>
+    </div>;
+}
+
+export function RenderTranslations(translations: OpenArabDictTranslationEntry[])
 {
     if(translations.length === 1)
         return RenderTranslationEntry(translations[0]);

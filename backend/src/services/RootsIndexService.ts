@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2025 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,30 +15,36 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
-import fs from "fs";
+
 import { Injectable } from "acts-util-node";
-import { OpenArabDictDocument } from "openarabdict-domain";
+import { DatabaseController } from "../data-access/DatabaseController";
+import { Dictionary } from "acts-util-core";
+import { OpenArabDictRoot } from "openarabdict-domain";
 
 @Injectable
-export class DatabaseController
+export class RootsIndexService
 {
-    constructor()
+    constructor(private databaseController: DatabaseController)
     {
-        this.documentDB = null;
+        this.roots = {};
     }
 
     //Public methods
-    public async GetDocumentDB()
+    public GetRoot(id: number)
     {
-        if(this.documentDB === null)
-        {
-            const filePath = process.env.ARABDICT_DICTDB_PATH!;
-            const data = await fs.promises.readFile(filePath, "utf-8");
-            this.documentDB = JSON.parse(data);
-        }
-        return this.documentDB!;
+        return this.roots[id];
+    }
+    
+    public async RebuildIndex()
+    {
+        const document = await this.databaseController.GetDocumentDB();
+
+        const dict: Dictionary<OpenArabDictRoot> = {};
+        for (const root of document.roots)
+            dict[root.id] = root;
+        this.roots = dict;
     }
 
-    //Private state
-    private documentDB: OpenArabDictDocument | null;
+    //State
+    private roots: Dictionary<OpenArabDictRoot>;
 }
