@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@ import { APIServiceInterceptor } from "../shared/APIServiceInterceptor";
 
 export const g_backendHostname = process.env.ARABDICT_BACKEND_HOSTNAME!;
 export const g_backendPort = parseInt(process.env.ARABDICT_BACKEND_PORT!);
-export const g_backendProtocol = "http";
+export const g_backendProtocol = process.env.ARABDICT_BACKEND_PROTOCOL! as any;
 
 @Injectable
 export class APIService extends API
