@@ -17,13 +17,13 @@
  * */
 
 import { Component, Injectable, JSX_CreateElement, ProgressSpinner, RouterState } from "acfrontend";
-import { WordOverviewComponent } from "../words/WordOverviewComponent";
 import { RootToString, RootTypeToPattern, RootTypeToString } from "./general";
 import { Buckwalter } from "openarabicconjugation/dist/Transliteration";
 import { Letter } from "openarabicconjugation/src/Definitions";
 import { RootType, VerbRoot } from "openarabicconjugation/src/VerbRoot";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
-import { OpenArabDictRoot } from "openarabdict-domain";
+import { OpenArabDictRoot, OpenArabDictWord } from "openarabdict-domain";
+import { WordTableComponent } from "../words/WordTableComponent";
 
 interface ShowRootData
 {
@@ -38,7 +38,7 @@ export class ShowRootComponent extends Component
     {
         super();
 
-        this.rootId = parseInt(routerState.routeParams.rootId!);
+        this.rootId = routerState.routeParams.rootId!;
         this.data = null;
     }
     
@@ -66,33 +66,15 @@ export class ShowRootComponent extends Component
             </table>
             <a href={"http://ejtaal.net/aa#bwq=" + this.ToEjtaalQuery()} target="_blank">See on Mawrid reader</a>
 
-            {this.RenderDerivedWords()}
+            <WordTableComponent collapse words={this.data.words} />
         </fragment>;
     }
 
     //Private state
-    private rootId: number;
+    private rootId: string;
     private data: ShowRootData | null;
 
     //Private methods
-    private RenderDerivedWords()
-    {
-        if(this.data === null)
-            return <ProgressSpinner />;
-
-        return <table className="table table-striped table-hover table-sm">
-            <thead>
-                <tr>
-                    <th>Word</th>
-                    <th>Translation</th>
-                </tr>
-            </thead>
-            <tbody>
-                {this.data.words.map(x => <WordOverviewComponent word={x.word} />)}
-            </tbody>
-        </table>;
-    }
-
     private ToEjtaalQuery()
     {
         const root = new VerbRoot(this.data!.root.radicals);

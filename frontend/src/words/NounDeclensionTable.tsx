@@ -28,7 +28,7 @@ import { DialectType } from "openarabicconjugation/src/Dialects";
 import { OpenArabDictGenderedWord, OpenArabDictWord, OpenArabDictWordParentType } from "openarabdict-domain";
 
 @Injectable
-export class NounDeclensionTable extends Component<{ word: OpenArabDictGenderedWord; derivedWordIds: number[]; }>
+export class NounDeclensionTable extends Component<{ word: OpenArabDictGenderedWord; derivedWordIds: string[]; }>
 {
     constructor(private cachedAPIService: CachedAPIService, private conjugationService: ConjugationService)
     {

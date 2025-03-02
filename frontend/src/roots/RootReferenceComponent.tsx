@@ -22,7 +22,7 @@ import { CachedAPIService } from "../services/CachedAPIService";
 import { Of } from "acts-util-core";
 import { OpenArabDictRoot } from "openarabdict-domain";
 
-export function RootIdReferenceComponent(input: { rootId: number })
+export function RootIdReferenceComponent(input: { rootId: string })
 {
     const state = UseState({
         root: Of<OpenArabDictRoot | null>(null)

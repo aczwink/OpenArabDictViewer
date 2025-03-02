@@ -28,7 +28,7 @@ import { NounDeclensionTable } from "./NounDeclensionTable";
 import { DialectType } from "openarabicconjugation/src/Dialects";
 import { RenderDerivedTerm, WordDerivationComponent } from "./WordDerivationComponent";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
-import { OpenArabDictOtherWordParent, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
 import { ShowVerbComponent } from "../verbs/ShowVerbComponent";
 
 @Injectable
@@ -39,7 +39,7 @@ export class ShowWordComponent extends Component
     {
         super();
 
-        this.wordId = parseInt(routerState.routeParams.wordId!);
+        this.wordId = routerState.routeParams.wordId!;
         this.data = null;
         this.derived = [];
     }
@@ -68,7 +68,18 @@ export class ShowWordComponent extends Component
                         <th>Derived words/terms:</th>
                         <td>{this.RenderDerivedTerms()}</td>
                     </tr>
-                    {this.RenderSingleFunction()}
+                    <tr>
+                        <th>Type:</th>
+                        <td>{WordTypeToText(this.data.word.type)}</td>
+                    </tr>
+                    <tr>
+                        <th>Translation:</th>
+                        <td>{RenderTranslations(this.data.word.translations)}</td>
+                    </tr>
+                    <tr>
+                        <th>Declension:</th>
+                        <td>{this.RenderWordDeclensionTables()}</td>
+                    </tr>
                 </tbody>
             </table>
             <a href={"https://en.wiktionary.org/wiki/" + RemoveTashkil(this.data.word.text)} target="_blank">See on Wiktionary</a>
@@ -185,25 +196,6 @@ export class ShowWordComponent extends Component
         </ul>;
     }
 
-    private RenderSingleFunction()
-    {
-        const func = this.data!.word;
-        return <fragment>
-            <tr>
-                <th>Type:</th>
-                <td>{WordTypeToText(func.type)}</td>
-            </tr>
-            <tr>
-                <th>Translation:</th>
-                <td>{RenderTranslations(func.translations)}</td>
-            </tr>
-            <tr>
-                <th>Declension:</th>
-                <td>{this.RenderWordDeclensionTables()}</td>
-            </tr>
-        </fragment>;
-    }
-
     private RenderWordDeclensionTables()
     {
         switch(this.data!.word.type)
@@ -228,7 +220,7 @@ export class ShowWordComponent extends Component
     }
 
     //Private state
-    private wordId: number;
+    private wordId: string;
     private data: WordWithConnections | null;
     private derived: OpenArabDictWord[];
 }

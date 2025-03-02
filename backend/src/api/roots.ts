@@ -46,7 +46,7 @@ class _api2_
 
     @Get()
     public QueryRoot(
-        @Path rootId: number
+        @Path rootId: string
     )
     {
         return this.rootsIndexService.GetRoot(rootId);
@@ -54,7 +54,7 @@ class _api2_
 
     @Get("words")
     public async QueryRootDerivedWords(
-        @Path rootId: number
+        @Path rootId: string
     )
     {
         return (await this.wordsController.QueryRootDerivedWords(rootId)).PromiseAll();

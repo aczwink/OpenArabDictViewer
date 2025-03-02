@@ -26,8 +26,9 @@ type OptionalWordType = OpenArabDictWordType | null;
 
 interface SearchResultEntry
 {
-    word: FullWordData;
+    conjugated?: string;
     score: number;
+    word: FullWordData;
 }
 
 @APIController("words")
@@ -50,10 +51,11 @@ class _api_
             wordType
         };
         const wordIds = await this.wordSearchService.FindWords(filterCriteria, offset, limit);
-        const words = wordIds.Map(async id => {
-            const word = await this.wordsController.QueryWord(id);
+        const words = wordIds.Map(async sq => {
+            const word = await this.wordsController.QueryWord(sq.word.id);
             return Of<SearchResultEntry>({
-                score: 0,
+                conjugated: sq.conjugated,
+                score: sq.score,
                 word: word!
             });
         }).PromiseAll();
@@ -86,7 +88,7 @@ class _api2_
 
     @Get()
     public async QueryWord(
-        @Path wordId: number,
+        @Path wordId: string,
     )
     {
         const word = await this.wordsController.QueryWord(wordId);

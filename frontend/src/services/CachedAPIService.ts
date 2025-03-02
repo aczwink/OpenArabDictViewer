@@ -19,7 +19,7 @@
 import { Injectable } from "acfrontend";
 import { APIService } from "./APIService";
 import { FullWordData } from "../../dist/api";
-import { NumberDictionary } from "acts-util-core";
+import { Dictionary } from "acts-util-core";
 import { OpenArabDictRoot, OpenArabDictVerb, OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
 
 export interface WordWithConnections extends FullWordData
@@ -44,7 +44,7 @@ export class CachedAPIService
     }
 
     //Public methods
-    public async QueryFullVerbData(verbId: number): Promise<FullVerbData>
+    public async QueryFullVerbData(verbId: string): Promise<FullVerbData>
     {
         const verbData = await this.QueryVerb(verbId);
         return await this.QueryFullVerbDataForVerbData(verbData);
@@ -58,7 +58,7 @@ export class CachedAPIService
         };
     }
 
-    public async QueryRootData(rootId: number)
+    public async QueryRootData(rootId: string)
     {
         const cached = this.rootsCache[rootId];
         if(cached !== undefined)
@@ -71,7 +71,7 @@ export class CachedAPIService
         return response.data;
     }
 
-    public async QueryRootWords(rootId: number)
+    public async QueryRootWords(rootId: string)
     {
         const response = await this.apiService.roots._any_.words.get(rootId);
         const words = response.data as WordWithConnections[];
@@ -83,7 +83,7 @@ export class CachedAPIService
         return words;
     }
 
-    public async QueryVerb(verbId: number)
+    public async QueryVerb(verbId: string)
     {
         const word = await this.QueryWord(verbId);
         if(word.type !== OpenArabDictWordType.Verb)
@@ -91,14 +91,14 @@ export class CachedAPIService
         return word;
     }
 
-    public async QueryWord(wordId: number)
+    public async QueryWord(wordId: string)
     {
         const fwd = await this.QueryFullWordData(wordId);
 
         return fwd.word as OpenArabDictWord;
     }
 
-    public async QueryWordWithConnections(wordId: number)
+    public async QueryWordWithConnections(wordId: string)
     {
         const fwd = await this.QueryFullWordData(wordId);
 
@@ -106,7 +106,7 @@ export class CachedAPIService
     }
 
     //Private methods
-    private async QueryFullWordData(wordId: number)
+    private async QueryFullWordData(wordId: string)
     {
         const cached = this.wordsCache[wordId];
         if(cached !== undefined)
@@ -121,7 +121,7 @@ export class CachedAPIService
     }
 
     //State
-    private rootsCache: NumberDictionary<OpenArabDictRoot>;
-    private rootWordsCache: NumberDictionary<WordWithConnections[]>;
-    private wordsCache: NumberDictionary<FullWordData>;
+    private rootsCache: Dictionary<OpenArabDictRoot>;
+    private rootWordsCache: Dictionary<WordWithConnections[]>;
+    private wordsCache: Dictionary<FullWordData>;
 }

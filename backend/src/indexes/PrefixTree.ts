@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Dictionary } from "acts-util-core";
+import { Dictionary, Enumerable, EnumeratorBuilder } from "acts-util-core";
 
 class TrieNode<T>
 {
@@ -40,18 +40,23 @@ class TrieNode<T>
         }
     }
 
-    public Find(key: string[]): T[]
+    public Find(key: string[]): EnumeratorBuilder<T>
     {
         if(key.length === 0)
-            return this.values;
+        {
+            const generator = this.IterateValuesRecursively();
+            return Enumerable.EnumerateIterator(generator);
+        }
 
         const nextKey = key[0];
         const child = this.children[nextKey];
-        if(child === undefined)
-            return [];
+        if(child !== undefined)
+        {
+            const rest = key.slice(1);
+            return child.Find(rest);
+        }
 
-        const rest = key.slice(1);
-        return child.Find(rest);
+        return Enumerable.Empty();
     }
 
     //Private methods
@@ -67,12 +72,26 @@ class TrieNode<T>
         return child;
     }
 
+    private* IterateValuesRecursively(): Generator<T>
+    {
+        for (const value of this.values)
+            yield value;
+        for (const key in this.children)
+        {
+            if (Object.prototype.hasOwnProperty.call(this.children, key))
+            {
+                const child = this.children[key]!;
+                yield* child.IterateValuesRecursively();
+            }
+        }
+    }
+
     //State
     private children: Dictionary<TrieNode<T>>;
     private values: T[];
 }
 
-export class Trie<T>
+export class PrefixTree<T>
 {
     constructor()
     {

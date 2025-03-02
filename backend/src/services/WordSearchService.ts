@@ -20,7 +20,8 @@ import { Injectable } from "acts-util-node";
 import { OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
 import { DatabaseController } from "../data-access/DatabaseController";
 import { IsArabicText } from "openarabicconjugation/src/Util";
-import { ArabicTextIndexService } from "./ArabicTextIndexService";
+import { ArabicTextIndexService, SearchResultEntry } from "./ArabicTextIndexService";
+import { Of } from "acts-util-core";
 
 export interface WordFilterCriteria
 {
@@ -39,9 +40,9 @@ export class WordSearchService
     public async FindWords(filterCriteria: WordFilterCriteria, offset: number, limit: number)
     {
         const document = await this.dbController.GetDocumentDB();
-        let filtered = document.words.Values();
 
         filterCriteria.textFilter = filterCriteria.textFilter.trim();
+        let filtered;
         if(filterCriteria.textFilter.length > 0)
         {
             const isArabic = IsArabicText(filterCriteria.textFilter);
@@ -50,15 +51,18 @@ export class WordSearchService
             else
             {
                 filterCriteria.textFilter = filterCriteria.textFilter.toLowerCase();
-                filtered = filtered.Filter(this.SearchByTranslation.bind(this, filterCriteria));
+                filtered = document.words.Values()
+                    .Filter(this.SearchByTranslation.bind(this, filterCriteria))
+                    .Map(x => Of<SearchResultEntry>({ score: 1, word: x }));
             }
         }
+        else
+            filtered = document.words.Values().Map(x => Of<SearchResultEntry>({ score: 0, word: x }));
 
         if(filterCriteria.wordType !== null)
-            filtered = filtered.Filter(x => x.type === filterCriteria.wordType);
-        filtered = filtered.Distinct(x => x.id);
+            filtered = filtered.Filter(x => x.word.type === filterCriteria.wordType);
 
-        return filtered.Skip(offset).Take(limit).Map(x => x.id);
+        return filtered.Filter(x => x.score > 0.25).Skip(offset).Take(limit);
     }
 
     //Private methods

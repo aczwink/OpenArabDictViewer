@@ -18,25 +18,13 @@
 
 import { Component, Injectable, JSX_CreateElement } from "acfrontend";
 import { RenderTranslations } from "../shared/translations";
-import { WordReferenceComponent } from "./WordReferenceComponent";
 import { WordDerivationComponent } from "./WordDerivationComponent";
 import { OpenArabDictWord } from "openarabdict-domain";
 
 @Injectable
-export class WordOverviewComponent extends Component<{ word: OpenArabDictWord; }>
+export class WordFunctionComponent extends Component<{ word: OpenArabDictWord; }>
 {
     protected Render(): RenderValue
-    {
-        return <tr>
-            <td><WordReferenceComponent word={this.input.word} /></td>
-            <td>
-                {this.RenderFunctions()}
-            </td>
-        </tr>;
-    }
-
-    //Private methods
-    private RenderFunctions()
     {
         const func = this.input.word;
         if(func.translations.length === 0)

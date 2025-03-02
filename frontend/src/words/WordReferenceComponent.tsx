@@ -104,7 +104,7 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
 }
 
 @Injectable
-export class WordIdReferenceComponent extends Component<{ wordId: number }>
+export class WordIdReferenceComponent extends Component<{ wordId: string }>
 {
     constructor(private cachedAPIService: CachedAPIService)
     {

@@ -16,9 +16,52 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { BootstrapIcon, JSX_CreateElement, RootInjector } from "acfrontend";
+import { BootstrapIcon, JSX_CreateElement, JSX_Fragment, RootInjector } from "acfrontend";
 import { DialectsService } from "../services/DialectsService";
 import { OpenArabDictTranslationEntry } from "../../dist/api";
+
+function RenderExample(example: { text: string; translation: string; }): RenderValue
+{
+    return <p>{example.text} - {example.translation}</p>;
+}
+
+function RenderExamples(examples?: { text: string; translation: string; }[])
+{
+    if((examples === undefined) || (examples.length === 0))
+        return null;
+
+    if(examples.length === 1)
+    {
+        return <>
+        <h6>Example:</h6>
+        {RenderExample(examples[0])}
+    </>;
+    }
+
+    return <>
+        <h6>Examples:</h6>
+        <ul>{examples.map(x => <li>{RenderExample(x)}</li>)}</ul>
+    </>;
+}
+
+function RenderContextDependentMeanings(contextual?: { text: string; translation: string; }[])
+{
+    if((contextual === undefined) || (contextual.length === 0))
+        return null;
+
+    if(contextual.length === 1)
+    {
+        return <>
+        <h6>Meaning in context:</h6>
+        {RenderExample(contextual[0])}
+    </>;
+    }
+
+    return <>
+        <h6>Meaning in context:</h6>
+        <ul>{contextual.map(x => <li>{RenderExample(x)}</li>)}</ul>
+    </>;
+}
 
 function RenderText(text: string[])
 {
@@ -26,7 +69,7 @@ function RenderText(text: string[])
         return null;
     if(text.length === 1)
         return text[0];
-    return <ul>
+    return <ul className="mb-0">
         {text.map(x => <li>{x}</li>)}
     </ul>;
 }
@@ -52,16 +95,18 @@ function RenderSource(translationEntry: OpenArabDictTranslationEntry)
 function RenderTranslationEntry(translationEntry: OpenArabDictTranslationEntry)
 {
     const d = RootInjector.Resolve(DialectsService).GetDialect(translationEntry.dialectId);
+
     return <div className="row">
         <div className="col" style="white-space: pre-wrap;">
-            {d.emojiCodes}
-            {" "}
             {RenderText(translationEntry.text)}
-            {" "}
         </div>
         <div className="col-auto">
+            {d.emojiCodes}
+            {" "}
             {RenderSource(translationEntry)}
         </div>
+        {RenderExamples(translationEntry.examples)}
+        {RenderContextDependentMeanings(translationEntry.contextual)}
     </div>;
 }
 
@@ -70,5 +115,5 @@ export function RenderTranslations(translations: OpenArabDictTranslationEntry[])
     if(translations.length === 1)
         return RenderTranslationEntry(translations[0]);
 
-    return <ol>{translations.map(x => <li>{RenderTranslationEntry(x)}</li>)}</ol>;
+    return <ul>{translations.map(x => <li>{RenderTranslationEntry(x)}</li>)}</ul>;
 }

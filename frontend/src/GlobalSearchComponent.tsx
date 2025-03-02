@@ -19,17 +19,15 @@
 import { Component, FormField, Injectable, JSX_CreateElement, LineEdit, ProgressSpinner, Select, Switch } from "acfrontend";
 import { allWordTypes, WordTypeToText } from "./shared/words";
 import { APIService } from "./services/APIService";
-import { WordOverviewComponent } from "./words/WordOverviewComponent";
+import { WordFunctionComponent } from "./words/WordFunctionComponent";
 import { OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
-import { VerbConjugationService } from "./services/VerbConjugationService";
-import { DialectsService } from "./services/DialectsService";
 import { SearchResultEntry } from "../dist/api";
+import { WordReferenceComponent } from "./words/WordReferenceComponent";
 
 @Injectable
 export class GlobalSearchComponent extends Component
 {
-    constructor(private apiService: APIService, private verbConjugationService: VerbConjugationService,
-        private dialectsService: DialectsService
+    constructor(private apiService: APIService
     )
     {
         super();
@@ -120,7 +118,18 @@ export class GlobalSearchComponent extends Component
 
     private RenderResultEntry(entry: SearchResultEntry)
     {
-        return <WordOverviewComponent word={entry.word.word as OpenArabDictWord} />;
+        if(entry.conjugated === undefined)
+        {
+            return <tr>
+                <td><WordReferenceComponent word={entry.word.word as OpenArabDictWord} /></td>
+                <td><WordFunctionComponent word={entry.word.word as OpenArabDictWord} /></td>
+            </tr>;
+        }
+
+        return <tr>
+            <td>{entry.conjugated}</td>
+            <td><i>conjugation of</i> <WordReferenceComponent word={entry.word.word as OpenArabDictWord} /></td>
+        </tr>;
     }
 
     private RenderResults()
@@ -132,7 +141,7 @@ export class GlobalSearchComponent extends Component
             <thead>
                 <tr>
                     <th>Word</th>
-                    <th>Translation / Root</th>
+                    <th>Translation</th>
                 </tr>
             </thead>
             <tbody>

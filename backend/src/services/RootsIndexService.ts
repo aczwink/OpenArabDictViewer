@@ -30,7 +30,7 @@ export class RootsIndexService
     }
 
     //Public methods
-    public GetRoot(id: number)
+    public GetRoot(id: string)
     {
         return this.roots[id];
     }

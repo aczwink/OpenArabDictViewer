@@ -22,14 +22,23 @@ import { OpenArabDictVerb, OpenArabDictWord, OpenArabDictWordType } from "openar
 import { Conjugator } from "openarabicconjugation/src/Conjugator";
 import { RootsIndexService } from "./RootsIndexService";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
-import { Gender, Letter, Mood, Numerus, Person, Tense, VerbType, Voice } from "openarabicconjugation/src/Definitions";
+import { Gender, Mood, Numerus, Person, Tense, VerbType, Voice } from "openarabicconjugation/src/Definitions";
 import { DialectsService } from "./DialectsService";
-import { DisplayVocalized, ParseVocalizedText } from "openarabicconjugation/src/Vocalization";
-import { Trie } from "../indexes/Trie";
+import { CompareVocalized, DisplayVocalized, MapLetterToComparisonEquivalenceClass, ParseVocalizedText, VocalizedWordTostring } from "openarabicconjugation/src/Vocalization";
+import { PrefixTree } from "../indexes/PrefixTree";
+import { Of } from "acts-util-core";
 
 interface IndexEntry
 {
+    conjugated?: string;
     vocalized: DisplayVocalized[];
+    word: OpenArabDictWord;
+}
+
+export interface SearchResultEntry
+{
+    conjugated?: string;
+    score: number;
     word: OpenArabDictWord;
 }
 
@@ -38,7 +47,7 @@ export class ArabicTextIndexService
 {
     constructor(private databaseController: DatabaseController, private rootsIndexService: RootsIndexService, private dialectsService: DialectsService)
     {
-        this.trie = new Trie;
+        this.trie = new PrefixTree;
     }
 
     //Public methods
@@ -48,12 +57,16 @@ export class ArabicTextIndexService
         const key = this.MapToKey(parsed);
 
         const indexEntries = this.trie.Find(key);
-        return indexEntries.Values().Map(x => x.word);
+        return indexEntries.Map(x => Of<SearchResultEntry>({
+            conjugated: x.conjugated,
+            score: CompareVocalized(parsed, x.vocalized.slice(0, key.length)),
+            word: x.word
+        }));
     }
 
     public async RebuildIndex()
     {
-        const trie = new Trie<IndexEntry>;
+        const trie = new PrefixTree<IndexEntry>;
 
         const document = await this.databaseController.GetDocumentDB();
 
@@ -64,18 +77,19 @@ export class ArabicTextIndexService
     }
 
     //Private methods
-    private AddToIndex(vocalized: DisplayVocalized[], indexEntry: IndexEntry, trie: Trie<IndexEntry>)
+    private AddToIndex(vocalized: DisplayVocalized[], indexEntry: IndexEntry, trie: PrefixTree<IndexEntry>)
     {
         const key = this.MapToKey(vocalized);
         trie.Add(key, indexEntry);
     }
 
-    private AddVerbToIndex(verb: OpenArabDictVerb, trie: Trie<IndexEntry>)
+    private AddVerbToIndex(verb: OpenArabDictVerb, trie: PrefixTree<IndexEntry>)
     {
         const rootData = this.rootsIndexService.GetRoot(verb.rootId)!;
         const root = new VerbRoot(rootData.radicals);
 
-        const dialect = this.dialectsService.MapDialectId(verb.dialectId)!;
+        const dialectType = this.dialectsService.MapDialectId(verb.dialectId)!;
+        const dialectMeta = this.dialectsService.GetDialectMetaData(verb.dialectId);
 
         let stem1ctx;
         if(verb.stemParameters !== undefined)
@@ -84,17 +98,18 @@ export class ArabicTextIndexService
             stem1ctx = this.dialectsService.GetDialectMetaData(verb.dialectId).CreateStem1Context(verbType, verb.stemParameters);
         }
 
-        const numeruses: Numerus[] = [Numerus.Singular, Numerus.Dual, Numerus.Plural];
+        const numeruses: Numerus[] = dialectMeta.hasDual ? [Numerus.Singular, Numerus.Dual, Numerus.Plural] : [Numerus.Singular, Numerus.Plural];
         const genders: Gender[] = [Gender.Male, Gender.Female];
         const tenses = [Tense.Perfect, Tense.Present];
+        const presentMoods = dialectMeta.hasJussive ? [Mood.Indicative, Mood.Subjunctive, Mood.Jussive, Mood.Imperative] : [Mood.Indicative, Mood.Subjunctive, Mood.Imperative];
 
         const conjugator = new Conjugator();
         for (const tense of tenses)
         {
-            const moods: Mood[] = (tense === Tense.Perfect) ? [Mood.Indicative] : [Mood.Indicative, Mood.Subjunctive, Mood.Jussive, Mood.Imperative];   
+            const moods = (tense === Tense.Perfect) ? [undefined] : presentMoods;
             for (const mood of moods)
             {
-                const voices = (mood === Mood.Imperative) ? [Voice.Active] : [Voice.Active, Voice.Passive];
+                const voices = ((mood === Mood.Imperative) || !dialectMeta.hasPassive) ? [Voice.Active] : [Voice.Active, Voice.Passive];
                 const persons = (mood === Mood.Imperative) ? [Person.Second] : [Person.First, Person.Second, Person.Third];
 
                 for (const voice of voices)
@@ -105,6 +120,18 @@ export class ArabicTextIndexService
                         {
                             for (const gender of genders)
                             {
+                                if(!dialectMeta.hasFemalePlural && (numerus === Numerus.Plural) && (gender === Gender.Female))
+                                    continue;
+                                if(person === Person.First)
+                                {
+                                    if(numerus === Numerus.Dual)
+                                        continue;
+                                    if(gender === Gender.Female)
+                                        continue;
+                                }
+                                if((numerus === Numerus.Dual) && (person === Person.Second) && (gender === Gender.Female))
+                                    continue;
+
                                 const conjugated = conjugator.Conjugate(root, {
                                     gender,
                                     tense,
@@ -113,10 +140,11 @@ export class ArabicTextIndexService
                                     stem: verb.stem as any,
                                     stem1Context: stem1ctx as any,
                                     voice,
-                                    mood
-                                }, dialect);
+                                    mood: mood as any
+                                }, dialectType);
 
                                 this.AddToIndex(conjugated, {
+                                    conjugated: VocalizedWordTostring(conjugated),
                                     vocalized: conjugated,
                                     word: verb
                                 }, trie);
@@ -128,7 +156,7 @@ export class ArabicTextIndexService
         }
     }
 
-    private AddWordToIndex(word: OpenArabDictWord, trie: Trie<IndexEntry>)
+    private AddWordToIndex(word: OpenArabDictWord, trie: PrefixTree<IndexEntry>)
     {
         switch(word.type)
         {
@@ -148,31 +176,9 @@ export class ArabicTextIndexService
 
     private MapToKey(vocalized: DisplayVocalized[])
     {
-        return vocalized.map(x => this.MapToSearchLetter(x.letter));
-    }
-
-    private MapToSearchLetter(letter: Letter)
-    {
-        switch(letter)
-        {
-            case Letter.AlefHamza:
-                return Letter.Alef;
-            /*
-            private MapWordToSearchVariant(word: string)
-    {
-        //map all chars to their basic form
-        const alif = trimmed.replace(/[\u0622\u0625]/g, "\u0627");
-        const waw = alif.replace(/[\u0624]/g, "\u0648");
-        const ya = waw.replace(/[\u0626\u0649]/g, "\u064A");
-
-        return ya;
-    }
-            */
-        }
-
-        return letter;
+        return vocalized.map(x => MapLetterToComparisonEquivalenceClass(x.letter));
     }
 
     //State
-    private trie: Trie<IndexEntry>;
+    private trie: PrefixTree<IndexEntry>;
 }

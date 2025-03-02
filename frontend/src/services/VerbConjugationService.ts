@@ -17,15 +17,14 @@
  * */
 
 import { Injectable } from "acfrontend";
-import { Gender, Person, Numerus, Mood, VerbType, Tense, Voice, StemlessConjugationParams } from "openarabicconjugation/src/Definitions";
+import { Gender, Person, Numerus, VerbType, Tense, Voice, StemlessConjugationParams } from "openarabicconjugation/src/Definitions";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
 import { Stem1DataToStem1ContextOptional } from "../verbs/model";
 import { ConjugationService } from "./ConjugationService";
 import { DialectsService } from "./DialectsService";
 import { OpenArabDictVerb } from "openarabdict-domain";
-import { _TODO_CheckConjugation } from "../verbs/_ConjugationCheck";
+import { _TODO_CheckConjugation } from "./_ConjugationCheck";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
-import { DisplayVocalized } from "openarabicconjugation/src/Vocalization";
 
 interface VerbConjugationParams
 {

@@ -24,7 +24,6 @@ import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { ConjugationService } from "../services/ConjugationService";
 import { RenderTranslations } from "../shared/translations";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
-import { WordOverviewComponent } from "../words/WordOverviewComponent";
 import { WordRelationshipTypeToString } from "../shared/words";
 import { RootToString } from "../roots/general";
 import { Stem1Context, Person, Numerus, Gender, Mood, Voice, AdvancedStemNumber, VerbType } from "openarabicconjugation/src/Definitions";
@@ -33,12 +32,13 @@ import { Tense } from "openarabicconjugation/dist/Definitions";
 import { DialectsService } from "../services/DialectsService";
 import { ConjugationSchemeToString } from "./ToStringStuff";
 import { VerbConjugationService } from "../services/VerbConjugationService";
-import { OpenArabDictRoot, OpenArabDictVerb, OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictRoot, OpenArabDictVerb, OpenArabDictWordType } from "openarabdict-domain";
 import { WordIdReferenceComponent } from "../words/WordReferenceComponent";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
+import { WordTableComponent } from "../words/WordTableComponent";
 
 @Injectable
-export class ShowVerbComponent extends Component<{ verbId: number }>
+export class ShowVerbComponent extends Component<{ verbId: string }>
 {
     constructor(private conjugationService: ConjugationService, private dialectsService: DialectsService,
         private verbConjugationService: VerbConjugationService, private cachedAPIService: CachedAPIService
@@ -48,7 +48,7 @@ export class ShowVerbComponent extends Component<{ verbId: number }>
 
         this.data = null;
         this.fullWord = null;
-        this.root = { radicals: "", id: 0 };
+        this.root = { radicals: "", id: "" };
         this.derivedWords = null;
     }
     
@@ -78,7 +78,7 @@ export class ShowVerbComponent extends Component<{ verbId: number }>
     private data: OpenArabDictVerb | null;
     private fullWord: WordWithConnections | null;
     private root: OpenArabDictRoot;
-    private derivedWords: OpenArabDictWord[] | null;
+    private derivedWords: WordWithConnections[] | null;
 
     //Private properties
     private get rootRadicals()
@@ -89,7 +89,7 @@ export class ShowVerbComponent extends Component<{ verbId: number }>
     //Private methods
     private async LoadDerivedWords()
     {
-        this.derivedWords = await this.fullWord!.derived.Values().Map(x => this.cachedAPIService.QueryWord(x)).PromiseAll();
+        this.derivedWords = await this.fullWord!.derived.Values().Map(x => this.cachedAPIService.QueryWordWithConnections(x)).PromiseAll();
     }
 
     private RenderConjugation(stem1ctx?: Stem1Context)
@@ -266,17 +266,7 @@ export class ShowVerbComponent extends Component<{ verbId: number }>
 
         return <div className="mt-2">
             <h5>Derived words</h5>
-            <table className="table table-striped table-hover table-sm">
-                <thead>
-                    <tr>
-                        <th>Word</th>
-                        <th>Translation</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {this.derivedWords.map(x => <WordOverviewComponent word={x} />)}
-                </tbody>
-            </table>
+            <WordTableComponent collapse={false} words={this.derivedWords} />
         </div>;
     }
 

@@ -16,25 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Component, Injectable, JSX_CreateElement, ProgressSpinner } from "acfrontend";
+import { CheckBox, Component, FormField, Injectable, JSX_CreateElement, ProgressSpinner } from "acfrontend";
 import { APIService } from "./services/APIService";
 import { RenderTranslations } from "./shared/translations";
 import { WordTypeToText } from "./shared/words";
-import { DialectsService } from "./services/DialectsService";
-import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
 import { CachedAPIService } from "./services/CachedAPIService";
 import { OpenArabDictWord } from "openarabdict-domain";
-import { VerbConjugationService } from "./services/VerbConjugationService";
+import { RemoveTashkilButKeepShadda } from "openarabicconjugation/src/Util";
 
 @Injectable
 export class LearnComponent extends Component
 {
-    constructor(private apiService: APIService, private cachedAPIService: CachedAPIService, private verbConjugationService: VerbConjugationService, private dialectsService: DialectsService)
+    constructor(private apiService: APIService, private cachedAPIService: CachedAPIService)
     {
         super();
 
         this.data = null;
-        this.rootRadicals = "";
         this.showTashkil = false;
         this.resolve = false;
     }
@@ -44,17 +41,7 @@ export class LearnComponent extends Component
         if(this.data === null)
             return <ProgressSpinner />;
 
-        const root = new VerbRoot(this.rootRadicals);
-        /*const title = ("rootId" in this.data) ? this.conjugationService.ConjugateToString(this.dialectsService.MapIdToType(this.data.dialectId), root, {
-            gender: Gender.Male,
-            tense: Tense.Perfect,
-            numerus: Numerus.Singular,
-            person: Person.Third,
-            stem: this.data.stem as any,
-            stem1Context: Stem1DataToStem1ContextOptional(DialectType.ModernStandardArabic, root.DeriveDeducedVerbType(), this.data.stem1Context),
-            voice: Voice.Active
-        }) : this.data.word;
-
+        const title = this.data.text;
         if(this.resolve)
         {
             return <div className="row justify-content-center text-center">
@@ -62,7 +49,7 @@ export class LearnComponent extends Component
                     <h1>{title}</h1>
                     <div className="row">
                         <div className="col">
-                            { "translations" in this.data ? RenderTranslations(this.data.translations) : this.RenderFunctions(this.data.functions)}
+                            { "translations" in this.data ? RenderTranslations(this.data.translations) : this.RenderFunction(this.data)}
                         </div>
                     </div>
                     <button type="button" className="btn btn-primary" onclick={this.LoadNextWord.bind(this)}>Next</button>
@@ -80,12 +67,11 @@ export class LearnComponent extends Component
                 </FormField>
                 <button type="button" className="btn btn-primary" onclick={() => this.resolve = true}>Resolve</button>
             </div>
-        </div>;*/
+        </div>;
     }
 
     //Private state
     private data: OpenArabDictWord | null;
-    private rootRadicals: string;
     private showTashkil: boolean;
     private resolve: boolean;
 
@@ -100,15 +86,7 @@ export class LearnComponent extends Component
         const wordId = response.data;
 
         const word = await this.cachedAPIService.QueryWord(wordId);
-
-        /*const response3 = await this.apiService.roots._any_.get(response2.data.rootId);
-        if(response3.statusCode !== 200)
-            throw new Error("TODO: implement me");
-        this.rootRadicals = response3.data.radicals;*/
-
-
         this.data = word;
-        throw new Error("TODO: need root first, i.e. fix diff between verbs and words");
     }
 
     private RenderFunction(func: OpenArabDictWord)

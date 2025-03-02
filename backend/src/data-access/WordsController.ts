@@ -22,14 +22,14 @@ import { OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordRelations
 
 interface WordRelation
 {
-    relatedWordId: number;
+    relatedWordId: string;
     relationType: OpenArabDictWordRelationshipType;
 }
 
 export interface FullWordData
 {
     word: OpenArabDictWord;
-    derived: number[];
+    derived: string[];
     related: WordRelation[];
 }
 
@@ -51,7 +51,7 @@ export class WordsController
         return document.words[index].id;
     }
 
-    public async QueryRootDerivedWords(rootId: number)
+    public async QueryRootDerivedWords(rootId: string)
     {
         function filterFunc(x: OpenArabDictWord)
         {
@@ -65,7 +65,7 @@ export class WordsController
         return words.Map(this.QueryFullWordData.bind(this));
     }
 
-    public async QueryWord(wordId: number)
+    public async QueryWord(wordId: string)
     {
         const document = await this.dbController.GetDocumentDB();
 
@@ -77,7 +77,7 @@ export class WordsController
     }
 
     //Private methods
-    private async QueryDerivedLinks(wordId: number)
+    private async QueryDerivedLinks(wordId: string)
     {
         function filterFunc(x: OpenArabDictWord)
         {
@@ -105,7 +105,7 @@ export class WordsController
         return result;
     }
 
-    private async QueryRelatedWords(wordId: number)
+    private async QueryRelatedWords(wordId: string)
     {
         const document = await this.dbController.GetDocumentDB();
 

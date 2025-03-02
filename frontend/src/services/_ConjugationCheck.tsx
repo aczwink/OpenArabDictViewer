@@ -61,8 +61,6 @@ export function _TODO_CheckConjugation(dialectType: DialectType, root: VerbRoot,
                             return need;
                         if((params.stem1Context._legacy_middleRadicalTashkil === Tashkil.Fatha) && (params.stem1Context._legacy_middleRadicalTashkilPresent === Tashkil.Fatha))
                             return need;
-                        if((params.stem1Context._legacy_middleRadicalTashkil === Tashkil.Kasra) && (params.stem1Context._legacy_middleRadicalTashkilPresent === Tashkil.Fatha))
-                            return need;
                         if((params.stem1Context._legacy_middleRadicalTashkil === Tashkil.Kasra) && (params.stem1Context._legacy_middleRadicalTashkilPresent === Tashkil.Kasra))
                             return need;
                         if((params.stem1Context._legacy_middleRadicalTashkil === Tashkil.Dhamma) && (params.stem1Context._legacy_middleRadicalTashkilPresent === Tashkil.Dhamma))
@@ -78,8 +76,6 @@ export function _TODO_CheckConjugation(dialectType: DialectType, root: VerbRoot,
                     {
                         if((params.stem1Context._legacy_middleRadicalTashkil === Tashkil.Fatha) && (params.stem1Context._legacy_middleRadicalTashkilPresent === Tashkil.Fatha))
                             return need;
-                        if((params.stem1Context._legacy_middleRadicalTashkil === Tashkil.Kasra) && (params.stem1Context._legacy_middleRadicalTashkilPresent === Tashkil.Fatha))
-                            return needPassive;
                     }
                     break;
                     case RootType.Regular:
