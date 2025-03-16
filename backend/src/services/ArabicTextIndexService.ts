@@ -22,11 +22,12 @@ import { OpenArabDictVerb, OpenArabDictWord, OpenArabDictWordType } from "openar
 import { Conjugator } from "openarabicconjugation/src/Conjugator";
 import { RootsIndexService } from "./RootsIndexService";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
-import { Gender, Mood, Numerus, Person, Tense, VerbType, Voice } from "openarabicconjugation/src/Definitions";
+import { AdvancedStemNumber, Gender, Mood, Numerus, Person, Tense, VerbType, Voice } from "openarabicconjugation/src/Definitions";
 import { DialectsService } from "./DialectsService";
 import { CompareVocalized, DisplayVocalized, MapLetterToComparisonEquivalenceClass, ParseVocalizedText, VocalizedWordTostring } from "openarabicconjugation/src/Vocalization";
 import { PrefixTree } from "../indexes/PrefixTree";
 import { Of } from "acts-util-core";
+import { CreateVerb } from "openarabicconjugation/src/Verb";
 
 interface IndexEntry
 {
@@ -91,12 +92,8 @@ export class ArabicTextIndexService
         const dialectType = this.dialectsService.MapDialectId(verb.dialectId)!;
         const dialectMeta = this.dialectsService.GetDialectMetaData(verb.dialectId);
 
-        let stem1ctx;
-        if(verb.stemParameters !== undefined)
-        {
-            const verbType = (verb.soundOverride === true) ? VerbType.Sound : root.DeriveDeducedVerbType();
-            stem1ctx = this.dialectsService.GetDialectMetaData(verb.dialectId).CreateStem1Context(verbType, verb.stemParameters);
-        }
+        const verbType = (verb.soundOverride === true) ? VerbType.Sound : root.DeriveDeducedVerbType();
+        const verbInstance = CreateVerb(dialectType, root, verb.stemParameters ?? (verb.stem as AdvancedStemNumber), verbType);
 
         const numeruses: Numerus[] = dialectMeta.hasDual ? [Numerus.Singular, Numerus.Dual, Numerus.Plural] : [Numerus.Singular, Numerus.Plural];
         const genders: Gender[] = [Gender.Male, Gender.Female];
@@ -132,16 +129,14 @@ export class ArabicTextIndexService
                                 if((numerus === Numerus.Dual) && (person === Person.Second) && (gender === Gender.Female))
                                     continue;
 
-                                const conjugated = conjugator.Conjugate(root, {
+                                const conjugated = conjugator.Conjugate(verbInstance, {
                                     gender,
                                     tense,
                                     numerus,
                                     person,
-                                    stem: verb.stem as any,
-                                    stem1Context: stem1ctx as any,
                                     voice,
                                     mood: mood as any
-                                }, dialectType);
+                                });
 
                                 this.AddToIndex(conjugated, {
                                     conjugated: VocalizedWordTostring(conjugated),

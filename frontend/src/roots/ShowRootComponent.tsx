@@ -16,13 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Component, Injectable, JSX_CreateElement, ProgressSpinner, RouterState } from "acfrontend";
+import { Component, Injectable, JSX_CreateElement, ProgressSpinner, RouterState, TitleService } from "acfrontend";
 import { RootToString, RootTypeToPattern, RootTypeToString } from "./general";
 import { Buckwalter } from "openarabicconjugation/dist/Transliteration";
 import { Letter } from "openarabicconjugation/src/Definitions";
 import { RootType, VerbRoot } from "openarabicconjugation/src/VerbRoot";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
-import { OpenArabDictRoot, OpenArabDictWord } from "openarabdict-domain";
+import { OpenArabDictRoot } from "openarabdict-domain";
 import { WordTableComponent } from "../words/WordTableComponent";
 
 interface ShowRootData
@@ -34,7 +34,7 @@ interface ShowRootData
 @Injectable
 export class ShowRootComponent extends Component
 {
-    constructor(routerState: RouterState, private cachedAPIService: CachedAPIService)
+    constructor(routerState: RouterState, private cachedAPIService: CachedAPIService, private titleService: TitleService)
     {
         super();
 
@@ -100,6 +100,8 @@ export class ShowRootComponent extends Component
     {
         const root = await this.cachedAPIService.QueryRootData(this.rootId);
         const words = await this.cachedAPIService.QueryRootWords(this.rootId);
+
+        this.titleService.title = RootToString(root);
 
         this.data = {
             root,

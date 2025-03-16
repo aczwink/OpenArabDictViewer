@@ -17,14 +17,14 @@
  * */
 
 import { Injectable } from "acfrontend";
-import { Gender, Person, Numerus, VerbType, Tense, Voice, StemlessConjugationParams } from "openarabicconjugation/src/Definitions";
+import { Gender, Person, Numerus, VerbType, Tense, Voice, AdvancedStemNumber, ConjugationParams } from "openarabicconjugation/src/Definitions";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
-import { Stem1DataToStem1ContextOptional } from "../verbs/model";
 import { ConjugationService } from "./ConjugationService";
 import { DialectsService } from "./DialectsService";
 import { OpenArabDictVerb } from "openarabdict-domain";
 import { _TODO_CheckConjugation } from "./_ConjugationCheck";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
+import { CreateVerb } from "openarabicconjugation/src/Verb";
 
 interface VerbConjugationParams
 {
@@ -42,19 +42,12 @@ export class VerbConjugationService
     }
 
     //Public methods
-    public GetType(rootRadicals: string, verb: VerbConjugationParams)
-    {
-        const root = new VerbRoot(rootRadicals);
-        const scheme = (verb.soundOverride === true) ? VerbType.Sound : root.DeriveDeducedVerbType();
-        return scheme;
-    }
-
-    public BuildStem1Context(rootRadicals: string, verb: VerbConjugationParams)
+    public ConstructVerb(rootRadicals: string, verb: VerbConjugationParams)
     {
         const dialectType = this.dialectsService.MapIdToType(verb.dialectId);
-
-        const stem1ctx = Stem1DataToStem1ContextOptional(dialectType, this.GetType(rootRadicals, verb), verb.stemParameters);
-        return stem1ctx;
+        const root = new VerbRoot(rootRadicals);
+        const type = this.GetType(rootRadicals, verb);
+        return CreateVerb(dialectType, root, verb.stemParameters ?? (verb.stem as AdvancedStemNumber), type);
     }
 
     public CreateDefaultDisplayVersionOfVerb(rootRadicals: string, verb: VerbConjugationParams)
@@ -74,39 +67,33 @@ export class VerbConjugationService
         return this.RenderContexts(diffed);
     }
 
+    public GetType(rootRadicals: string, verb: VerbConjugationParams)
+    {
+        const root = new VerbRoot(rootRadicals);
+        const scheme = (verb.soundOverride === true) ? VerbType.Sound : root.DeriveDeducedVerbType();
+        return scheme;
+    }
+
     public RenderCheck(rootRadicals: string, verb: OpenArabDictVerb)
     {
-        const stem1Context = this.BuildStem1Context(rootRadicals, verb);
-        const check = _TODO_CheckConjugation(this.dialectsService.MapIdToType(verb.dialectId), new VerbRoot(rootRadicals), {
-            gender: Gender.Male,
-            voice: Voice.Active,
-            tense: Tense.Perfect,
-            numerus: Numerus.Singular,
-            person: Person.Third,
-            stem: verb.stem as any,
-            stem1Context
-        });
+        const check = _TODO_CheckConjugation(this.dialectsService.MapIdToType(verb.dialectId), new VerbRoot(rootRadicals), this.ConstructVerb(rootRadicals, verb));
         return check;
     }
 
     //Private methods
     private ConjugateVerbContexts(rootRadicals: string, verb: VerbConjugationParams)
     {
-        const dialectType = this.dialectsService.MapIdToType(verb.dialectId);
-        const stem1Context = this.BuildStem1Context(rootRadicals, verb);
-
         const root = new VerbRoot(rootRadicals);
-        const past = this.conjugationService.Conjugate(dialectType, root, {
+        const verbInstance = this.ConstructVerb(rootRadicals, verb);
+        const past = this.conjugationService.Conjugate(verbInstance, {
             gender: Gender.Male,
             tense: Tense.Perfect,
             numerus: Numerus.Singular,
             person: Person.Third,
-            stem: verb.stem as any,
-            stem1Context,
             voice: Voice.Active
         });
 
-        let requiredContext: StemlessConjugationParams[] = [];
+        let requiredContext: ConjugationParams[] = [];
         if(verb.stem === 1)
         {
             const choices = this.dialectsService.GetDialectMetaData(verb.dialectId).GetStem1ContextChoices(root);
@@ -116,11 +103,7 @@ export class VerbConjugationService
         const result = [past];
         for (const context of requiredContext)
         {
-            const conjugated = this.conjugationService.Conjugate(dialectType, root, {
-                ...context,
-                stem: verb.stem as any,
-                stem1Context,
-            });
+            const conjugated = this.conjugationService.Conjugate(verbInstance, context);
             result.push(conjugated);
         }
 

@@ -22,10 +22,11 @@ import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
 import { Dictionary, ObjectExtensions } from "acts-util-core";
 import { Conjugator } from "openarabicconjugation/src/Conjugator";
 import { DisplayVocalized, VocalizedToString } from "openarabicconjugation/src/Vocalization";
-import { AdvancedStemNumber, Stem1Context, VerbType } from "openarabicconjugation/src/Definitions";
+import { AdvancedStemNumber, VerbType } from "openarabicconjugation/src/Definitions";
 import { DialectsService } from "../services/DialectsService";
 import { OpenArabDictVerbDerivationType, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
 import { RootsIndexService } from "../services/RootsIndexService";
+import { CreateVerb } from "openarabicconjugation/src/Verb";
 
 interface DialectStatistics
 {
@@ -99,14 +100,6 @@ export class StatisticsController
     }
 
     //Private methods
-    private GenerateStemData(VerbType: VerbType, dialectId: number, stem: number, stemParameters?: string): AdvancedStemNumber | Stem1Context
-    {
-        if(stemParameters === undefined)
-            return stem as AdvancedStemNumber;
-
-        return this.dialectsService.GetDialectMetaData(dialectId).CreateStem1Context(VerbType, stemParameters);
-    }
-
     private async QueryDialectCounts()
     {
         const dialectCounts: DialectStatistics[] = [];
@@ -233,9 +226,11 @@ export class StatisticsController
             const rootData = this.rootsIndexService.GetRoot(verb.rootId);
             const root = new VerbRoot(rootData!.radicals);
 
+            const dialectType = this.dialectsService.MapDialectId(verb.dialectId)!;
             const scheme = (verb.soundOverride === true) ? VerbType.Sound : root.DeriveDeducedVerbType();
+            const verbInstance = CreateVerb(dialectType, root, verb.stemParameters ?? (verb.stem as AdvancedStemNumber), scheme);
 
-            const generated = conjugator.GenerateAllPossibleVerbalNouns(root, this.GenerateStemData(scheme, verb.dialectId, verb.stem, verb.stemParameters));
+            const generated = conjugator.GenerateAllPossibleVerbalNouns(root, (verbInstance.stem === 1) ? verbInstance : verbInstance.stem);
             const verbalNounPossibilities = generated.map(VocalizedArrayToString);
 
             const verbalNounIndex = verbalNounPossibilities.indexOf(word.text);

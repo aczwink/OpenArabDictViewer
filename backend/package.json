@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npx acts-util-apilib && npx webpack",
-    "run-dev-server": "nodemon --exec \"npm run build; (export $(cat .env | xargs) && cd dist && node bundle.js)\""
+    "run-dev-server": "nodemon --exec \"npm run build; nodemon --exec '(export $(cat .env | xargs) && cd dist && node bundle.js)' --watch '../../OpenArabDict/builder/dist/db.json'\""
   },
   "keywords": [],
   "author": "Amir Czwink",

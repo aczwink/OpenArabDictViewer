@@ -20,9 +20,10 @@ import { Injectable } from "acfrontend";
 import { Conjugator } from "openarabicconjugation/src/Conjugator";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
 import { DisplayVocalized, VocalizedToString } from "openarabicconjugation/src/Vocalization";
-import { Stem1Context, ConjugationParams, Person, Tense, Voice, Gender, Numerus, Mood, AdjectiveDeclensionParams, NounDeclensionParams, AdvancedStemNumber } from "openarabicconjugation/src/Definitions";
+import { ConjugationParams, Person, Tense, Voice, Gender, Numerus, Mood, AdjectiveDeclensionParams, NounDeclensionParams, AdvancedStemNumber } from "openarabicconjugation/src/Definitions";
 import { NounInput, TargetNounDerivation } from "openarabicconjugation/src/DialectConjugator";
 import { DialectType } from "openarabicconjugation/src/Dialects";
+import { CreateVerb, Verb } from "openarabicconjugation/src/Verb";
 
 @Injectable
 export class ConjugationService
@@ -33,38 +34,36 @@ export class ConjugationService
     }
 
     //Public methods
-    public Conjugate(dialect: DialectType, root: VerbRoot, params: ConjugationParams)
+    public Conjugate(verb: Verb<string>, params: ConjugationParams)
     {
-        const vocalized = this.conjugator.Conjugate(root, params, dialect);
+        const vocalized = this.conjugator.Conjugate(verb, params);
         return vocalized;
     }
 
-    public ConjugateArgs(dialect: DialectType, rootRadicals: string, stem: number, tense: Tense, voice: Voice, gender: Gender, person: Person, numerus: Numerus, mood: Mood, stem1Context?: Stem1Context)
+    public ConjugateArgs(dialect: DialectType, rootRadicals: string, stem: number, tense: Tense, voice: Voice, gender: Gender, person: Person, numerus: Numerus, mood: Mood, stem1Context?: string)
     {
         const root = new VerbRoot(rootRadicals);
+        const verb = CreateVerb(dialect, root, stem1Context ?? (stem as AdvancedStemNumber));
 
-        return this.conjugator.Conjugate(root, {
-            stem: stem as any,
+        return this.conjugator.Conjugate(verb, {
             tense,
             voice,
             gender,
             person,
             numerus,
             mood,
-            stem1Context: stem1Context as any,
-        }, dialect);
+        });
     }
 
-    public ConjugateToStringArgs(dialect: DialectType, rootRadicals: string, stem: number, tense: Tense, voice: Voice, gender: Gender, person: Person, numerus: Numerus, mood: Mood, stem1Context?: Stem1Context)
+    public ConjugateToStringArgs(dialect: DialectType, rootRadicals: string, stem: number, tense: Tense, voice: Voice, gender: Gender, person: Person, numerus: Numerus, mood: Mood, stem1Context?: string)
     {
         const vocalized = this.ConjugateArgs(dialect, rootRadicals, stem, tense, voice, gender, person, numerus, mood, stem1Context);
         return this.VocalizedToString(vocalized);
     }
 
-    public ConjugateParticiple(dialect: DialectType, rootRadicals: string, stem: number, voice: Voice, stem1Context?: Stem1Context)
+    public ConjugateParticiple(verb: Verb<string>, voice: Voice)
     {
-        const root = new VerbRoot(rootRadicals);
-        return this.conjugator.ConjugateParticiple(dialect, root, stem, voice, stem1Context);
+        return this.conjugator.ConjugateParticiple(verb, voice);
     }
 
     public DeclineAdjective(dialect: DialectType, word: string, params: AdjectiveDeclensionParams)
@@ -83,17 +82,17 @@ export class ConjugationService
         return this.conjugator.DeriveSoundNoun(singular, singularGender, target, dialect);
     }
 
-    public GenerateAllPossibleVerbalNouns(rootRadicals: string, stem: AdvancedStemNumber | Stem1Context)
+    public GenerateAllPossibleVerbalNouns(rootRadicals: string, stem: AdvancedStemNumber | string)
     {
         const root = new VerbRoot(rootRadicals);
-        const nouns = this.conjugator.GenerateAllPossibleVerbalNouns(root, stem);
+        const nouns = this.conjugator.GenerateAllPossibleVerbalNouns(root, this.CreateLegacyStem(rootRadicals, stem));
         return nouns.map(this.VocalizedToString.bind(this));
     }
 
-    public HasPotentiallyMultipleVerbalNounForms(rootRadicals: string, stem: AdvancedStemNumber | Stem1Context)
+    public HasPotentiallyMultipleVerbalNounForms(rootRadicals: string, stem: AdvancedStemNumber | string)
     {
         const root = new VerbRoot(rootRadicals);
-        return this.conjugator.HasPotentiallyMultipleVerbalNounForms(root, stem);
+        return this.conjugator.HasPotentiallyMultipleVerbalNounForms(root, this.CreateLegacyStem(rootRadicals, stem));
     }
 
     public VocalizedToString(vocalized: DisplayVocalized[]): string
@@ -101,6 +100,16 @@ export class ConjugationService
         return vocalized.Values().Map(VocalizedToString).Join("");
     }
 
-    //Private state
+    //Private methods
+    private CreateLegacyStem(rootRadicals: string, stem: AdvancedStemNumber | string)
+    {
+        const root = new VerbRoot(rootRadicals);
+        const verb = CreateVerb(DialectType.ModernStandardArabic, root, stem);
+        if(verb.stem === 1)
+            return verb;
+        return verb.stem;
+    }
+
+    //State
     private conjugator: Conjugator;
 }

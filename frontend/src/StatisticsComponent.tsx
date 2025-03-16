@@ -25,7 +25,7 @@ import { ConjugationService } from "./services/ConjugationService";
 import { RomanNumberComponent, StemNumberComponent } from "./shared/RomanNumberComponent";
 import { DialectType } from "openarabicconjugation/src/Dialects";
 import { ConjugationSchemeToString } from "./verbs/ToStringStuff";
-import { AdvancedStemNumber, Stem1Context } from "openarabicconjugation/src/Definitions";
+import { AdvancedStemNumber } from "openarabicconjugation/src/Definitions";
 import { GetDialectMetadata } from "openarabicconjugation/src/DialectsMetadata";
 import { VerbConjugationService } from "./services/VerbConjugationService";
 
@@ -131,7 +131,7 @@ export class StatisticsComponent extends Component
     {
         const radicals = this.GetExampleRootRadicals(scheme).join("");
         const meta = GetDialectMetadata(DialectType.ModernStandardArabic);
-        const stemData: AdvancedStemNumber | Stem1Context = (stemParameters === undefined) ? (stem as AdvancedStemNumber) : meta.CreateStem1Context(scheme, stemParameters);
+        const stemData: AdvancedStemNumber | string = (stemParameters === undefined) ? (stem as AdvancedStemNumber) : stemParameters;
 
         const generated = this.conjugationService.GenerateAllPossibleVerbalNouns(radicals, stemData)[verbalNounIndex];
         return generated;

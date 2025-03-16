@@ -23,7 +23,7 @@ import { CachedAPIService } from "../services/CachedAPIService";
 import { DialectsService } from "../services/DialectsService";
 import { StemNumberComponent } from "../shared/RomanNumberComponent";
 import { VerbConjugationService } from "../services/VerbConjugationService";
-import { ModernStandardArabicStem1ContextType } from "openarabicconjugation/src/DialectsMetadata";
+import { ModernStandardArabicStem1ParametersType } from "openarabicconjugation/src/dialects/msa/conjugation/r2tashkil";
 
 @Injectable
 export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; }>
@@ -62,7 +62,7 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
         {
             const verbType = this.verbConjugationService.GetType(this.root.radicals, word);
 
-            const verbPresentation = this.verbConjugationService.CreateDefaultDisplayVersionOfVerbWithDiff(this.root.radicals, word, { ...word, stem: 1, stemParameters: ModernStandardArabicStem1ContextType.RegularOrHollow_PastI_PresentI });
+            const verbPresentation = this.verbConjugationService.CreateDefaultDisplayVersionOfVerbWithDiff(this.root.radicals, word, { ...word, stem: 1, stemParameters: ModernStandardArabicStem1ParametersType.RegularOrHollow_PastI_PresentI });
 
             return <>
                 {this.verbConjugationService.RenderCheck(this.root.radicals, word)}
