@@ -33,8 +33,6 @@ function IsSpecial(root: VerbRoot, verb: Verb<ModernStandardArabicStem1Parameter
         return need;
     if( (root.r1 === Letter.Hamza) && (root.r3 === Letter.Ya) && (verb.stem === 4) )
         return need;
-    if( (root.r1 === Letter.Waw) && ((root.r3 === Letter.Waw) || (root.r3 === Letter.Ya)) && (verb.stem === 4) )
-        return need;
     if( (root.r1 === Letter.Waw) && ((root.r3 === Letter.Waw) || (root.r3 === Letter.Ya)) && (verb.stem === 8) )
         return need;
 
@@ -81,8 +79,6 @@ function IsSpecial(root: VerbRoot, verb: Verb<ModernStandardArabicStem1Parameter
         case 2:
             switch(root.type)
             {
-                case RootType.DoublyWeak_WawOnR1_WawOrYaOnR3:
-                    return needPassive;
                 case RootType.Quadriliteral:
                     return need;
             }

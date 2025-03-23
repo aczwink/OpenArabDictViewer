@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { OpenArabDictGenderedWord, OpenArabDictWordType } from "openarabdict-domain";
-import { OpenArabDictNonVerbDerivationType, OpenArabDictWord, OpenArabDictWordRelationshipType } from "../../dist/api";
+import { OpenArabDictGenderedWord, OpenArabDictWordRelationshipType, OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictNonVerbDerivationType, OpenArabDictWord } from "../../dist/api";
 
 export const allWordTypes = [
     OpenArabDictWordType.Adjective,
@@ -84,6 +84,10 @@ export function WordRelationshipTypeToString(type: OpenArabDictWordRelationshipT
 {
     switch(type)
     {
+        case OpenArabDictWordRelationshipType.Antonym:
+            return "antonym";
+        case OpenArabDictWordRelationshipType.EqualSpelling:
+            return "exact spelling";
         case OpenArabDictWordRelationshipType.Synonym:
             return "synonym";
     }
