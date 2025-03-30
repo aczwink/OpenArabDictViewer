@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2024 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -16,10 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 import { JSX_CreateElement } from "acfrontend";
-import { ToDiffStream, DisplayVocalized } from "openarabicconjugation/src/Vocalization";
+import { ToDiffStream, DisplayVocalized, VocalizedWordTostring } from "openarabicconjugation/src/Vocalization";
 
 export function RenderWithDiffHighlights(word: DisplayVocalized[], reference: DisplayVocalized[])
 {
+    if(navigator.userAgent.includes("AppleWebKit/")) //doesn't work in webkit -.- https://bugs.webkit.org/show_bug.cgi?id=6148
+        return VocalizedWordTostring(word);
+
     const diff = ToDiffStream(word, reference);
 
     let hasLeadingDiff = false;
