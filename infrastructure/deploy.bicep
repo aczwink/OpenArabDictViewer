@@ -51,7 +51,7 @@ resource backend 'Microsoft.Web/sites@2024-04-01' = {
         }
       ]
 
-      linuxFxVersion: 'NODE|18-lts'
+      linuxFxVersion: 'NODE|20-lts'
       minTlsVersion: '1.3'
     }
   }

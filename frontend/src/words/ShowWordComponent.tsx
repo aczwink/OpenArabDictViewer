@@ -21,21 +21,18 @@ import { WordRelation } from "../../dist/api";
 import { RenderTranslations } from "../shared/translations";
 import { WordMayHaveGender, WordRelationshipTypeToString, WordTypeToText } from "../shared/words";
 import { RemoveTashkil } from "openarabicconjugation/src/Util";
-import { ConjugationService } from "../services/ConjugationService";
 import { WordIdReferenceComponent } from "./WordReferenceComponent";
-import { Case, Gender } from "openarabicconjugation/src/Definitions";
 import { NounDeclensionTable } from "./NounDeclensionTable";
-import { DialectType } from "openarabicconjugation/src/Dialects";
 import { RenderDerivedTerm, WordDerivationComponent } from "./WordDerivationComponent";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
 import { OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
 import { ShowVerbComponent } from "../verbs/ShowVerbComponent";
+import { AdjectiveDeclensionTable } from "./AdjectiveDeclensionTable";
 
 @Injectable
 export class ShowWordComponent extends Component
 {
-    constructor(routerState: RouterState, private conjugationService: ConjugationService,
-        private titleService: TitleService, private cachedAPIService: CachedAPIService)
+    constructor(routerState: RouterState, private titleService: TitleService, private cachedAPIService: CachedAPIService)
     {
         super();
 
@@ -87,43 +84,6 @@ export class ShowWordComponent extends Component
     }
 
     //Private methods
-    private RenderAdjectiveDeclensionTable()
-    {
-        const word = this.data!.word.text;
-
-        const render = (definite: boolean, gender: Gender, c: Case) => this.conjugationService.DeclineAdjective(DialectType.ModernStandardArabic, word, {
-            definite,
-            gender,
-            case: c
-        });
-
-        return <table className="table table-sm table-bordered text-center">
-            <thead>
-                <tr>
-                    <th>Singular</th>
-                    <th colSpan="2">Masculine</th>
-                    <th colSpan="2">Feminine</th>
-                </tr>
-                <tr>
-                    <th> </th>
-                    <th>Indefinite</th>
-                    <th>Definite</th>
-                    <th>Indefinite</th>
-                    <th>Definite</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Nominative</td>
-                    <td>{render(false, Gender.Male, Case.Nominative)}</td>
-                    <td>{render(true, Gender.Male, Case.Nominative)}</td>
-                    <td>{render(false, Gender.Female, Case.Nominative)}</td>
-                    <td>{render(true, Gender.Female, Case.Nominative)}</td>
-                </tr>
-            </tbody>
-        </table>;
-    }
-
     private RenderDerivationData()
     {
         const derivation = this.data!.word.parent;
@@ -201,7 +161,7 @@ export class ShowWordComponent extends Component
         switch(this.data!.word.type)
         {
             case OpenArabDictWordType.Adjective:
-                return this.RenderAdjectiveDeclensionTable();
+                return <AdjectiveDeclensionTable word={this.data!.word} />;
             case OpenArabDictWordType.Noun:
                 return <NounDeclensionTable word={this.data!.word} derivedWordIds={this.data!.derived} />;
         }

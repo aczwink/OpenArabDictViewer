@@ -53,8 +53,6 @@ function IsSpecial(root: VerbRoot, verb: Verb<ModernStandardArabicStem1Parameter
                 break;
                 case RootType.HamzaOnR1:
                 {
-                    if((ExtractMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Fatha) && (ExtractPresentMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Dhamma))
-                        return need;
                     if((ExtractMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Fatha) && (ExtractPresentMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Fatha))
                         return need;
                     if((ExtractMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Kasra) && (ExtractPresentMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Kasra))

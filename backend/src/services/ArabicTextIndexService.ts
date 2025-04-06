@@ -18,16 +18,17 @@
 
 import { Injectable } from "acts-util-node";
 import { DatabaseController } from "../data-access/DatabaseController";
-import { OpenArabDictVerb, OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictGenderedWord, OpenArabDictNonVerbDerivationType, OpenArabDictVerb, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
 import { Conjugator } from "openarabicconjugation/src/Conjugator";
 import { RootsIndexService } from "./RootsIndexService";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
-import { AdvancedStemNumber, Gender, Mood, Numerus, Person, Tense, VerbType, Voice } from "openarabicconjugation/src/Definitions";
+import { AdvancedStemNumber, Case, Gender, Mood, Numerus, Person, Tense, VerbType, Voice } from "openarabicconjugation/src/Definitions";
 import { DialectsService } from "./DialectsService";
 import { CompareVocalized, DisplayVocalized, MapLetterToComparisonEquivalenceClass, ParseVocalizedText, VocalizedWordTostring } from "openarabicconjugation/src/Vocalization";
 import { PrefixTree } from "../indexes/PrefixTree";
 import { Of } from "acts-util-core";
 import { CreateVerb } from "openarabicconjugation/src/Verb";
+import { DialectType } from "openarabicconjugation/src/Dialects";
 
 interface IndexEntry
 {
@@ -78,6 +79,28 @@ export class ArabicTextIndexService
     }
 
     //Private methods
+    private AddAdjectiveToIndex(word: OpenArabDictGenderedWord, trie: PrefixTree<IndexEntry>)
+    {
+        const vocalized = ParseVocalizedText(word.text);
+        this.AddToIndex(vocalized, {
+            vocalized,
+            word,
+        }, trie);
+
+        const conjugator = new Conjugator();
+        const female = conjugator.DeclineAdjective(word.text, {
+            case: Case.Informal,
+            definite: false,
+            gender: Gender.Female
+        }, DialectType.ModernStandardArabic);
+
+        this.AddToIndex(female, {
+            conjugated: VocalizedWordTostring(female),
+            vocalized: female,
+            word,
+        }, trie);
+    }
+
     private AddToIndex(vocalized: DisplayVocalized[], indexEntry: IndexEntry, trie: PrefixTree<IndexEntry>)
     {
         const key = this.MapToKey(vocalized);
@@ -155,6 +178,10 @@ export class ArabicTextIndexService
     {
         switch(word.type)
         {
+            case OpenArabDictWordType.Adjective:
+                if(word.isMale || !((word.parent?.type === OpenArabDictWordParentType.NonVerbWord) && (word.parent.relationType === OpenArabDictNonVerbDerivationType.Feminine)))
+                    this.AddAdjectiveToIndex(word, trie);
+                break;
             case OpenArabDictWordType.Verb:
                 this.AddVerbToIndex(word, trie);
                 break;
