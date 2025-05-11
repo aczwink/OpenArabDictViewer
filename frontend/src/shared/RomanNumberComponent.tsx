@@ -56,7 +56,7 @@ export class StemNumberComponent extends Component<{ verbType: VerbType; stem: n
 {
     protected Render(): RenderValue
     {
-        const suffix = (this.input.verbType === VerbType.SoundQuadriliteral) ? "q" : "";
+        const suffix = ((this.input.verbType === VerbType.SoundQuadriliteral) || (this.input.verbType === VerbType.QuadriliteralAndDefective)) ? "q" : "";
         return <fragment>
             <RomanNumberComponent num={this.input.stem} />{suffix}
         </fragment>;

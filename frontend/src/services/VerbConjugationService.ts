@@ -25,6 +25,7 @@ import { OpenArabDictVerb } from "openarabdict-domain";
 import { _TODO_CheckConjugation } from "./_ConjugationCheck";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { CreateVerb } from "openarabicconjugation/src/Verb";
+import { GetDialectMetadata } from "openarabicconjugation/src/DialectsMetadata";
 
 interface VerbConjugationParams
 {
@@ -69,8 +70,9 @@ export class VerbConjugationService
 
     public GetType(rootRadicals: string, verb: VerbConjugationParams)
     {
+        const dialectType = this.dialectsService.MapIdToType(verb.dialectId);
         const root = new VerbRoot(rootRadicals);
-        const scheme = (verb.soundOverride === true) ? VerbType.Sound : root.DeriveDeducedVerbType();
+        const scheme = (verb.soundOverride === true) ? VerbType.Sound : GetDialectMetadata(dialectType).DeriveDeducedVerbTypeFromRootType(root);
         return scheme;
     }
 

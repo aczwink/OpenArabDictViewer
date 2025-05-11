@@ -153,6 +153,8 @@ export class StatisticsComponent extends Component
                 return ["ء", "ع", "ل"];
             case VerbType.Hollow:
                 return ["ف", "و", "ل"];
+            case VerbType.QuadriliteralAndDefective:
+                return ["ف", "ع", "ل", "ي"];
             case VerbType.Sound:
                 return ["ف", "ع", "ل"];
             case VerbType.SoundQuadriliteral:
