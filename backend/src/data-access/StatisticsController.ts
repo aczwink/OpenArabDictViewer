@@ -27,6 +27,7 @@ import { DialectsService } from "../services/DialectsService";
 import { OpenArabDictVerbDerivationType, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
 import { RootsIndexService } from "../services/RootsIndexService";
 import { CreateVerb } from "openarabicconjugation/src/Verb";
+import { MapVerbTypeToOpenArabicConjugation } from "../shared";
 
 interface DialectStatistics
 {
@@ -176,7 +177,7 @@ export class StatisticsController
 
             const rootData = this.rootsIndexService.GetRoot(word.rootId);
             const root = new VerbRoot(rootData!.radicals);
-            const scheme = (word.soundOverride === true) ? VerbType.Sound : root.DeriveDeducedVerbType();
+            const scheme = MapVerbTypeToOpenArabicConjugation(word.verbType) ?? root.DeriveDeducedVerbType();
             const params = word.stemParameters!;
 
             const key = [word.dialectId, scheme, params].join("_");
@@ -227,7 +228,7 @@ export class StatisticsController
             const root = new VerbRoot(rootData!.radicals);
 
             const dialectType = this.dialectsService.MapDialectId(verb.dialectId)!;
-            const scheme = (verb.soundOverride === true) ? VerbType.Sound : root.DeriveDeducedVerbType();
+            const scheme = MapVerbTypeToOpenArabicConjugation(verb.verbType) ?? root.DeriveDeducedVerbType();
             const verbInstance = CreateVerb(dialectType, root, verb.stemParameters ?? (verb.stem as AdvancedStemNumber), scheme);
 
             const generated = conjugator.GenerateAllPossibleVerbalNouns(root, (verbInstance.stem === 1) ? verbInstance : verbInstance.stem);

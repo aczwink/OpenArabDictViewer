@@ -20,7 +20,7 @@ import { Injectable } from "acfrontend";
 import { Conjugator } from "openarabicconjugation/src/Conjugator";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
 import { DisplayVocalized, VocalizedToString } from "openarabicconjugation/src/Vocalization";
-import { ConjugationParams, Person, Tense, Voice, Gender, Numerus, Mood, AdjectiveDeclensionParams, NounDeclensionParams, AdvancedStemNumber } from "openarabicconjugation/src/Definitions";
+import { ConjugationParams, Person, Tense, Voice, Gender, Numerus, Mood, AdjectiveDeclensionParams, NounDeclensionParams, AdvancedStemNumber, VerbType } from "openarabicconjugation/src/Definitions";
 import { NounInput, TargetNounDerivation } from "openarabicconjugation/src/DialectConjugator";
 import { DialectType } from "openarabicconjugation/src/Dialects";
 import { CreateVerb, Verb } from "openarabicconjugation/src/Verb";
@@ -40,10 +40,10 @@ export class ConjugationService
         return vocalized;
     }
 
-    public ConjugateArgs(dialect: DialectType, rootRadicals: string, stem: number, tense: Tense, voice: Voice, gender: Gender, person: Person, numerus: Numerus, mood: Mood, stem1Context?: string)
+    public ConjugateArgs(dialect: DialectType, rootRadicals: string, stem: number, tense: Tense, voice: Voice, gender: Gender, person: Person, numerus: Numerus, mood: Mood, verbType: VerbType, stem1Context?: string)
     {
         const root = new VerbRoot(rootRadicals);
-        const verb = CreateVerb(dialect, root, stem1Context ?? (stem as AdvancedStemNumber));
+        const verb = CreateVerb(dialect, root, stem1Context ?? (stem as AdvancedStemNumber), verbType);
 
         return this.conjugator.Conjugate(verb, {
             tense,
@@ -53,12 +53,6 @@ export class ConjugationService
             numerus,
             mood,
         });
-    }
-
-    public ConjugateToStringArgs(dialect: DialectType, rootRadicals: string, stem: number, tense: Tense, voice: Voice, gender: Gender, person: Person, numerus: Numerus, mood: Mood, stem1Context?: string)
-    {
-        const vocalized = this.ConjugateArgs(dialect, rootRadicals, stem, tense, voice, gender, person, numerus, mood, stem1Context);
-        return this.VocalizedToString(vocalized);
     }
 
     public ConjugateParticiple(verb: Verb<string>, voice: Voice)

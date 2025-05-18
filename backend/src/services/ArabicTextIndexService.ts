@@ -22,13 +22,14 @@ import { OpenArabDictGenderedWord, OpenArabDictNonVerbDerivationType, OpenArabDi
 import { Conjugator } from "openarabicconjugation/src/Conjugator";
 import { RootsIndexService } from "./RootsIndexService";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
-import { AdvancedStemNumber, Case, Gender, Mood, Numerus, Person, Tense, VerbType, Voice } from "openarabicconjugation/src/Definitions";
+import { AdvancedStemNumber, Case, Gender, Mood, Numerus, Person, Tense, Voice } from "openarabicconjugation/src/Definitions";
 import { DialectsService } from "./DialectsService";
 import { CompareVocalized, DisplayVocalized, MapLetterToComparisonEquivalenceClass, ParseVocalizedText, VocalizedWordTostring } from "openarabicconjugation/src/Vocalization";
 import { PrefixTree } from "../indexes/PrefixTree";
 import { Of } from "acts-util-core";
 import { CreateVerb } from "openarabicconjugation/src/Verb";
 import { DialectType } from "openarabicconjugation/src/Dialects";
+import { MapVerbTypeToOpenArabicConjugation } from "../shared";
 
 interface IndexEntry
 {
@@ -115,7 +116,7 @@ export class ArabicTextIndexService
         const dialectType = this.dialectsService.MapDialectId(verb.dialectId)!;
         const dialectMeta = this.dialectsService.GetDialectMetaData(verb.dialectId);
 
-        const verbType = (verb.soundOverride === true) ? VerbType.Sound : root.DeriveDeducedVerbType();
+        const verbType = MapVerbTypeToOpenArabicConjugation(verb.verbType) ?? root.DeriveDeducedVerbType();
         const verbInstance = CreateVerb(dialectType, root, verb.stemParameters ?? (verb.stem as AdvancedStemNumber), verbType);
 
         const numeruses: Numerus[] = dialectMeta.hasDual ? [Numerus.Singular, Numerus.Dual, Numerus.Plural] : [Numerus.Singular, Numerus.Plural];

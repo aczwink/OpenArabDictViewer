@@ -17,11 +17,11 @@
  * */
 
 import { Injectable } from "acfrontend";
-import { Gender, Person, Numerus, VerbType, Tense, Voice, AdvancedStemNumber, ConjugationParams } from "openarabicconjugation/src/Definitions";
+import { Gender, Person, Numerus, Tense, Voice, AdvancedStemNumber, ConjugationParams, VerbType } from "openarabicconjugation/src/Definitions";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
 import { ConjugationService } from "./ConjugationService";
 import { DialectsService } from "./DialectsService";
-import { OpenArabDictVerb } from "openarabdict-domain";
+import { OpenArabDictVerb, OpenArabDictVerbType } from "openarabdict-domain";
 import { _TODO_CheckConjugation } from "./_ConjugationCheck";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { CreateVerb } from "openarabicconjugation/src/Verb";
@@ -30,7 +30,7 @@ import { GetDialectMetadata } from "openarabicconjugation/src/DialectsMetadata";
 interface VerbConjugationParams
 {
     dialectId: number;
-    soundOverride?: boolean;
+    verbType?: OpenArabDictVerbType;
     stem: number;
     stemParameters?: string;
 }
@@ -72,7 +72,7 @@ export class VerbConjugationService
     {
         const dialectType = this.dialectsService.MapIdToType(verb.dialectId);
         const root = new VerbRoot(rootRadicals);
-        const scheme = (verb.soundOverride === true) ? VerbType.Sound : GetDialectMetadata(dialectType).DeriveDeducedVerbTypeFromRootType(root);
+        const scheme = this.MapVerbTypeToOpenArabicConjugation(verb.verbType) ?? GetDialectMetadata(dialectType).DeriveDeducedVerbTypeFromRootType(root);
         return scheme;
     }
 
@@ -98,7 +98,7 @@ export class VerbConjugationService
         let requiredContext: ConjugationParams[] = [];
         if(verb.stem === 1)
         {
-            const choices = this.dialectsService.GetDialectMetaData(verb.dialectId).GetStem1ContextChoices(root);
+            const choices = this.dialectsService.GetDialectMetaData(verb.dialectId).GetStem1ContextChoices(verbInstance.type, root);
             requiredContext = choices.requiredContext;
         }
 
@@ -110,6 +110,18 @@ export class VerbConjugationService
         }
 
         return result;
+    }
+
+    private MapVerbTypeToOpenArabicConjugation(verbType?: OpenArabDictVerbType): VerbType | undefined
+    {
+        switch(verbType)
+        {
+            case OpenArabDictVerbType.Defective:
+                return VerbType.Defective;
+            case OpenArabDictVerbType.Sound:
+                return VerbType.Sound;
+        }
+        return undefined;
     }
 
     private RenderContexts(contexts: any[])
