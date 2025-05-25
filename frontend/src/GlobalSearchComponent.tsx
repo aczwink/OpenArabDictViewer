@@ -16,19 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Component, FormField, Injectable, JSX_CreateElement, LineEdit, ProgressSpinner, Select, Switch } from "acfrontend";
+import { Component, FormField, I18n, Injectable, JSX_CreateElement, LineEdit, ProgressSpinner, Select, Switch } from "acfrontend";
 import { allWordTypes, WordTypeToText } from "./shared/words";
 import { APIService } from "./services/APIService";
 import { WordFunctionComponent } from "./words/WordFunctionComponent";
 import { OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
 import { SearchResultEntry } from "../dist/api";
 import { WordReferenceComponent } from "./words/WordReferenceComponent";
+import { PageLanguageService } from "./services/PageLanguageService";
 
 @Injectable
 export class GlobalSearchComponent extends Component
 {
-    constructor(private apiService: APIService
-    )
+    constructor(private apiService: APIService, private pageLanguageService: PageLanguageService)
     {
         super();
 
@@ -73,7 +73,8 @@ export class GlobalSearchComponent extends Component
             textFilter: this.filter,
             wordType: this.wordType,
             offset: this.offset,
-            limit: this.limit
+            limit: this.limit,
+            targetLanguage: this.pageLanguageService.activeLanguage
         });
         this.data = response.data;
         this.data.SortByDescending(x => x.score);
@@ -102,14 +103,14 @@ export class GlobalSearchComponent extends Component
         return <form onsubmit={this.OnSubmit.bind(this)}>
             <div className="row">
                 <div className="col">
-                    <FormField title="Search..." description="Enter any conjugated verb, parts of a word, parts of a translation, etc.">
+                    <FormField title={I18n("search.search") + "..."} description={I18n("search.searchDescription")}>
                         <LineEdit value={this.filter} onChanged={newValue => this.filter = newValue} />
                     </FormField>
                 </div>
                 <div className="col-auto">
-                    <label className="small">Extended <Switch checked={this.extendedSearch} onChanged={newValue => this.extendedSearch = newValue} /></label>
+                    <label className="small"><I18n key="search.extended" /> <Switch checked={this.extendedSearch} onChanged={newValue => this.extendedSearch = newValue} /></label>
                     <br />
-                    <button className="btn btn-primary" type="submit">Search</button>                    
+                    <button className="btn btn-primary" type="submit"><I18n key="search.execute" /></button>                    
                 </div>
             </div>
             {this.RenderExtendedFilterForm()}
@@ -135,7 +136,7 @@ export class GlobalSearchComponent extends Component
     private RenderResults()
     {
         if(this.data.length === 0)
-            return "nothing found";
+            return <I18n key="search.empty" />;
 
         return <table className="table table-striped table-hover table-sm">
             <thead>

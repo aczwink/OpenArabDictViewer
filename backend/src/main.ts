@@ -23,6 +23,7 @@ import { APIRegistry } from "acts-util-apilib";
 import { RootsIndexService } from "./services/RootsIndexService";
 import { DialectsService } from "./services/DialectsService";
 import { ArabicTextIndexService } from "./services/ArabicTextIndexService";
+import ENV from "./env";
 
 async function ComputeIndexes()
 {
@@ -42,7 +43,7 @@ async function SetupServer()
     console.log("Finished computing indexes...");
 
     const requestHandlerChain = Factory.CreateRequestHandlerChain();
-    requestHandlerChain.AddCORSHandler([process.env.ARABDICT_ORIGIN!]);
+    requestHandlerChain.AddCORSHandler([ENV.corsOrigin]);
     requestHandlerChain.AddBodyParser();
 
     await import("./__http_registry");
@@ -53,7 +54,7 @@ async function SetupServer()
 
     const server = http.createServer(requestHandlerChain.requestListener);
 
-    server.listen(process.env.ARABDICT_PORT, () => {
+    server.listen(ENV.serverPort, () => {
         console.log("Server is running...");
     });
 

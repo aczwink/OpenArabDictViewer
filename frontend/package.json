@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "generate-api": "npx acts-util-apilib",
+    "generate-api": "npx acts-util-apilib && ./build_dictionaries.sh",
     "start-dev": "webpack serve --open",
     "build": "npx webpack --config webpack.production.config.js && (cd dist && ln -s ../static static && zip -j -r -9 arabdict-frontend-release.zip bundle.js static && rm static)"
   },
@@ -13,6 +13,7 @@
   "license": "AGPL-3.0",
   "devDependencies": {
     "dotenv-webpack": "^8.0.1",
+    "js-yaml": "^4.1.0",
     "source-map-loader": "^4.0.1",
     "ts-loader": "^9.4.2",
     "webpack": "^5.77.0",
@@ -22,7 +23,7 @@
   "dependencies": {
     "acfrontend": "*",
     "acts-util-core": "*",
-    "openarabicconjugation": "*",
-    "openarabdict-domain": "*"
+    "openarabdict-domain": "*",
+    "openarabicconjugation": "*"
   }
 }

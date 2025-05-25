@@ -21,6 +21,7 @@ import { FullWordData, WordsController } from "../data-access/WordsController";
 import { OpenArabDictWordType } from "openarabdict-domain";
 import { WordFilterCriteria, WordSearchService } from "../services/WordSearchService";
 import { Of } from "acts-util-core";
+import { TargetTranslationLanguage } from "../services/TranslationService";
 
 type OptionalWordType = OpenArabDictWordType | null;
 
@@ -44,6 +45,7 @@ class _api_
         @Query wordType: OptionalWordType,
         @Query offset: number,
         @Query limit: number,
+        @Query targetLanguage: TargetTranslationLanguage
     )
     {
         const filterCriteria: WordFilterCriteria = {
@@ -52,7 +54,7 @@ class _api_
         };
         const wordIds = await this.wordSearchService.FindWords(filterCriteria, offset, limit);
         const words = wordIds.Map(async sq => {
-            const word = await this.wordsController.QueryWord(sq.word.id);
+            const word = await this.wordsController.QueryWord(sq.word.id, targetLanguage);
             return Of<SearchResultEntry>({
                 conjugated: sq.conjugated,
                 score: sq.score,
@@ -89,9 +91,10 @@ class _api2_
     @Get()
     public async QueryWord(
         @Path wordId: string,
+        @Query targetLanguage: TargetTranslationLanguage
     )
     {
-        const word = await this.wordsController.QueryWord(wordId);
+        const word = await this.wordsController.QueryWord(wordId, targetLanguage);
         if(word === undefined)
             return NotFound("word not found");
         return word;

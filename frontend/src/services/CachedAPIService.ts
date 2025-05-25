@@ -21,6 +21,7 @@ import { APIService } from "./APIService";
 import { FullWordData } from "../../dist/api";
 import { Dictionary } from "acts-util-core";
 import { OpenArabDictRoot, OpenArabDictVerb, OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
+import { PageLanguageService } from "./PageLanguageService";
 
 export interface WordWithConnections extends FullWordData
 {
@@ -36,7 +37,7 @@ export interface FullVerbData
 @Injectable
 export class CachedAPIService
 {
-    constructor(private apiService: APIService)
+    constructor(private apiService: APIService, private pageLanguageService: PageLanguageService)
     {
         this.rootsCache = {};
         this.rootWordsCache = {};
@@ -73,14 +74,16 @@ export class CachedAPIService
 
     public async QueryRootWords(rootId: string)
     {
-        const response = await this.apiService.roots._any_.words.get(rootId);
+        const targetLanguage = this.pageLanguageService.activeLanguage;
+
+        const response = await this.apiService.roots._any_.words.get(rootId, { targetLanguage });
         const words = response.data as WordWithConnections[];
 
         this.rootWordsCache[rootId] = words;
         for (const word of words)
-            this.wordsCache[word.word.id] = word;
+            this.CacheWord(word);
 
-        return words;
+        return words.map(x => this.FormFullWordDataResult(x)) as WordWithConnections[];
     }
 
     public async QueryVerb(verbId: string)
@@ -106,18 +109,39 @@ export class CachedAPIService
     }
 
     //Private methods
+    private CacheWord(data: FullWordData)
+    {
+        const targetLanguage = this.pageLanguageService.activeLanguage;
+        this.wordsCache[data.word.id + "-" + targetLanguage] = data;
+    }
+
+    private FormFullWordDataResult(fwd: FullWordData): FullWordData
+    {
+        return {
+            derived: fwd.derived,
+            related: fwd.related,
+            translations: fwd.translations,
+            word: {
+                ...fwd.word,
+                translations: fwd.translations,
+            }
+        };
+    }
+
     private async QueryFullWordData(wordId: string)
     {
-        const cached = this.wordsCache[wordId];
-        if(cached !== undefined)
-            return cached;
+        const targetLanguage = this.pageLanguageService.activeLanguage;
 
-        const response = await this.apiService.words._any_.get(wordId);
+        const cached = this.wordsCache[wordId + "-" + targetLanguage];
+        if(cached !== undefined)
+            return this.FormFullWordDataResult(cached);
+
+        const response = await this.apiService.words._any_.get(wordId, { targetLanguage });
         if(response.statusCode !== 200)
             throw new Error("HERE");
-        this.wordsCache[wordId] = response.data;
+        this.CacheWord(response.data);
 
-        return response.data;
+        return this.FormFullWordDataResult(response.data);
     }
 
     //State

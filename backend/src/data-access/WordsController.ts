@@ -18,7 +18,8 @@
 
 import { Injectable } from "acts-util-node";
 import { DatabaseController } from "./DatabaseController";
-import { OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordRelationshipType } from "openarabdict-domain";
+import { OpenArabDictTranslationEntry, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordRelationshipType } from "openarabdict-domain";
+import { TargetTranslationLanguage, TranslationService } from "../services/TranslationService";
 
 interface WordRelation
 {
@@ -29,6 +30,7 @@ interface WordRelation
 export interface FullWordData
 {
     word: OpenArabDictWord;
+    translations: OpenArabDictTranslationEntry[];
     derived: string[];
     related: WordRelation[];
 }
@@ -36,7 +38,7 @@ export interface FullWordData
 @Injectable
 export class WordsController
 {
-    constructor(private dbController: DatabaseController)
+    constructor(private dbController: DatabaseController, private translationService: TranslationService)
     {
     }
 
@@ -51,7 +53,7 @@ export class WordsController
         return document.words[index].id;
     }
 
-    public async QueryRootDerivedWords(rootId: string)
+    public async QueryRootDerivedWords(rootId: string, targetLanguage: TargetTranslationLanguage)
     {
         function filterFunc(x: OpenArabDictWord)
         {
@@ -62,16 +64,16 @@ export class WordsController
 
         const words = document.words.Values().Filter(filterFunc);
 
-        return words.Map(this.QueryFullWordData.bind(this));
+        return words.Map(x => this.QueryFullWordData(x, targetLanguage));
     }
 
-    public async QueryWord(wordId: string)
+    public async QueryWord(wordId: string, targetLanguage: TargetTranslationLanguage)
     {
         const document = await this.dbController.GetDocumentDB();
 
         const word = document.words.find(x => x.id === wordId);
         if(word !== undefined)
-            return await this.QueryFullWordData(word);
+            return await this.QueryFullWordData(word, targetLanguage);
 
         return undefined;
     }
@@ -94,10 +96,11 @@ export class WordsController
         return children;
     }
 
-    private async QueryFullWordData(word: OpenArabDictWord)
+    private async QueryFullWordData(word: OpenArabDictWord, targetLanguage: TargetTranslationLanguage)
     {
         const result: FullWordData = {
             word,
+            translations: await this.translationService.TranslateToTargetLanguage(word, targetLanguage),
             derived: await this.QueryDerivedLinks(word.id),
             related: await this.QueryRelatedWords(word.id),
         };

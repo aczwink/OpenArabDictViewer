@@ -16,13 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { BootstrapIcon, Component, Injectable, JSX_CreateElement, Navigation, NavItem, ProgressSpinner, RouterComponent } from "acfrontend";
+import { BootstrapIcon, Component, I18n, Injectable, JSX_CreateElement, Navigation, NavItem, ProgressSpinner, RouterComponent } from "acfrontend";
 import { DialectsService } from "./services/DialectsService";
+import { PageLanguageService } from "./services/PageLanguageService";
+import { PageLanguageSelectionComponent } from "./PageLanguageSelectionComponent";
 
 @Injectable
 export class RootComponent extends Component
 {
-    constructor(private dialectsService: DialectsService)
+    constructor(private dialectsService: DialectsService, private pageLanguageService: PageLanguageService)
     {
         super();
 
@@ -43,10 +45,13 @@ export class RootComponent extends Component
                     <div className="col">
                         <ul className="nav nav-pills">
                             <NavItem route="/search"><BootstrapIcon>search</BootstrapIcon></NavItem>
-                            <NavItem route="/roots">Roots</NavItem>
-                            <NavItem route="/learn">Learn</NavItem>
-                            <NavItem route="/statistics">Statistics</NavItem>
+                            <NavItem route="/roots"><I18n key="nav.roots" /></NavItem>
+                            <NavItem route="/learn"><I18n key="nav.learn" /></NavItem>
+                            <NavItem route="/statistics"><I18n key="nav.statistics" /></NavItem>
                         </ul>
+                    </div>
+                    <div className="col-auto">
+                        <PageLanguageSelectionComponent onLanguageChanged={this.OnLanguageChanged.bind(this)} />
                     </div>
                 </div>
             </Navigation>
@@ -59,7 +64,17 @@ export class RootComponent extends Component
     //Event handlers
     override async OnInitiated(): Promise<void>
     {
+        await this.pageLanguageService.LoadLanguages();
+
         await this.dialectsService.CacheDialects(); //dialects are required to be loaded and cached
+        this.loading = false;
+    }
+
+    private OnLanguageChanged()
+    {
+        //force a redraw of the whole site
+        this.loading = true;
+        this.UpdateSync();
         this.loading = false;
     }
 

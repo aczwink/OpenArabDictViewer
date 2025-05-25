@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { BootstrapIcon, Component, Injectable, JSX_CreateElement, JSX_Fragment } from "acfrontend";
+import { BootstrapIcon, Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "acfrontend";
 import { WordFunctionComponent } from "./WordFunctionComponent";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
 import { OpenArabDictWord } from "openarabdict-domain";
@@ -36,10 +36,16 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Wo
         super();
 
         this.words = [];
+        this.loading = true;
     }
 
     protected Render(): RenderValue
     {
+        if(this.loading)
+            return <ProgressSpinner />;
+        if(this.words.length === 0)
+            return <i>none</i>;
+        
         return <table className="table table-striped table-hover table-sm">
             <thead>
                 <tr>
@@ -102,6 +108,7 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Wo
                 level: 0,
                 word: x.word
             }));
+            this.loading = false;
             return;
         }
 
@@ -117,8 +124,10 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Wo
         }
 
         this.words = words;
+        this.loading = false;
     }
 
     //State
+    private loading: boolean;
     private words: WordWithLevel[];
 }

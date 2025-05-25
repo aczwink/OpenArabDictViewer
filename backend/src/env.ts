@@ -15,31 +15,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
-import fs from "fs";
-import { Injectable } from "acts-util-node";
-import { OpenArabDictDocument } from "openarabdict-domain";
-import ENV from "../env";
 
-@Injectable
-export class DatabaseController
-{
-    constructor()
-    {
-        this.documentDB = null;
+export default {
+    corsOrigin: process.env.ARABDICT_ORIGIN!,
+    documentDBPath: process.env.ARABDICT_DICTDB_PATH!,
+    serverPort: process.env.ARABDICT_PORT,
+    translationService: {
+        key: process.env.ARABDICT_TRANSLATIONSERVICE_KEY!,
+        region: process.env.ARABDICT_TRANSLATIONSERVICE_REGION!,
     }
-
-    //Public methods
-    public async GetDocumentDB()
-    {
-        if(this.documentDB === null)
-        {
-            const filePath = ENV.documentDBPath;
-            const data = await fs.promises.readFile(filePath, "utf-8");
-            this.documentDB = JSON.parse(data);
-        }
-        return this.documentDB!;
-    }
-
-    //Private state
-    private documentDB: OpenArabDictDocument | null;
-}
+};
