@@ -62,7 +62,7 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
         {
             const verbType = this.verbConjugationService.GetType(this.root.radicals, word);
 
-            const verbPresentation = this.verbConjugationService.CreateDefaultDisplayVersionOfVerbWithDiff(this.root.radicals, word, { ...word, stem: 1, stemParameters: ModernStandardArabicStem1ParametersType.RegularOrHollow_PastI_PresentI });
+            const verbPresentation = this.verbConjugationService.CreateDefaultDisplayVersionOfVerbWithDiff(this.root.radicals, word, { ...word, stem: 1, stemParameters: ModernStandardArabicStem1ParametersType.PastI_PresentI });
 
             return <>
                 {this.verbConjugationService.RenderCheck(this.root.radicals, word)}

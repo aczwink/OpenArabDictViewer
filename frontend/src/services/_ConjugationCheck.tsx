@@ -41,34 +41,9 @@ function IsSpecial(root: VerbRoot, verb: Verb<ModernStandardArabicStem1Parameter
         case 1:
             switch(root.type)
             {
-                case RootType.InitialWeak:
-                {
-                    if((ExtractMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Kasra) && (ExtractPresentMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Fatha))
-                        return need;
-                    if((ExtractMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Fatha) && (ExtractPresentMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Dhamma))
-                        return need;
-                    if((ExtractMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Dhamma) && (ExtractPresentMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Dhamma))
-                        return need;
-                }
-                break;
                 case RootType.HamzaOnR1:
                 {
-                    if((ExtractMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Fatha) && (ExtractPresentMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Fatha))
-                        return need;
-                    if((ExtractMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Kasra) && (ExtractPresentMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Kasra))
-                        return need;
                     if((ExtractMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Dhamma) && (ExtractPresentMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Dhamma))
-                        return need;
-                }
-                case RootType.MiddleWeak:
-                {
-                    if((ExtractMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Dhamma) && (ExtractPresentMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Fatha))
-                        return need;
-                }
-                break;
-                case RootType.SecondConsonantDoubled:
-                {
-                    if((ExtractMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Fatha) && (ExtractPresentMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Fatha))
                         return need;
                 }
                 break;

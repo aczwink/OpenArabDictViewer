@@ -19,7 +19,7 @@
 import { Injectable } from "acts-util-node";
 import { OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
 import { DatabaseController } from "../data-access/DatabaseController";
-import { IsArabicText } from "openarabicconjugation/src/Util";
+import { IsArabicPhrase } from "openarabicconjugation/src/Util";
 import { ArabicTextIndexService, SearchResultEntry } from "./ArabicTextIndexService";
 import { Of } from "acts-util-core";
 
@@ -45,7 +45,7 @@ export class WordSearchService
         let filtered;
         if(filterCriteria.textFilter.length > 0)
         {
-            const isArabic = IsArabicText(filterCriteria.textFilter);
+            const isArabic = IsArabicPhrase(filterCriteria.textFilter);
             if(isArabic)
                 filtered = this.arabicTextIndexService.Find(filterCriteria.textFilter);
             else

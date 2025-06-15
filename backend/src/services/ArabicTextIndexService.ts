@@ -24,7 +24,7 @@ import { RootsIndexService } from "./RootsIndexService";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
 import { AdvancedStemNumber, Case, Gender, Mood, Numerus, Person, Tense, Voice } from "openarabicconjugation/src/Definitions";
 import { DialectsService } from "./DialectsService";
-import { CompareVocalized, DisplayVocalized, MapLetterToComparisonEquivalenceClass, ParseVocalizedText, VocalizedWordTostring } from "openarabicconjugation/src/Vocalization";
+import { CompareVocalized, DisplayVocalized, MapLetterToComparisonEquivalenceClass, ParseVocalizedPhrase, VocalizedWordTostring } from "openarabicconjugation/src/Vocalization";
 import { PrefixTree } from "../indexes/PrefixTree";
 import { Of } from "acts-util-core";
 import { CreateVerb } from "openarabicconjugation/src/Verb";
@@ -34,7 +34,7 @@ import { MapVerbTypeToOpenArabicConjugation } from "../shared";
 interface IndexEntry
 {
     conjugated?: string;
-    vocalized: DisplayVocalized[];
+    vocalized: DisplayVocalized[][];
     word: OpenArabDictWord;
 }
 
@@ -56,13 +56,13 @@ export class ArabicTextIndexService
     //Public methods
     public Find(textFilter: string)
     {
-        const parsed = ParseVocalizedText(textFilter);
-        const key = this.MapToKey(parsed);
+        const parsed = ParseVocalizedPhrase(textFilter);
+        const key = this.MapPhraseToKey(parsed);
 
         const indexEntries = this.trie.Find(key);
         return indexEntries.Map(x => Of<SearchResultEntry>({
             conjugated: x.conjugated,
-            score: CompareVocalized(parsed, x.vocalized.slice(0, key.length)),
+            score: this.ComparePhrases(parsed, x.vocalized),
             word: x.word
         }));
     }
@@ -82,7 +82,7 @@ export class ArabicTextIndexService
     //Private methods
     private AddAdjectiveToIndex(word: OpenArabDictGenderedWord, trie: PrefixTree<IndexEntry>)
     {
-        const vocalized = ParseVocalizedText(word.text);
+        const vocalized = ParseVocalizedPhrase(word.text);
         this.AddToIndex(vocalized, {
             vocalized,
             word,
@@ -95,16 +95,16 @@ export class ArabicTextIndexService
             gender: Gender.Female
         }, DialectType.ModernStandardArabic);
 
-        this.AddToIndex(female, {
+        this.AddToIndex([female], {
             conjugated: VocalizedWordTostring(female),
-            vocalized: female,
+            vocalized: [female],
             word,
         }, trie);
     }
 
-    private AddToIndex(vocalized: DisplayVocalized[], indexEntry: IndexEntry, trie: PrefixTree<IndexEntry>)
+    private AddToIndex(vocalized: DisplayVocalized[][], indexEntry: IndexEntry, trie: PrefixTree<IndexEntry>)
     {
-        const key = this.MapToKey(vocalized);
+        const key = this.MapPhraseToKey(vocalized);
         trie.Add(key, indexEntry);
     }
 
@@ -162,9 +162,9 @@ export class ArabicTextIndexService
                                     mood: mood as any
                                 });
 
-                                this.AddToIndex(conjugated, {
+                                this.AddToIndex([conjugated], {
                                     conjugated: VocalizedWordTostring(conjugated),
-                                    vocalized: conjugated,
+                                    vocalized: [conjugated],
                                     word: verb
                                 }, trie);
                             }
@@ -188,7 +188,7 @@ export class ArabicTextIndexService
                 break;
             default:
             {
-                const vocalized = ParseVocalizedText(word.text);
+                const vocalized = ParseVocalizedPhrase(word.text);
                 this.AddToIndex(vocalized, {
                     vocalized,
                     word,
@@ -197,9 +197,43 @@ export class ArabicTextIndexService
         }
     }
 
-    private MapToKey(vocalized: DisplayVocalized[])
+    private ComparePhrases(search: DisplayVocalized[][], test: DisplayVocalized[][])
+    {
+        if(search.length > test.length)
+            return 0;
+
+        const maxLen = Math.min(search.length, test.length);
+        let sum = 0;
+        for(let i = 0; i < maxLen-1; i++)
+        {
+            const si = search[i];
+            const ti = test[i];
+
+            sum += CompareVocalized(si, ti);
+        }
+
+        const si = search[maxLen-1];
+        const ti = test[maxLen-1];
+        sum += CompareVocalized(si, ti.slice(0, si.length));
+
+        return sum / maxLen;
+    }
+
+    private MapWordToKey(vocalized: DisplayVocalized[])
     {
         return vocalized.map(x => MapLetterToComparisonEquivalenceClass(x.letter));
+    }
+
+    private MapPhraseToKey(phrase: DisplayVocalized[][])
+    {
+        const result = [];
+        for(let i = 0; i < phrase.length; i++)
+        {
+            result.push(...this.MapWordToKey(phrase[i]));
+            if((i+1) !== phrase.length)
+                result.push(" ");
+        }
+        return result;
     }
 
     //State
