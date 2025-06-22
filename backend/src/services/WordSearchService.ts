@@ -52,12 +52,11 @@ export class WordSearchService
             {
                 filterCriteria.textFilter = filterCriteria.textFilter.toLowerCase();
                 filtered = document.words.Values()
-                    .Filter(this.SearchByTranslation.bind(this, filterCriteria))
-                    .Map(x => Of<SearchResultEntry>({ score: 1, word: x }));
+                    .Map(this.SearchByTranslation.bind(this, filterCriteria));
             }
         }
         else
-            filtered = document.words.Values().Map(x => Of<SearchResultEntry>({ score: 0, word: x }));
+            filtered = document.words.Values().Map(x => Of<SearchResultEntry>({ score: 1, word: x }));
 
         if(filterCriteria.wordType !== null)
             filtered = filtered.Filter(x => x.word.type === filterCriteria.wordType);
@@ -66,12 +65,14 @@ export class WordSearchService
     }
 
     //Private methods
-    private SearchByTranslation(filterCriteria: WordFilterCriteria, word: OpenArabDictWord)
+    private SearchByTranslation(filterCriteria: WordFilterCriteria, word: OpenArabDictWord): SearchResultEntry
     {
         const translationMatch = word.translations.Values().Map(x => x.text.Values().Map(x => x.toLowerCase().includes(filterCriteria.textFilter))).Flatten().AnyTrue();
         if(!translationMatch)
-            return false;
-
-        return true;
+            return { score: 0, word };
+        return {
+            score: 1,
+            word
+        };
     }
 }

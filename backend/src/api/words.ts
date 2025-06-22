@@ -22,6 +22,9 @@ import { OpenArabDictWordType } from "openarabdict-domain";
 import { WordFilterCriteria, WordSearchService } from "../services/WordSearchService";
 import { Of } from "acts-util-core";
 import { TargetTranslationLanguage } from "../services/TranslationService";
+import { SearchResultEntry as SearchResultEntryATIS } from "../services/ArabicTextIndexService";
+import { IsArabicPhrase } from "openarabicconjugation/src/Util";
+import { ParseVocalizedPhrase } from "openarabicconjugation/src/Vocalization";
 
 type OptionalWordType = OpenArabDictWordType | null;
 
@@ -52,8 +55,11 @@ class _api_
             textFilter,
             wordType
         };
-        const wordIds = await this.wordSearchService.FindWords(filterCriteria, offset, limit);
-        const words = wordIds.Map(async sq => {
+        const searchResults = await this.wordSearchService.FindWords(filterCriteria, offset, limit);
+        const searchResultsArray = searchResults.ToArray();
+        this.ScaleByMatchLength(textFilter, searchResultsArray);
+
+        const words = searchResultsArray.Values().Map(async sq => {
             const word = await this.wordsController.QueryWord(sq.word.id, targetLanguage);
             return Of<SearchResultEntry>({
                 conjugated: sq.conjugated,
@@ -63,6 +69,35 @@ class _api_
         }).PromiseAll();
 
         return words;
+    }
+
+    //Private methods
+    private ComputePhraseLength(entry: SearchResultEntryATIS)
+    {
+        const text = entry.conjugated ?? entry.word.text;
+        const parsed = ParseVocalizedPhrase(text);
+        return parsed.Values().Map(x => x.length).Sum();
+    }
+
+    private ScaleByMatchLength(textFilter: string, searchResultsArray: SearchResultEntryATIS[])
+    {
+        if((textFilter.length > 0) && IsArabicPhrase(textFilter))
+        {
+            const lengths = searchResultsArray.map(x => this.ComputePhraseLength(x));
+            const min = Math.min(...lengths);
+            const max = Math.max(...lengths);
+
+            for(let i = 0; i < searchResultsArray.length; i++)
+            {
+                const entry = searchResultsArray[i];
+                const length = lengths[i];
+
+                const lengthScore = (length - min) / (max - min);
+                const lengthScoreInverted = 1 - lengthScore;
+                
+                entry.score *= lengthScoreInverted;
+            }
+        }
     }
 }
 
