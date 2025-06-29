@@ -17,13 +17,13 @@
  * */
 
 import { Component, Injectable, JSX_CreateElement } from "acfrontend";
-import { PageLanguageService } from "./services/PageLanguageService";
+import { GlobalSettingsService } from "./services/GlobalSettingsService";
 import { TargetTranslationLanguage } from "../dist/api";
 
 @Injectable
 export class PageLanguageSelectionComponent extends Component<{ onLanguageChanged: () => void }>
 {
-    constructor(private pageLanguageService: PageLanguageService)
+    constructor(private pageLanguageService: GlobalSettingsService)
     {
         super();
     }
@@ -33,9 +33,9 @@ export class PageLanguageSelectionComponent extends Component<{ onLanguageChange
         const languages: TargetTranslationLanguage[] = ["en", "de"];
 
         const activeLang = this.pageLanguageService.activeLanguage;
-        return <div className="flex-shrink-0 p-2">
+        return <div className="flex-shrink-0 py-2">
             <a href="#" className="text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-                {this.RenderFlag(activeLang)} {this.RenderName(activeLang)}
+                {this.RenderFlag(activeLang)}
             </a>
             <ul className="dropdown-menu shadow">
                 {languages.map(this.RenderSelection.bind(this))}

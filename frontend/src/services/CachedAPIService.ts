@@ -21,7 +21,7 @@ import { APIService } from "./APIService";
 import { FullWordData } from "../../dist/api";
 import { Dictionary } from "acts-util-core";
 import { OpenArabDictRoot, OpenArabDictVerb, OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
-import { PageLanguageService } from "./PageLanguageService";
+import { GlobalSettingsService } from "./GlobalSettingsService";
 
 export interface WordWithConnections extends FullWordData
 {
@@ -37,7 +37,7 @@ export interface FullVerbData
 @Injectable
 export class CachedAPIService
 {
-    constructor(private apiService: APIService, private pageLanguageService: PageLanguageService)
+    constructor(private apiService: APIService, private pageLanguageService: GlobalSettingsService)
     {
         this.rootsCache = {};
         this.rootWordsCache = {};

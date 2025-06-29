@@ -26,6 +26,7 @@ import { _TODO_CheckConjugation } from "./_ConjugationCheck";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { CreateVerb } from "openarabicconjugation/src/Verb";
 import { GetDialectMetadata } from "openarabicconjugation/src/DialectsMetadata";
+import { GlobalSettingsService } from "./GlobalSettingsService";
 
 interface VerbConjugationParams
 {
@@ -38,13 +39,15 @@ interface VerbConjugationParams
 @Injectable
 export class VerbConjugationService
 {
-    constructor(private dialectsService: DialectsService, private conjugationService: ConjugationService)
+    constructor(private dialectsService: DialectsService, private conjugationService: ConjugationService, private globalSettingsService: GlobalSettingsService)
     {
     }
 
     //Public methods
     public ConstructVerb(rootRadicals: string, verb: VerbConjugationParams)
     {
+        verb = this.SelectForm(verb);
+
         const dialectType = this.dialectsService.MapIdToType(verb.dialectId);
         const root = new VerbRoot(rootRadicals);
         const type = this.GetType(rootRadicals, verb);
@@ -148,5 +151,21 @@ export class VerbConjugationService
             default:
                 throw new Error("This should never happen!");
         }
+    }
+
+    private SelectForm(verb: VerbConjugationParams): VerbConjugationParams
+    {
+        const targetDialect = this.dialectsService.FindDialect(this.globalSettingsService.dialectType)!;
+        if(targetDialect.id === verb.dialectId)
+            return verb;
+        if((verb.stemParameters === undefined) && (verb.verbType === undefined))
+        {
+            return {
+                dialectId: targetDialect.id,
+                stem: verb.stem,
+            };
+        }
+
+        return verb;
     }
 }

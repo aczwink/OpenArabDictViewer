@@ -18,12 +18,14 @@
 
 import { I18nManager, Injectable } from "acfrontend";
 import { TargetTranslationLanguage } from "../../dist/api";
+import { DialectType } from "openarabicconjugation/src/Dialects";
 
 @Injectable
-export class PageLanguageService
+export class GlobalSettingsService
 {
     constructor(private i18nManager: I18nManager)
     {
+        this._dialectType = DialectType.ModernStandardArabic;
     }
 
     //Properties
@@ -37,6 +39,16 @@ export class PageLanguageService
         this.i18nManager.activeLanguage = newValue;
     }
 
+    public get dialectType()
+    {
+        return this._dialectType;
+    }
+
+    public set dialectType(dialectType: DialectType)
+    {
+        this._dialectType = dialectType;
+    }
+
     //Public methods
     public async LoadLanguages()
     {    
@@ -45,4 +57,7 @@ export class PageLanguageService
 
         this.i18nManager.AddLanguage("de", await import("../../dist/de.json"), "en");
     }
+
+    //State
+    private _dialectType: DialectType;
 }

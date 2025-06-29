@@ -18,13 +18,14 @@
 
 import { BootstrapIcon, Component, I18n, Injectable, JSX_CreateElement, Navigation, NavItem, ProgressSpinner, RouterComponent } from "acfrontend";
 import { DialectsService } from "./services/DialectsService";
-import { PageLanguageService } from "./services/PageLanguageService";
+import { GlobalSettingsService } from "./services/GlobalSettingsService";
 import { PageLanguageSelectionComponent } from "./PageLanguageSelectionComponent";
+import { DialectSelectionComponent } from "./DialectSelectionComponent";
 
 @Injectable
 export class RootComponent extends Component
 {
-    constructor(private dialectsService: DialectsService, private pageLanguageService: PageLanguageService)
+    constructor(private dialectsService: DialectsService, private pageLanguageService: GlobalSettingsService)
     {
         super();
 
@@ -49,6 +50,9 @@ export class RootComponent extends Component
                             <NavItem route="/learn"><I18n key="nav.learn" /></NavItem>
                             <NavItem route="/statistics"><I18n key="nav.statistics" /></NavItem>
                         </ul>
+                    </div>
+                    <div className="col-auto">
+                        <DialectSelectionComponent onDialectChanged={this.OnLanguageChanged.bind(this)} />
                     </div>
                     <div className="col-auto">
                         <PageLanguageSelectionComponent onLanguageChanged={this.OnLanguageChanged.bind(this)} />

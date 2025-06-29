@@ -23,12 +23,12 @@ import { WordFunctionComponent } from "./words/WordFunctionComponent";
 import { OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
 import { SearchResultEntry } from "../dist/api";
 import { WordReferenceComponent } from "./words/WordReferenceComponent";
-import { PageLanguageService } from "./services/PageLanguageService";
+import { GlobalSettingsService } from "./services/GlobalSettingsService";
 
 @Injectable
 export class GlobalSearchComponent extends Component
 {
-    constructor(private apiService: APIService, private pageLanguageService: PageLanguageService)
+    constructor(private apiService: APIService, private pageLanguageService: GlobalSettingsService)
     {
         super();
 

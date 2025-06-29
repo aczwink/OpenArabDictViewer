@@ -26,7 +26,6 @@ import { RomanNumberComponent, StemNumberComponent } from "./shared/RomanNumberC
 import { DialectType } from "openarabicconjugation/src/Dialects";
 import { ConjugationSchemeToString } from "./verbs/ToStringStuff";
 import { AdvancedStemNumber } from "openarabicconjugation/src/Definitions";
-import { GetDialectMetadata } from "openarabicconjugation/src/DialectsMetadata";
 import { VerbConjugationService } from "./services/VerbConjugationService";
 
 @Injectable
@@ -88,13 +87,15 @@ export class StatisticsComponent extends Component
                 stem: "Stem",
                 form: "Form",
                 verbalNoun: "Verbal noun",
-                count: "Count"
+                count: "Count",
+                likelihood: "Likelihood"
             }, this.data.verbalNounFreq.map(x => ({
                 verbType: ConjugationSchemeToString(x.scheme),
                 stem: <StemNumberComponent verbType={x.scheme} stem={x.stem} />,
                 form: (x.stemParameters === undefined) ? "" : this.BuildForm(x.scheme, x.stemParameters, this.dialectsService.FindDialect(DialectType.ModernStandardArabic)!.id),
                 verbalNoun: this.GenerateVerbalNoun(x.scheme, x.stem, x.stemParameters, x.verbalNounIndex),
                 count: x.count,
+                likelihood: this.ComputeVerbalNounLikelihood(x, this.data!.verbalNounFreq)
             })))}
         </div>;
     }
@@ -121,6 +122,14 @@ export class StatisticsComponent extends Component
         });
     }
 
+    private ComputeVerbalNounLikelihood(freq: VerbalNounFrequencies, total: VerbalNounFrequencies[])
+    {
+        const allMatching = total.Values().Filter(x => (x.scheme === freq.scheme) && (x.stem === freq.stem) && (x.stemParameters === freq.stemParameters)).Map(x => x.count).Sum();
+
+        const p = Math.round(freq.count * 100 / allMatching);
+        return p + "%";
+    }
+
     private DialectToString(dialectId: number)
     {
         const d = this.dialectsService.GetDialect(dialectId);
@@ -130,7 +139,6 @@ export class StatisticsComponent extends Component
     private GenerateVerbalNoun(scheme: VerbType, stem: number, stemParameters: string | undefined, verbalNounIndex: number)
     {
         const radicals = this.GetExampleRootRadicals(scheme).join("");
-        const meta = GetDialectMetadata(DialectType.ModernStandardArabic);
         const stemData: AdvancedStemNumber | string = (stemParameters === undefined) ? (stem as AdvancedStemNumber) : stemParameters;
 
         const generated = this.conjugationService.GenerateAllPossibleVerbalNouns(radicals, stemData)[verbalNounIndex];
