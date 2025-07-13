@@ -23,7 +23,7 @@ import { DisplayVocalized, VocalizedToString } from "openarabicconjugation/src/V
 import { ConjugationParams, Person, Tense, Voice, Gender, Numerus, Mood, AdjectiveDeclensionParams, NounDeclensionParams, AdvancedStemNumber, VerbType } from "openarabicconjugation/src/Definitions";
 import { NounInput, TargetNounDerivation } from "openarabicconjugation/src/DialectConjugator";
 import { DialectType } from "openarabicconjugation/src/Dialects";
-import { CreateVerb, Verb } from "openarabicconjugation/src/Verb";
+import { CreateVerb, Verb, VerbStem1Data } from "openarabicconjugation/src/Verb";
 
 @Injectable
 export class ConjugationService
@@ -76,10 +76,10 @@ export class ConjugationService
         return this.conjugator.DeriveSoundNoun(singular, singularGender, target, dialect);
     }
 
-    public GenerateAllPossibleVerbalNouns(rootRadicals: string, stem: AdvancedStemNumber | string)
+    public GenerateAllPossibleVerbalNouns(rootRadicals: string, stem: AdvancedStemNumber | string | VerbStem1Data<string>)
     {
         const root = new VerbRoot(rootRadicals);
-        const nouns = this.conjugator.GenerateAllPossibleVerbalNouns(root, this.CreateLegacyStem(rootRadicals, stem));
+        const nouns = this.conjugator.GenerateAllPossibleVerbalNouns(root, ((typeof stem === "number") || (typeof stem === "string")) ? this.CreateLegacyStem(rootRadicals, stem) : stem);
         return nouns.map(this.VocalizedToString.bind(this));
     }
 

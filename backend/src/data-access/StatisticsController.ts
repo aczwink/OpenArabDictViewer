@@ -28,6 +28,7 @@ import { OpenArabDictVerbDerivationType, OpenArabDictWordParentType, OpenArabDic
 import { RootsIndexService } from "../services/RootsIndexService";
 import { CreateVerb } from "openarabicconjugation/src/Verb";
 import { MapVerbTypeToOpenArabicConjugation } from "../shared";
+import { DialectType } from "openarabicconjugation/src/Dialects";
 
 interface DialectStatistics
 {
@@ -132,11 +133,20 @@ export class StatisticsController
             if(word.type !== OpenArabDictWordType.Verb)
                 continue;
 
-            const root = this.rootsIndexService.GetRoot(word.rootId)!;
-            const rootInstance = new VerbRoot(root.radicals);
-            const scheme = rootInstance.DeriveDeducedVerbType();
-            
-            counts[scheme] = (counts[scheme] ?? 0) + 1;
+            const types = new Set<VerbType>();
+            for (const variant of word.form.variants)
+            {
+                const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
+                const root = this.rootsIndexService.GetRoot(word.rootId)!;
+                const rootInstance = new VerbRoot(root.radicals);
+                const verbType = MapVerbTypeToOpenArabicConjugation(word.form.verbType);
+
+                const verb = CreateVerb(dialectType, rootInstance, variant.stemParameters ?? (word.form.stem as AdvancedStemNumber), verbType);
+                types.add(verb.type);
+            }
+
+            for (const type of types)
+                counts[type] = (counts[type] ?? 0) + 1;   
         }
 
         return ObjectExtensions.Entries(counts).Map<VerbTypeStatistics>(kv => ({
@@ -155,7 +165,7 @@ export class StatisticsController
             if(word.type !== OpenArabDictWordType.Verb)
                 continue;
             
-            counts[word.stem] = (counts[word.stem] ?? 0) + 1;
+            counts[word.form.stem] = (counts[word.form.stem] ?? 0) + 1;
         }
         return ObjectExtensions.Entries(counts).Map<VerbStemStatistics>(kv => ({
             count: kv.value!,
@@ -172,27 +182,33 @@ export class StatisticsController
         {
             if(word.type !== OpenArabDictWordType.Verb)
                 continue;
-            if(word.stem !== 1)
+            if(word.form.stem !== 1)
                 continue;
 
             const rootData = this.rootsIndexService.GetRoot(word.rootId);
             const root = new VerbRoot(rootData!.radicals);
-            const scheme = MapVerbTypeToOpenArabicConjugation(word.verbType) ?? root.DeriveDeducedVerbType();
-            const params = word.stemParameters!;
 
-            const key = [word.dialectId, scheme, params].join("_");
-            const obj = dict[key];
-            if(obj === undefined)
+            for (const variant of word.form.variants)
             {
-                dict[key] = {
-                    dialectId: word.dialectId,
-                    count: 1,
-                    scheme,
-                    stemParameters: params
-                };
+                const params = variant.stemParameters!;
+
+                const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
+                const verb = CreateVerb(dialectType, root, variant.stemParameters ?? (word.form.stem as AdvancedStemNumber), MapVerbTypeToOpenArabicConjugation(word.form.verbType));
+
+                const key = [variant.dialectId, verb.type, params].join("_");
+                const obj = dict[key];
+                if(obj === undefined)
+                {
+                    dict[key] = {
+                        dialectId: variant.dialectId,
+                        count: 1,
+                        scheme: verb.type,
+                        stemParameters: params
+                    };
+                }
+                else
+                    obj.count++;
             }
-            else
-                obj.count++;
         }
 
         return ObjectExtensions.Values(dict).NotUndefined().ToArray();
@@ -227,28 +243,33 @@ export class StatisticsController
             const rootData = this.rootsIndexService.GetRoot(verb.rootId);
             const root = new VerbRoot(rootData!.radicals);
 
-            const dialectType = this.dialectsService.MapDialectId(verb.dialectId)!;
-            const scheme = MapVerbTypeToOpenArabicConjugation(verb.verbType) ?? root.DeriveDeducedVerbType();
-            const verbInstance = CreateVerb(dialectType, root, verb.stemParameters ?? (verb.stem as AdvancedStemNumber), scheme);
-
-            const generated = conjugator.GenerateAllPossibleVerbalNouns(root, (verbInstance.stem === 1) ? verbInstance : verbInstance.stem);
-            const verbalNounPossibilities = generated.map(VocalizedArrayToString);
-
-            const verbalNounIndex = verbalNounPossibilities.indexOf(word.text);
-            const key = [scheme, verb.stem, verb.stemParameters ?? "", verbalNounIndex].join("_");
-            const obj = dict[key];
-            if(obj === undefined)
+            for (const variant of verb.form.variants)
             {
-                dict[key] = {
-                    count: 1,
-                    scheme,
-                    stem: verb.stem,
-                    stemParameters: verb.stemParameters,
-                    verbalNounIndex,
-                };
+                const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
+                if(dialectType !== DialectType.ModernStandardArabic)
+                    continue;
+                
+                const verbInstance = CreateVerb(dialectType, root, variant.stemParameters ?? (verb.form.stem as AdvancedStemNumber), MapVerbTypeToOpenArabicConjugation(verb.form.verbType));
+
+                const generated = conjugator.GenerateAllPossibleVerbalNouns(root, (verbInstance.stem === 1) ? verbInstance : verbInstance.stem);
+                const verbalNounPossibilities = generated.map(VocalizedArrayToString);
+
+                const verbalNounIndex = verbalNounPossibilities.indexOf(word.text);
+                const key = [verbInstance.type, verb.form.stem, variant.stemParameters ?? "", verbalNounIndex].join("_");
+                const obj = dict[key];
+                if(obj === undefined)
+                {
+                    dict[key] = {
+                        count: 1,
+                        scheme: verbInstance.type,
+                        stem: verb.form.stem,
+                        stemParameters: variant.stemParameters,
+                        verbalNounIndex,
+                    };
+                }
+                else
+                    obj.count++;   
             }
-            else
-                obj.count++;
         }
 
         return ObjectExtensions.Values(dict).NotUndefined().ToArray();

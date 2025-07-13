@@ -62,8 +62,12 @@ function RenderVerbDerivationData(verbData: OpenArabDictWordVerbParent)
                 return "active participle of ";
             case OpenArabDictVerbDerivationType.PassiveParticiple:
                 return "passive participle of ";
+            case OpenArabDictVerbDerivationType.Colloquial:
+                return "colloquial version of ";
             case OpenArabDictVerbDerivationType.MeaningRelated:
-                return "";
+                return "related in meaning of ";
+            case OpenArabDictVerbDerivationType.NounOfPlace:
+                return "noun of place of ";
             case OpenArabDictVerbDerivationType.VerbalNoun:
                 return "verbal noun of ";
         }

@@ -116,9 +116,13 @@ export class StatisticsComponent extends Component
     {
         const radicals = this.GetExampleRootRadicals(scheme);
         return this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(radicals.join(""), {
-            dialectId,
             stem: 1,
-            stemParameters
+            variants: [
+                {
+                    dialectId,
+                    stemParameters
+                }
+            ]
         });
     }
 
@@ -161,6 +165,8 @@ export class StatisticsComponent extends Component
                 return ["ء", "ع", "ل"];
             case VerbType.Hollow:
                 return ["ف", "و", "ل"];
+            case VerbType.Irregular:
+                return [];
             case VerbType.QuadriliteralAndDefective:
                 return ["ف", "ع", "ل", "ي"];
             case VerbType.Sound:

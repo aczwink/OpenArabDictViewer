@@ -26,7 +26,6 @@ export function ConjugationSchemeToString(scheme: VerbType): string
         case VerbType.AssimilatedAndDefective:
             return "Assimilated + Defective";
         case VerbType.Defective:
-        case VerbType.QuadriliteralAndDefective:
             return "Defective";
         case VerbType.Geminate:
             return "Geminate";
@@ -34,8 +33,13 @@ export function ConjugationSchemeToString(scheme: VerbType): string
             return "Hamza on R1";
         case VerbType.Hollow:
             return "Hollow";
+        case VerbType.Irregular:
+            return "Irregular";
+        case VerbType.QuadriliteralAndDefective:
+            return "Defective (Quadriliteral)";
         case VerbType.Sound:
-        case VerbType.SoundQuadriliteral:
             return "Sound";
+        case VerbType.SoundQuadriliteral:
+            return "Sound (Quadriliteral)";
     }
 }

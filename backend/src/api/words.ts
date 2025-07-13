@@ -87,6 +87,9 @@ class _api_
             const min = Math.min(...lengths);
             const max = Math.max(...lengths);
 
+            if(min === max)
+                return;
+
             for(let i = 0; i < searchResultsArray.length; i++)
             {
                 const entry = searchResultsArray[i];

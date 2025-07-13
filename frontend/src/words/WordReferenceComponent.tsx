@@ -60,14 +60,14 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
         const word = this.input.word;
         if((word.type === OpenArabDictWordType.Verb) && (this.root !== null))
         {
-            const verb = this.verbConjugationService.ConstructVerb(this.root.radicals, word);
+            const verb = this.verbConjugationService.ConstructVerb(this.root.radicals, word.form);
 
-            const verbPresentation = this.verbConjugationService.CreateDefaultDisplayVersionOfVerbWithDiff(this.root.radicals, word, { ...word, stem: 1, stemParameters: ModernStandardArabicStem1ParametersType.PastI_PresentI });
+            const verbPresentation = this.verbConjugationService.CreateDefaultDisplayVersionOfVerbWithDiff(this.root.radicals, word.form, { ...word, stem: 1, variants: [{ stemParameters: ModernStandardArabicStem1ParametersType.PastI_PresentI, dialectId: word.form.variants[0].dialectId }] });
 
             return <>
                 {this.verbConjugationService.RenderCheck(this.root.radicals, word)}
                 {this.dialectsService.FindDialect(verb.dialect)?.emojiCodes}
-                <StemNumberComponent verbType={verb.type} stem={word.stem} />:
+                <StemNumberComponent verbType={verb.type} stem={word.form.stem} />:
                 {verbPresentation}
             </>;
         }

@@ -22,7 +22,7 @@ import { OpenArabDictGenderedWord, OpenArabDictNonVerbDerivationType, OpenArabDi
 import { Conjugator } from "openarabicconjugation/src/Conjugator";
 import { RootsIndexService } from "./RootsIndexService";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
-import { AdvancedStemNumber, Case, Gender, Mood, Numerus, Person, Tense, Voice } from "openarabicconjugation/src/Definitions";
+import { AdvancedStemNumber, Case, Gender, Mood, Numerus, Person, Tense, VerbType, Voice } from "openarabicconjugation/src/Definitions";
 import { DialectsService } from "./DialectsService";
 import { CompareVocalized, DisplayVocalized, MapLetterToComparisonEquivalenceClass, ParseVocalizedPhrase, VocalizedWordTostring } from "openarabicconjugation/src/Vocalization";
 import { PrefixTree } from "../indexes/PrefixTree";
@@ -30,6 +30,7 @@ import { Dictionary, ObjectExtensions, Of } from "acts-util-core";
 import { CreateVerb, Verb } from "openarabicconjugation/src/Verb";
 import { DialectType } from "openarabicconjugation/src/Dialects";
 import { MapVerbTypeToOpenArabicConjugation } from "../shared";
+import { GetDialectMetadata } from "openarabicconjugation/src/DialectsMetadata";
 
 interface IndexEntry
 {
@@ -148,12 +149,42 @@ export class ArabicTextIndexService
     {
         const rootData = this.rootsIndexService.GetRoot(verb.rootId)!;
         const root = new VerbRoot(rootData.radicals);
+        const verbType = MapVerbTypeToOpenArabicConjugation(verb.form.verbType);
 
-        const dialectType = this.dialectsService.MapDialectId(verb.dialectId)!;
-        const dialectMeta = this.dialectsService.GetDialectMetaData(verb.dialectId);
+        const dialects = new Set<DialectType>();
+        dialects.add(DialectType.Lebanese);
+        dialects.add(DialectType.ModernStandardArabic);
 
-        const verbType = MapVerbTypeToOpenArabicConjugation(verb.verbType) ?? root.DeriveDeducedVerbType();
-        const verbInstance = CreateVerb(dialectType, root, verb.stemParameters ?? (verb.stem as AdvancedStemNumber), verbType);
+        for (const variant of verb.form.variants)
+        {
+            const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
+
+            this.AddVerbVariantToIndex(dialectType, root, verb, variant.stemParameters ?? (verb.form.stem as AdvancedStemNumber), verbType, state, trie);
+
+            dialects.delete(dialectType);
+        }
+
+        if((verb.form.stem > 1) && (verb.form.verbType === undefined))
+        {
+            for (const dialect of dialects)
+            {
+                try
+                {
+                    this.AddVerbVariantToIndex(dialect, root, verb, verb.form.stem as AdvancedStemNumber, undefined, state, trie);
+                }
+                catch(_)
+                {
+                    //TODO: fix this, not everything is conjugatable
+                }
+            }
+        }
+    }
+
+    private AddVerbVariantToIndex(dialectType: DialectType, root: VerbRoot, verb: OpenArabDictVerb, stem: string | AdvancedStemNumber, verbType: VerbType | undefined, state: CreationState, trie: PrefixTree<IndexEntry>)
+    {
+        const dialectMeta = GetDialectMetadata(dialectType);
+        
+        const verbInstance = CreateVerb(dialectType, root, stem, verbType);
 
         const numeruses: Numerus[] = dialectMeta.hasDual ? [Numerus.Singular, Numerus.Dual, Numerus.Plural] : [Numerus.Singular, Numerus.Plural];
         const genders: Gender[] = [Gender.Male, Gender.Female];
@@ -205,7 +236,7 @@ export class ArabicTextIndexService
                 }
             }
         }
-
+        
         state.activeParticiples[verb.id] = {
             verbInstance,
             verb

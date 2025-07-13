@@ -57,7 +57,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         if(this.data === null)
             return <ProgressSpinner />;
 
-        const verb = this.verbConjugationService.ConstructVerb(this.rootRadicals, this.data);
+        const verb = this.verbConjugationService.ConstructVerb(this.rootRadicals, this.data.form);
 
         return <fragment>
             {this.verbConjugationService.RenderCheck(this.rootRadicals, this.data)}
@@ -136,7 +136,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         const dialect = this.dialectsService.FindDialect(dialectType)!;
         const dialectMetaData = this.dialectsService.GetDialectMetaData(dialect.id);
 
-        const conjugate = (g: Gender, p: Person, n: Numerus) => this.conjugationService.ConjugateArgs(dialectType, this.rootRadicals, this.data!.stem, tempus, voice, g, p, n, mood, verb.type, (verb.stem === 1) ? verb.stemParameterization : undefined);
+        const conjugate = (g: Gender, p: Person, n: Numerus) => this.conjugationService.ConjugateArgs(dialectType, this.rootRadicals, this.data!.form.stem, tempus, voice, g, p, n, mood, verb.type, (verb.stem === 1) ? verb.stemParameterization : undefined);
         const renderEntry = (g: Gender, p: Person, n: Numerus) => RenderWithDiffHighlights(conjugate(g, p, n), base(g, p, n));
 
         const dual = dialectMetaData.hasDual ? [
@@ -215,7 +215,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         const dialect = this.dialectsService.FindDialect(dialectType)!;
         const dialectMetaData = this.dialectsService.GetDialectMetaData(dialect.id);
 
-        const conjugate = (g: Gender, p: Person, n: Numerus) => this.conjugationService.ConjugateArgs(dialectType, this.rootRadicals, this.data!.stem, tempus, voice, g, p, n, mood, verb.type, (verb.stem === 1) ? verb.stemParameterization : undefined);
+        const conjugate = (g: Gender, p: Person, n: Numerus) => this.conjugationService.ConjugateArgs(dialectType, this.rootRadicals, this.data!.form.stem, tempus, voice, g, p, n, mood, verb.type, (verb.stem === 1) ? verb.stemParameterization : undefined);
         const renderEntry = (g: Gender, p: Person, n: Numerus) => RenderWithDiffHighlights(conjugate(g, p, n), base(g, p, n));
 
         const dual = dialectMetaData.hasDual ? [
@@ -287,9 +287,10 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         const past = this.conjugationService.ConjugateArgs(verb.dialect, this.rootRadicals, verb.stem, Tense.Perfect, Voice.Active, Gender.Male, Person.Third, Numerus.Singular, Mood.Indicative, verb.type, (verb.stem === 1) ? verb.stemParameterization : undefined);
 
         const stemData = (verb.stem === 1) ? verb.stemParameterization : (verb.stem! as AdvancedStemNumber);
+        const newStemData = (verb.stem === 1) ? verb : verb.stem;
         const verbalNounRow = this.conjugationService.HasPotentiallyMultipleVerbalNounForms(this.rootRadicals, stemData) ? null : <tr>
             <th>Verbal noun الْمَصْدَر</th>
-            <td>{this.conjugationService.GenerateAllPossibleVerbalNouns(this.rootRadicals, stemData)[0]}</td>
+            <td>{this.conjugationService.GenerateAllPossibleVerbalNouns(this.rootRadicals, newStemData)[0]}</td>
         </tr>;
 
         const type = verb.type;
@@ -310,7 +311,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
                         {" "}
                         {ConjugationSchemeToString(type)}
                         {" "}
-                        {this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(this.rootRadicals, data)}
+                        {this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(this.rootRadicals, data.form)}
                     </td>
                 </tr>
                 <tr>

@@ -24,6 +24,8 @@ export function MapVerbTypeToOpenArabicConjugation(verbType?: OpenArabDictVerbTy
     {
         case OpenArabDictVerbType.Defective:
             return VerbType.Defective;
+        case OpenArabDictVerbType.Irregular:
+            return VerbType.Irregular;
         case OpenArabDictVerbType.Sound:
             return VerbType.Sound;
     }
