@@ -112,9 +112,9 @@ export class StatisticsComponent extends Component
         };
     }
 
-    private BuildForm(scheme: VerbType, stemParameters: string, dialectId: number)
+    private BuildForm(verbType: VerbType, stemParameters: string, dialectId: number)
     {
-        const radicals = this.GetExampleRootRadicals(scheme);
+        const radicals = this.GetExampleRootRadicals(verbType);
         return this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(radicals.join(""), {
             stem: 1,
             variants: [
@@ -240,11 +240,15 @@ export class StatisticsComponent extends Component
         this.data.stemCounts.SortByDescending(x => x.count);
 
         this.data.stem1Freq.SortByDescending(x => x.count);
-        this.data.stem1Freq = this.data.stem1Freq.Values().GroupBy(x => x.scheme)
+        this.data.stem1Freq = this.data.stem1Freq.Values()
+            .Filter(x => x.scheme !== VerbType.Irregular)
+            .GroupBy(x => x.scheme)
             .Filter(x => x.value.length > 1)
             .Map(x => x.value.Values().OrderByDescending(x => x.count)).Flatten().ToArray();
 
-        this.data.verbalNounFreq = this.data.verbalNounFreq.Values().GroupBy(x => x.scheme)
+        this.data.verbalNounFreq = this.data.verbalNounFreq.Values()
+            .Filter(x => x.scheme !== VerbType.Irregular)
+            .GroupBy(x => x.scheme)
             .Map(FilterComplex)
             .Map(x => x.OrderBy(x => [x.stem, x.count])).Flatten().ToArray();
     }

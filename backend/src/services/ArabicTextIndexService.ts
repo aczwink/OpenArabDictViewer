@@ -97,7 +97,7 @@ export class ArabicTextIndexService
         {
             const conjugator = new Conjugator();
 
-            const activeParticiple = conjugator.ConjugateParticiple(part.verbInstance, Voice.Active);
+            const activeParticiple = (part.verb.form.stativeActiveParticiple === true) ? conjugator.DeclineStativeActiveParticiple(part.verbInstance) : conjugator.ConjugateParticiple(part.verbInstance, Voice.Active);
             this.AddConjugatedWordToIndex(trie, activeParticiple, part.verb);
         }
         for (const part of ObjectExtensions.Values(state.passiveParticiples).NotUndefined())

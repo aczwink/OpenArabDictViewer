@@ -316,11 +316,11 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
                 </tr>
                 <tr>
                     <th>Active participle اِسْم الْفَاعِل:</th>
-                    <td>{RenderWithDiffHighlights(this.conjugationService.ConjugateParticiple(verb, Voice.Active), past)}</td>
+                    <td>{RenderWithDiffHighlights(this.conjugationService.ConjugateActiveParticiple(verb, data.form.stativeActiveParticiple === true), past)}</td>
                 </tr>
                 <tr>
                     <th>Passive participle اِسْم الْمَفْعُول:</th>
-                    <td>{RenderWithDiffHighlights(this.conjugationService.ConjugateParticiple(verb, Voice.Passive), past)}</td>
+                    <td>{RenderWithDiffHighlights(this.conjugationService.ConjugatePassiveParticiple(verb), past)}</td>
                 </tr>
                 {verbalNounRow}
                 <tr>

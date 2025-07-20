@@ -55,9 +55,16 @@ export class ConjugationService
         });
     }
 
-    public ConjugateParticiple(verb: Verb<string>, voice: Voice)
+    public ConjugateActiveParticiple(verb: Verb<string>, isStative: boolean)
     {
-        return this.conjugator.ConjugateParticiple(verb, voice);
+        if(isStative)
+            return this.conjugator.DeclineStativeActiveParticiple(verb);
+        return this.conjugator.ConjugateParticiple(verb, Voice.Active);
+    }
+
+    public ConjugatePassiveParticiple(verb: Verb<string>)
+    {
+        return this.conjugator.ConjugateParticiple(verb, Voice.Passive);
     }
 
     public DeclineAdjective(dialect: DialectType, word: string, params: AdjectiveDeclensionParams)

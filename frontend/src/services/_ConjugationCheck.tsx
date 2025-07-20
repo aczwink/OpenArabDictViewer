@@ -79,8 +79,6 @@ function IsSpecial(root: VerbRoot, verb: Verb<ModernStandardArabicStem1Parameter
                 case RootType.MiddleWeak:
                 case RootType.SecondConsonantDoubled:
                     return need;
-                case RootType.Regular:
-                    return needPassive;
             }
             break;
         case 9:

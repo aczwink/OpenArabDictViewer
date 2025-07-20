@@ -24,6 +24,8 @@ import { DialectsService } from "../services/DialectsService";
 import { StemNumberComponent } from "../shared/RomanNumberComponent";
 import { VerbConjugationService } from "../services/VerbConjugationService";
 import { ModernStandardArabicStem1ParametersType } from "openarabicconjugation/src/dialects/msa/conjugation/r2tashkil";
+import { VerbType } from "openarabicconjugation/src/Definitions";
+import { DialectType } from "openarabicconjugation/src/Dialects";
 
 @Injectable
 export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; }>
@@ -47,6 +49,21 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
     }
 
     //Private methods
+    private GetComparisonStemParameters(dialect: DialectType, verbType: VerbType)
+    {
+        switch(dialect)
+        {
+            case DialectType.ModernStandardArabic:
+                switch(verbType)
+                {
+                    case VerbType.Defective:
+                    case VerbType.Irregular:
+                        return ModernStandardArabicStem1ParametersType.DefectiveType1;
+                }
+        }
+        return ModernStandardArabicStem1ParametersType.PastI_PresentI;
+    }
+
     private RenderGender()
     {
         if(!WordMayHaveGender(this.input.word))
@@ -62,7 +79,7 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
         {
             const verb = this.verbConjugationService.ConstructVerb(this.root.radicals, word.form);
 
-            const verbPresentation = this.verbConjugationService.CreateDefaultDisplayVersionOfVerbWithDiff(this.root.radicals, word.form, { ...word, stem: 1, variants: [{ stemParameters: ModernStandardArabicStem1ParametersType.PastI_PresentI, dialectId: word.form.variants[0].dialectId }] });
+            const verbPresentation = this.verbConjugationService.CreateDefaultDisplayVersionOfVerbWithDiff(this.root.radicals, word.form, { ...word, stem: 1, variants: [{ stemParameters: this.GetComparisonStemParameters(verb.dialect, verb.type), dialectId: word.form.variants[0].dialectId }] });
 
             return <>
                 {this.verbConjugationService.RenderCheck(this.root.radicals, word)}
