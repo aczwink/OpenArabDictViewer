@@ -18,7 +18,7 @@
 import { JSX_CreateElement } from "acfrontend";
 import { Letter, Tashkil } from "openarabicconjugation/src/Definitions";
 import { DialectType } from "openarabicconjugation/src/Dialects";
-import { ExtractMiddleRadicalTashkil, ExtractPresentMiddleRadicalTashkil, ModernStandardArabicStem1ParametersType } from "openarabicconjugation/src/dialects/msa/conjugation/r2tashkil";
+import { _Legacy_ExtractMiddleRadicalTashkil, _Legacy_ExtractPresentMiddleRadicalTashkil, ModernStandardArabicStem1ParametersType } from "openarabicconjugation/src/dialects/msa/conjugation/r2tashkil";
 import { Verb } from "openarabicconjugation/src/Verb";
 import { VerbRoot, RootType } from "openarabicconjugation/src/VerbRoot";
 
@@ -43,7 +43,7 @@ function IsSpecial(root: VerbRoot, verb: Verb<ModernStandardArabicStem1Parameter
             {
                 case RootType.HamzaOnR1:
                 {
-                    if((ExtractMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Dhamma) && (ExtractPresentMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Dhamma))
+                    if((_Legacy_ExtractMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Dhamma) && (_Legacy_ExtractPresentMiddleRadicalTashkil(verb.stemParameterization) === Tashkil.Dhamma))
                         return need;
                 }
                 break;

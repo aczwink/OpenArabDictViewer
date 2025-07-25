@@ -36,6 +36,7 @@ import { WordIdReferenceComponent } from "../words/WordReferenceComponent";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
 import { WordTableComponent } from "../words/WordTableComponent";
 import { Verb } from "openarabicconjugation/src/Verb";
+import { DialectType } from "openarabicconjugation/src/Dialects";
 
 @Injectable
 export class ShowVerbComponent extends Component<{ verbId: string }>
@@ -288,7 +289,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
 
         const stemData = (verb.stem === 1) ? verb.stemParameterization : (verb.stem! as AdvancedStemNumber);
         const newStemData = (verb.stem === 1) ? verb : verb.stem;
-        const verbalNounRow = this.conjugationService.HasPotentiallyMultipleVerbalNounForms(this.rootRadicals, stemData) ? null : <tr>
+        const verbalNounRow = (verb.dialect !== DialectType.ModernStandardArabic) || (this.conjugationService.HasPotentiallyMultipleVerbalNounForms(this.rootRadicals, stemData)) ? null : <tr>
             <th>Verbal noun الْمَصْدَر</th>
             <td>{this.conjugationService.GenerateAllPossibleVerbalNouns(this.rootRadicals, newStemData)[0]}</td>
         </tr>;
