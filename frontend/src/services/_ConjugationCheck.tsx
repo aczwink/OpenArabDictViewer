@@ -22,7 +22,6 @@ import { _Legacy_ExtractMiddleRadicalTashkil, _Legacy_ExtractPresentMiddleRadica
 import { Verb } from "openarabicconjugation/src/Verb";
 import { VerbRoot, RootType } from "openarabicconjugation/src/VerbRoot";
 
-const needNothing = 0;
 const needPassive = 1;
 const need = 2;
 
@@ -76,7 +75,6 @@ function IsSpecial(root: VerbRoot, verb: Verb<ModernStandardArabicStem1Parameter
             switch(root.type)
             {
                 case RootType.FinalWeak:
-                case RootType.MiddleWeak:
                 case RootType.SecondConsonantDoubled:
                     return need;
             }
@@ -97,7 +95,6 @@ function IsSpecial(root: VerbRoot, verb: Verb<ModernStandardArabicStem1Parameter
             }
             break;
     }
-    return needNothing;
 }
 
 export function _TODO_CheckConjugation(dialectType: DialectType, root: VerbRoot, verb: Verb<string>)
@@ -108,7 +105,7 @@ export function _TODO_CheckConjugation(dialectType: DialectType, root: VerbRoot,
     const special = IsSpecial(root, verb as any);
     switch(special)
     {
-        case needNothing:
+        case undefined:
             break;
         case needPassive:
             return <h1 className="text-bg-danger p-3">CHECK WIKTIONARY IF PASSIVE EXISTS AND WRITE TEST!</h1>;
