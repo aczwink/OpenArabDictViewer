@@ -90,10 +90,9 @@ export class ConjugationService
         return nouns.map(this.VocalizedToString.bind(this));
     }
 
-    public HasPotentiallyMultipleVerbalNounForms(rootRadicals: string, stem: AdvancedStemNumber | string)
+    public HasPotentiallyMultipleVerbalNounForms(verb: Verb<string>)
     {
-        const root = new VerbRoot(rootRadicals);
-        return this.conjugator.HasPotentiallyMultipleVerbalNounForms(root, this.CreateLegacyStem(rootRadicals, stem));
+        return this.conjugator.HasPotentiallyMultipleVerbalNounForms(verb);
     }
 
     public VocalizedToString(vocalized: DisplayVocalized[]): string

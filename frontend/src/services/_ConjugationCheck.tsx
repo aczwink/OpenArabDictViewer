@@ -28,8 +28,6 @@ const need = 2;
 function IsSpecial(root: VerbRoot, verb: Verb<ModernStandardArabicStem1ParametersType>)
 {
     //doubly weak ones
-    if( (root.r1 === Letter.Hamza) && (root.r2 === root.r3) && (verb.stem === 1) )
-        return need;
     if( (root.r1 === Letter.Hamza) && (root.r3 === Letter.Ya) && (verb.stem === 4) )
         return need;
     if( (root.r1 === Letter.Waw) && ((root.r3 === Letter.Waw) || (root.r3 === Letter.Ya)) && (verb.stem === 8) )
@@ -65,8 +63,6 @@ function IsSpecial(root: VerbRoot, verb: Verb<ModernStandardArabicStem1Parameter
         case 6:
             switch(root.type)
             {
-                case RootType.FinalWeak:
-                    return needPassive;
                 case RootType.SecondConsonantDoubled:
                     return need;
             }
@@ -74,7 +70,6 @@ function IsSpecial(root: VerbRoot, verb: Verb<ModernStandardArabicStem1Parameter
         case 7:
             switch(root.type)
             {
-                case RootType.FinalWeak:
                 case RootType.SecondConsonantDoubled:
                     return need;
             }

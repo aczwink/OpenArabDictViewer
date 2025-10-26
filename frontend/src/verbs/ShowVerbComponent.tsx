@@ -287,9 +287,8 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         const dialect = this.dialectsService.FindDialect(verb.dialect)!;
         const past = this.conjugationService.ConjugateArgs(verb.dialect, this.rootRadicals, verb.stem, Tense.Perfect, Voice.Active, Gender.Male, Person.Third, Numerus.Singular, Mood.Indicative, verb.type, (verb.stem === 1) ? verb.stemParameterization : undefined);
 
-        const stemData = (verb.stem === 1) ? verb.stemParameterization : (verb.stem! as AdvancedStemNumber);
         const newStemData = (verb.stem === 1) ? verb : verb.stem;
-        const verbalNounRow = (verb.dialect !== DialectType.ModernStandardArabic) || (this.conjugationService.HasPotentiallyMultipleVerbalNounForms(this.rootRadicals, stemData)) ? null : <tr>
+        const verbalNounRow = (verb.dialect !== DialectType.ModernStandardArabic) || (this.conjugationService.HasPotentiallyMultipleVerbalNounForms(verb)) ? null : <tr>
             <th>Verbal noun الْمَصْدَر</th>
             <td>{this.conjugationService.GenerateAllPossibleVerbalNouns(this.rootRadicals, newStemData)[0]}</td>
         </tr>;
