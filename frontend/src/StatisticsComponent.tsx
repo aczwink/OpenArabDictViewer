@@ -114,8 +114,9 @@ export class StatisticsComponent extends Component
 
     private BuildForm(verbType: VerbType, stemParameters: string, dialectId: number)
     {
+        const dialectType = this.dialectsService.MapIdToType(dialectId)!;
         const radicals = this.GetExampleRootRadicals(verbType);
-        return this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(radicals.join(""), {
+        return this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(dialectType, radicals.join(""), {
             stem: 1,
             variants: [
                 {

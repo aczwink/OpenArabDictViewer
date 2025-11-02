@@ -25,7 +25,7 @@ import { ConjugationService } from "../services/ConjugationService";
 import { RenderTranslations } from "../shared/translations";
 import { WordRelationshipTypeToString } from "../shared/words";
 import { RootToString } from "../roots/general";
-import { Person, Numerus, Gender, Mood, Voice, AdvancedStemNumber, VerbType } from "openarabicconjugation/src/Definitions";
+import { Person, Numerus, Gender, Mood, Voice } from "openarabicconjugation/src/Definitions";
 import { DisplayVocalized } from "openarabicconjugation/src/Vocalization";
 import { Tense } from "openarabicconjugation/dist/Definitions";
 import { DialectsService } from "../services/DialectsService";
@@ -35,14 +35,15 @@ import { OpenArabDictRoot, OpenArabDictVerb, OpenArabDictWordType } from "openar
 import { WordIdReferenceComponent } from "../words/WordReferenceComponent";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
 import { WordTableComponent } from "../words/WordTableComponent";
-import { Verb } from "openarabicconjugation/src/Verb";
-import { DialectType } from "openarabicconjugation/src/Dialects";
+import { Verb } from "openarabicconjugation/dist/Verb";
+import { DialectType } from "openarabicconjugation/dist/Dialects";
+import { GlobalSettingsService } from "../services/GlobalSettingsService";
 
 @Injectable
 export class ShowVerbComponent extends Component<{ verbId: string }>
 {
-    constructor(private conjugationService: ConjugationService, private dialectsService: DialectsService,
-        private verbConjugationService: VerbConjugationService, private cachedAPIService: CachedAPIService
+    constructor(private conjugationService: ConjugationService, private dialectsService: DialectsService, private verbConjugationService: VerbConjugationService, private cachedAPIService: CachedAPIService,
+        private globalSettingsService: GlobalSettingsService,
     )
     {
         super();
@@ -58,10 +59,13 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         if(this.data === null)
             return <ProgressSpinner />;
 
-        const verb = this.verbConjugationService.ConstructVerb(this.rootRadicals, this.data.form);
+        const dialectType = this.verbConjugationService.SelectDialect(this.rootRadicals, this.data.form);
+        if(dialectType === null)
+            return "This verb can not be conjugated in any dialect unfortunately...";
 
+        const verb = this.verbConjugationService.ConstructVerb(dialectType, this.rootRadicals, this.data.form);
         return <fragment>
-            {this.verbConjugationService.RenderCheck(this.rootRadicals, this.data)}
+            {this.verbConjugationService.RenderCheck(dialectType, this.rootRadicals, this.data)}
             <div className="row">
                 <h2>{this.data.text}</h2>
             </div>
@@ -281,6 +285,15 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         </div>;
     }
 
+    private RenderDialectHint(dialectType: DialectType)
+    {
+        if(dialectType !== this.globalSettingsService.dialectType)
+        {
+            return <span className="badge rounded-pill text-bg-danger">This verb can not be conjugated in your favorite dialect.</span>;
+        }
+        return null;
+    }
+
     private RenderProperties(verb: Verb<string>)
     {
         const data = this.data!;
@@ -302,7 +315,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
                 </tr>
                 <tr>
                     <th>Dialect:</th>
-                    <td>{dialect.emojiCodes} {dialect.name}</td>
+                    <td>{dialect.emojiCodes} {dialect.name} {this.RenderDialectHint(verb.dialect)}</td>
                 </tr>
                 <tr>
                     <th>Form:</th>
@@ -311,7 +324,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
                         {" "}
                         {ConjugationSchemeToString(type)}
                         {" "}
-                        {this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(this.rootRadicals, data.form)}
+                        {this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(verb.dialect, this.rootRadicals, data.form)}
                     </td>
                 </tr>
                 <tr>

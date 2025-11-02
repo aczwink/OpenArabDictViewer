@@ -31,7 +31,7 @@ export class DialectSelectionComponent extends Component<{ onDialectChanged: () 
 
     protected Render(): RenderValue
     {
-        const dialects: DialectType[] = [DialectType.ModernStandardArabic, DialectType.Lebanese];
+        const dialects: DialectType[] = [DialectType.ModernStandardArabic, DialectType.Lebanese, DialectType.SouthLevantine];
 
         const activeDialect = this.globalSettingsService.dialectType;
         return <div className="flex-shrink-0 py-2">

@@ -16,6 +16,7 @@
     "acts-util-node": "*",
     "openarabdict-domain": "*",
     "openarabicconjugation": "*",
+    "openarabdict-openarabicconjugation-bridge": "*",
     "xml-js": "^1.6.11",
     "yaml": "^2.7.0"
   },

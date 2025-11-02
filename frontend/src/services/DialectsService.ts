@@ -20,7 +20,7 @@ import { Injectable } from "acfrontend";
 import { APIService } from "./APIService";
 import { DialectData } from "../../dist/api";
 import { DialectType } from "openarabicconjugation/src/Dialects";
-import { GetDialectMetadata } from "openarabicconjugation/src/DialectsMetadata";
+import { GetDialectMetadata } from "openarabicconjugation/dist/DialectsMetadata";
 import { Dictionary } from "acts-util-core";
 
 @Injectable
@@ -39,7 +39,7 @@ export class DialectsService
         const dialects = response.data;
         this.dialects = dialects;
 
-        const types: DialectType[] = [DialectType.ModernStandardArabic, DialectType.Lebanese];
+        const types: DialectType[] = [DialectType.ModernStandardArabic, DialectType.Lebanese, DialectType.SouthLevantine];
         for (const type of types)
         {
             for (const dialect of dialects)
@@ -65,14 +65,14 @@ export class DialectsService
     public GetDialectMetaData(dialectId: number)
     {
         const dialectType = this.MapIdToType(dialectId);
+        if(dialectType === undefined)
+            throw new Error("Method not implemented.2");
         return GetDialectMetadata(dialectType);
     }
 
     public MapIdToType(dialectId: number)
     {
         const dialectType = this.dialectTypeMap[dialectId];
-        if(dialectType === undefined)
-            throw new Error("Method not implemented.2");
         return dialectType;
     }
 

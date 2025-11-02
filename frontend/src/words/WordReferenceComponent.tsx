@@ -26,11 +26,12 @@ import { VerbConjugationService } from "../services/VerbConjugationService";
 import { ModernStandardArabicStem1ParametersType } from "openarabicconjugation/src/dialects/msa/conjugation/r2tashkil";
 import { VerbType } from "openarabicconjugation/src/Definitions";
 import { DialectType } from "openarabicconjugation/src/Dialects";
+import { GlobalSettingsService } from "../services/GlobalSettingsService";
 
 @Injectable
 export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; }>
 {
-    constructor(private dialectsService: DialectsService, private verbConjugationService: VerbConjugationService, private cachedAPIService: CachedAPIService,
+    constructor(private dialectsService: DialectsService, private verbConjugationService: VerbConjugationService, private cachedAPIService: CachedAPIService, private globalSettingsService: GlobalSettingsService
     )
     {
         super();
@@ -64,6 +65,15 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
         return ModernStandardArabicStem1ParametersType.PastI_PresentI;
     }
 
+    private RenderDialectHint(dialectType: DialectType)
+    {
+        if(dialectType !== this.globalSettingsService.dialectType)
+        {
+            return <span className="badge rounded-pill text-bg-danger">!</span>;
+        }
+        return null;
+    }
+
     private RenderGender()
     {
         if(!WordMayHaveGender(this.input.word))
@@ -77,13 +87,19 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
         const word = this.input.word;
         if((word.type === OpenArabDictWordType.Verb) && (this.root !== null))
         {
-            const verb = this.verbConjugationService.ConstructVerb(this.root.radicals, word.form);
+            const dialectType = this.verbConjugationService.SelectDialect(this.root.radicals, word.form);
+            if(dialectType === null)
+                return word.text;
 
-            const verbPresentation = this.verbConjugationService.CreateDefaultDisplayVersionOfVerbWithDiff(this.root.radicals, word.form, { ...word, stem: 1, variants: [{ stemParameters: this.GetComparisonStemParameters(verb.dialect, verb.type), dialectId: word.form.variants[0].dialectId }] });
+            const verb = this.verbConjugationService.ConstructVerb(dialectType, this.root.radicals, word.form);
+            const dialect = this.dialectsService.FindDialect(verb.dialect)!;
+
+            const verbPresentation = this.verbConjugationService.CreateDefaultDisplayVersionOfVerbWithDiff(dialectType, this.root.radicals, word.form, { ...word, stem: 1, variants: [{ stemParameters: this.GetComparisonStemParameters(verb.dialect, verb.type), dialectId: dialect.id }] });
 
             return <>
-                {this.verbConjugationService.RenderCheck(this.root.radicals, word)}
+                {this.verbConjugationService.RenderCheck(dialectType, this.root.radicals, word)}
                 {this.dialectsService.FindDialect(verb.dialect)?.emojiCodes}
+                {this.RenderDialectHint(dialectType)}
                 <StemNumberComponent verbType={verb.type} stem={word.form.stem} />:
                 {verbPresentation}
             </>;

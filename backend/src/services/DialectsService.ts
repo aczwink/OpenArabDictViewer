@@ -17,7 +17,7 @@
  * */
 
 import { Injectable } from "acts-util-node";
-import { DialectType } from "openarabicconjugation/src/Dialects";
+import { DialectType, GetAllConjugatableDialects } from "openarabicconjugation/src/Dialects";
 import { DialectsController } from "../data-access/DialectsController";
 import { GetDialectMetadata } from "openarabicconjugation/src/DialectsMetadata";
 
@@ -27,6 +27,7 @@ export class DialectsService
     constructor(private dialectsController: DialectsController)
     {
         this.dialectMap = new Map();
+        this.reverseDialectMap = new Map();
     }
 
     //Public methods
@@ -44,23 +45,32 @@ export class DialectsService
         return this.dialectMap.get(dialectId);
     }
 
+    public MapDialectType(dialectType: DialectType)
+    {
+        return this.reverseDialectMap.get(dialectType)!;
+    }
+
     public async RebuildIndex()
     {
         const dialects = await this.dialectsController.QueryDialects();
-        const conjugatable = [DialectType.ModernStandardArabic, DialectType.Lebanese];
+        const conjugatable = GetAllConjugatableDialects();
 
         const map = new Map();
+        const reverseMap = new Map();
         for (const dialectType of conjugatable)
         {
             const md = GetDialectMetadata(dialectType);
             const dialect = dialects.find(x => (md.glottoCode === x.glottoCode) && (md.iso639code === x.iso639code));
 
             map.set(dialect!.id, dialectType);
+            reverseMap.set(dialectType, dialect!.id);
         }
         
         this.dialectMap = map;
+        this.reverseDialectMap = reverseMap;
     }
 
     //State
     private dialectMap: Map<number, DialectType>;
+    private reverseDialectMap: Map<DialectType, number>;
 }

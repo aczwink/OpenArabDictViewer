@@ -18,17 +18,16 @@
 
 import { Injectable } from "acts-util-node";
 import { DatabaseController } from "./DatabaseController";
-import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
 import { Dictionary, ObjectExtensions } from "acts-util-core";
-import { Conjugator } from "openarabicconjugation/src/Conjugator";
-import { DisplayVocalized, VocalizedToString } from "openarabicconjugation/src/Vocalization";
-import { AdvancedStemNumber, VerbType } from "openarabicconjugation/src/Definitions";
+import { Conjugator } from "openarabicconjugation/dist/Conjugator";
+import { DisplayVocalized, VocalizedToString } from "openarabicconjugation/dist/Vocalization";
+import { VerbType } from "openarabicconjugation/dist/Definitions";
 import { DialectsService } from "../services/DialectsService";
 import { OpenArabDictVerbDerivationType, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
 import { RootsIndexService } from "../services/RootsIndexService";
-import { CreateVerb } from "openarabicconjugation/src/Verb";
-import { MapVerbTypeToOpenArabicConjugation } from "../shared";
-import { DialectType } from "openarabicconjugation/src/Dialects";
+import { DialectType } from "openarabicconjugation/dist/Dialects";
+import { CreateVerbFromOADVerb, FindHighestConjugatableDialect } from "openarabdict-openarabicconjugation-bridge";
+import { Verb } from "openarabicconjugation/dist/Verb";
 
 interface DialectStatistics
 {
@@ -133,16 +132,24 @@ export class StatisticsController
             if(word.type !== OpenArabDictWordType.Verb)
                 continue;
 
-            const types = new Set<VerbType>();
-            for (const variant of word.form.variants)
-            {
-                const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
-                const root = this.rootsIndexService.GetRoot(word.rootId)!;
-                const rootInstance = new VerbRoot(root.radicals);
-                const verbType = MapVerbTypeToOpenArabicConjugation(word.form.verbType);
+            const root = this.rootsIndexService.GetRoot(word.rootId)!;
 
-                const verb = CreateVerb(dialectType, rootInstance, variant.stemParameters ?? (word.form.stem as AdvancedStemNumber), verbType);
+            const types = new Set<VerbType>();
+
+            if(word.form.variants === undefined)
+            {
+                const verb = CreateVerbFromOADVerb(FindHighestConjugatableDialect(word), root, word);
                 types.add(verb.type);
+            }
+            else
+            {
+                for (const variant of word.form.variants)
+                {
+                    const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
+
+                    const verb = CreateVerbFromOADVerb(dialectType, root, word);
+                    types.add(verb.type);
+                }
             }
 
             for (const type of types)
@@ -185,15 +192,14 @@ export class StatisticsController
             if(word.form.stem !== 1)
                 continue;
 
-            const rootData = this.rootsIndexService.GetRoot(word.rootId);
-            const root = new VerbRoot(rootData!.radicals);
+            const root = this.rootsIndexService.GetRoot(word.rootId)!;
 
-            for (const variant of word.form.variants)
+            for (const variant of word.form.variants!)
             {
                 const params = variant.stemParameters!;
 
                 const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
-                const verb = CreateVerb(dialectType, root, variant.stemParameters ?? (word.form.stem as AdvancedStemNumber), MapVerbTypeToOpenArabicConjugation(word.form.verbType));
+                const verb = CreateVerbFromOADVerb(dialectType, root, word);
 
                 const key = [variant.dialectId, verb.type, params].join("_");
                 const obj = dict[key];
@@ -216,6 +222,30 @@ export class StatisticsController
 
     private async QueryVerbalNounFrequencies()
     {
+        function ProcessVerbInstance(wordText: string, verbInstance: Verb<string>)
+        {
+            const root = verbInstance.root;
+            
+            const generated = conjugator.GenerateAllPossibleVerbalNouns(root, (verbInstance.stem === 1) ? verbInstance : verbInstance.stem);
+            const verbalNounPossibilities = generated.map(VocalizedArrayToString);
+
+            const verbalNounIndex = verbalNounPossibilities.indexOf(wordText);
+            const key = [verbInstance.type, verbInstance.stem, (verbInstance.stem === 1) ? verbInstance.stemParameterization : "", verbalNounIndex].join("_");
+            const obj = dict[key];
+            if(obj === undefined)
+            {
+                dict[key] = {
+                    count: 1,
+                    scheme: verbInstance.type,
+                    stem: verbInstance.stem,
+                    stemParameters: (verbInstance.stem === 1) ? verbInstance.stemParameterization : undefined,
+                    verbalNounIndex,
+                };
+            }
+            else
+                obj.count++;
+        }
+
         function VocalizedArrayToString(vocalized: DisplayVocalized[]): string
         {
             return vocalized.Values().Map(VocalizedToString).Join("");
@@ -240,35 +270,24 @@ export class StatisticsController
             if(verb.type !== OpenArabDictWordType.Verb)
                 throw new Error("Should never happen");
 
-            const rootData = this.rootsIndexService.GetRoot(verb.rootId);
-            const root = new VerbRoot(rootData!.radicals);
+            const rootData = this.rootsIndexService.GetRoot(verb.rootId)!;
 
-            for (const variant of verb.form.variants)
+            if(verb.form.variants === undefined)
             {
-                const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
-                if(dialectType !== DialectType.ModernStandardArabic)
-                    continue;
-                
-                const verbInstance = CreateVerb(dialectType, root, variant.stemParameters ?? (verb.form.stem as AdvancedStemNumber), MapVerbTypeToOpenArabicConjugation(verb.form.verbType));
-
-                const generated = conjugator.GenerateAllPossibleVerbalNouns(root, (verbInstance.stem === 1) ? verbInstance : verbInstance.stem);
-                const verbalNounPossibilities = generated.map(VocalizedArrayToString);
-
-                const verbalNounIndex = verbalNounPossibilities.indexOf(word.text);
-                const key = [verbInstance.type, verb.form.stem, variant.stemParameters ?? "", verbalNounIndex].join("_");
-                const obj = dict[key];
-                if(obj === undefined)
+                const verbInstance = CreateVerbFromOADVerb(DialectType.ModernStandardArabic, rootData, verb);
+                ProcessVerbInstance(word.text, verbInstance);
+            }
+            else
+            {
+                for (const variant of verb.form.variants)
                 {
-                    dict[key] = {
-                        count: 1,
-                        scheme: verbInstance.type,
-                        stem: verb.form.stem,
-                        stemParameters: variant.stemParameters,
-                        verbalNounIndex,
-                    };
+                    const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
+                    if(dialectType !== DialectType.ModernStandardArabic)
+                        continue;
+
+                    const verbInstance = CreateVerbFromOADVerb(dialectType, rootData, verb);
+                    ProcessVerbInstance(word.text, verbInstance);
                 }
-                else
-                    obj.count++;   
             }
         }
 

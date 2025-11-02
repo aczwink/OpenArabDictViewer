@@ -17,13 +17,13 @@
  * */
 
 import { Injectable } from "acfrontend";
-import { Conjugator } from "openarabicconjugation/src/Conjugator";
-import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
+import { Conjugator } from "openarabicconjugation/dist/Conjugator";
+import { VerbRoot } from "openarabicconjugation/dist/VerbRoot";
 import { DisplayVocalized, VocalizedToString } from "openarabicconjugation/src/Vocalization";
 import { ConjugationParams, Person, Tense, Voice, Gender, Numerus, Mood, AdjectiveDeclensionParams, NounDeclensionParams, AdvancedStemNumber, VerbType } from "openarabicconjugation/src/Definitions";
 import { NounInput, TargetNounDerivation } from "openarabicconjugation/src/DialectConjugator";
 import { DialectType } from "openarabicconjugation/src/Dialects";
-import { CreateVerb, Verb, VerbStem1Data } from "openarabicconjugation/src/Verb";
+import { CreateVerb, Verb, VerbStem1Data } from "openarabicconjugation/dist/Verb";
 
 @Injectable
 export class ConjugationService

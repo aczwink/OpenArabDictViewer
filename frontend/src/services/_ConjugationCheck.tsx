@@ -19,8 +19,8 @@ import { JSX_CreateElement } from "acfrontend";
 import { Letter, Tashkil } from "openarabicconjugation/src/Definitions";
 import { DialectType } from "openarabicconjugation/src/Dialects";
 import { _Legacy_ExtractMiddleRadicalTashkil, _Legacy_ExtractPresentMiddleRadicalTashkil, ModernStandardArabicStem1ParametersType } from "openarabicconjugation/src/dialects/msa/conjugation/r2tashkil";
-import { Verb } from "openarabicconjugation/src/Verb";
-import { VerbRoot, RootType } from "openarabicconjugation/src/VerbRoot";
+import { Verb } from "openarabicconjugation/dist/Verb";
+import { VerbRoot, RootType } from "openarabicconjugation/dist/VerbRoot";
 
 const needPassive = 1;
 const need = 2;

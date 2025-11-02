@@ -17,72 +17,63 @@
  * */
 
 import { Injectable } from "acfrontend";
-import { Gender, Person, Numerus, Tense, Voice, AdvancedStemNumber, ConjugationParams, VerbType } from "openarabicconjugation/src/Definitions";
-import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
+import { Gender, Person, Numerus, Tense, Voice, ConjugationParams } from "openarabicconjugation/dist/Definitions";
+import { VerbRoot } from "openarabicconjugation/dist/VerbRoot";
 import { ConjugationService } from "./ConjugationService";
-import { DialectsService } from "./DialectsService";
-import { OpenArabDictVerb, OpenArabDictVerbForm, OpenArabDictVerbType } from "openarabdict-domain";
+import { OpenArabDictVerb, OpenArabDictVerbForm } from "openarabdict-domain";
 import { _TODO_CheckConjugation } from "./_ConjugationCheck";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
-import { CreateVerb } from "openarabicconjugation/src/Verb";
-import { GetDialectMetadata } from "openarabicconjugation/src/DialectsMetadata";
-import { VerbVariantResolver } from "./VerbVariantResolver";
-
-interface VerbVariant
-{
-    dialectId: number;
-    stem: string | AdvancedStemNumber;
-    verbType?: OpenArabDictVerbType;
-}
+import { VerbConjugationDialectResolver } from "./VerbConjugationDialectResolver";
+import { CreateVerbFromOADVerbForm } from "openarabdict-openarabicconjugation-bridge";
+import { DialectType } from "openarabicconjugation/dist/Dialects";
+import { GetDialectMetadata } from "openarabicconjugation/dist/DialectsMetadata";
 
 @Injectable
 export class VerbConjugationService
 {
-    constructor(private dialectsService: DialectsService, private conjugationService: ConjugationService, private verbVariantResolver: VerbVariantResolver)
+    constructor(private conjugationService: ConjugationService, private verbConjugationDialectResolver: VerbConjugationDialectResolver)
     {
     }
 
     //Public methods
-    public ConstructVerb(rootRadicals: string, verbForm: OpenArabDictVerbForm)
+    public ConstructVerb(dialectType: DialectType, rootRadicals: string, verbForm: OpenArabDictVerbForm)
     {
-        const selectedVariant = this.verbVariantResolver.SelectVerbVariant(verbForm);
-
-        const dialectType = this.dialectsService.MapIdToType(selectedVariant.dialectId);
-        const root = new VerbRoot(rootRadicals);
-        const type = this.GetType(rootRadicals, selectedVariant);
-        return CreateVerb(dialectType, root, selectedVariant.stem, type);
+        return CreateVerbFromOADVerbForm(dialectType, rootRadicals, verbForm);
     }
 
-    public CreateDefaultDisplayVersionOfVerb(rootRadicals: string, verbForm: OpenArabDictVerbForm)
+    public CreateDefaultDisplayVersionOfVerb(dialectType: DialectType, rootRadicals: string, verbForm: OpenArabDictVerbForm)
     {
-        const result = this.ConjugateVerbContexts(rootRadicals, verbForm);
+        const result = this.ConjugateVerbContexts(dialectType, rootRadicals, verbForm);
         const strings = result.map(x => this.conjugationService.VocalizedToString(x));
 
         return this.RenderContexts(strings);
     }
 
-    public CreateDefaultDisplayVersionOfVerbWithDiff(rootRadicals: string, verb: OpenArabDictVerbForm, reference: OpenArabDictVerbForm)
+    public CreateDefaultDisplayVersionOfVerbWithDiff(dialectType: DialectType, rootRadicals: string, verb: OpenArabDictVerbForm, reference: OpenArabDictVerbForm)
     {
-        const c1 = this.ConjugateVerbContexts(rootRadicals, verb);
-        const c2 = this.ConjugateVerbContexts(rootRadicals, reference);
+        const c1 = this.ConjugateVerbContexts(dialectType, rootRadicals, verb);
+        const c2 = this.ConjugateVerbContexts(dialectType, rootRadicals, reference);
         const diffed = c1.map( (x, i) => RenderWithDiffHighlights(x, c2[i]));
 
         return this.RenderContexts(diffed);
     }
 
-    public RenderCheck(rootRadicals: string, verb: OpenArabDictVerb)
+    public RenderCheck(dialectType: DialectType, rootRadicals: string, verb: OpenArabDictVerb)
     {
-        const selectedVariant = this.verbVariantResolver.SelectVerbVariant(verb.form);
-
-        const check = _TODO_CheckConjugation(this.dialectsService.MapIdToType(selectedVariant.dialectId), new VerbRoot(rootRadicals), this.ConstructVerb(rootRadicals, verb.form));
+        const check = _TODO_CheckConjugation(dialectType, new VerbRoot(rootRadicals), this.ConstructVerb(dialectType, rootRadicals, verb.form));
         return check;
     }
 
+    public SelectDialect(rootRadicals: string, verbForm: OpenArabDictVerbForm)
+    {
+        return this.verbConjugationDialectResolver.SelectDialect(rootRadicals, verbForm);
+    }
+
     //Private methods
-    private ConjugateVerbContexts(rootRadicals: string, verbForm: OpenArabDictVerbForm)
+    private ConjugateVerbContexts(dialectType: DialectType, rootRadicals: string, verbForm: OpenArabDictVerbForm)
     {
         const root = new VerbRoot(rootRadicals);
-        const verbInstance = this.ConstructVerb(rootRadicals, verbForm);
+        const verbInstance = this.ConstructVerb(dialectType, rootRadicals, verbForm);
         const past = this.conjugationService.Conjugate(verbInstance, {
             gender: Gender.Male,
             tense: Tense.Perfect,
@@ -91,12 +82,10 @@ export class VerbConjugationService
             voice: Voice.Active
         });
 
-        const selectedVariant = this.verbVariantResolver.SelectVerbVariant(verbForm);
-
         let requiredContext: ConjugationParams[] = [];
         if(verbForm.stem === 1)
         {
-            const choices = this.dialectsService.GetDialectMetaData(selectedVariant.dialectId).GetStem1ContextChoices(verbInstance.type, root);
+            const choices = GetDialectMetadata(dialectType).GetStem1ContextChoices(verbInstance.type, root);
             requiredContext = choices.requiredContext;
         }
 
@@ -108,28 +97,6 @@ export class VerbConjugationService
         }
 
         return result;
-    }
-
-    private GetType(rootRadicals: string, verbVariant: VerbVariant)
-    {
-        const dialectType = this.dialectsService.MapIdToType(verbVariant.dialectId);
-        const root = new VerbRoot(rootRadicals);
-        const scheme = this.MapVerbTypeToOpenArabicConjugation(verbVariant.verbType) ?? GetDialectMetadata(dialectType).DeriveVerbType(root, verbVariant.stem);
-        return scheme;
-    }
-
-    private MapVerbTypeToOpenArabicConjugation(verbType?: OpenArabDictVerbType): VerbType | undefined
-    {
-        switch(verbType)
-        {
-            case OpenArabDictVerbType.Defective:
-                return VerbType.Defective;
-            case OpenArabDictVerbType.Irregular:
-                return VerbType.Irregular;
-            case OpenArabDictVerbType.Sound:
-                return VerbType.Sound;
-        }
-        return undefined;
     }
 
     private RenderContexts(contexts: any[])
