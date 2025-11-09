@@ -74,9 +74,9 @@ export class CachedAPIService
 
     public async QueryRootWords(rootId: string)
     {
-        const targetLanguage = this.pageLanguageService.activeLanguage;
+        const translationLanguage = this.pageLanguageService.activeLanguage;
 
-        const response = await this.apiService.roots._any_.words.get(rootId, { targetLanguage });
+        const response = await this.apiService.roots._any_.words.get(rootId, { translationLanguage });
         const words = response.data as WordWithConnections[];
 
         this.rootWordsCache[rootId] = words;
@@ -120,23 +120,19 @@ export class CachedAPIService
         return {
             derived: fwd.derived,
             related: fwd.related,
-            translations: fwd.translations,
-            word: {
-                ...fwd.word,
-                translations: fwd.translations,
-            }
+            word: fwd.word
         };
     }
 
     private async QueryFullWordData(wordId: string)
     {
-        const targetLanguage = this.pageLanguageService.activeLanguage;
+        const translationLanguage = this.pageLanguageService.activeLanguage;
 
-        const cached = this.wordsCache[wordId + "-" + targetLanguage];
+        const cached = this.wordsCache[wordId + "-" + translationLanguage];
         if(cached !== undefined)
             return this.FormFullWordDataResult(cached);
 
-        const response = await this.apiService.words._any_.get(wordId, { targetLanguage });
+        const response = await this.apiService.words._any_.get(wordId, { translationLanguage });
         if(response.statusCode !== 200)
             throw new Error("HERE");
         this.CacheWord(response.data);

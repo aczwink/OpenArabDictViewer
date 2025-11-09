@@ -74,7 +74,7 @@ export class GlobalSearchComponent extends Component
             wordType: this.wordType,
             offset: this.offset,
             limit: this.limit,
-            targetLanguage: this.pageLanguageService.activeLanguage
+            translationLanguage: this.pageLanguageService.activeLanguage
         });
         this.data = response.data;
         this.data.SortByDescending(x => x.score);

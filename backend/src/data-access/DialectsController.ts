@@ -19,16 +19,6 @@
 import { Injectable } from "acts-util-node";
 import { DatabaseController } from "./DatabaseController";
 
-interface DialectData
-{
-    id: number;
-    name: string;
-    emojiCodes: string;
-    parentId: number | null;
-    iso639code: string;
-    glottoCode: string;
-}
-
 @Injectable
 export class DialectsController
 {
@@ -39,7 +29,7 @@ export class DialectsController
     //Public methods
     public async QueryDialects()
     {
-        const document = await this.dbController.GetDocumentDB();
-        return document.dialects as DialectData[];
+        const document = await this.dbController.GetDocumentDB("en");
+        return document.dialects;
     }
 }

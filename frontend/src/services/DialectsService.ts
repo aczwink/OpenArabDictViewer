@@ -18,10 +18,10 @@
 
 import { Injectable } from "acfrontend";
 import { APIService } from "./APIService";
-import { DialectData } from "../../dist/api";
 import { DialectType } from "openarabicconjugation/src/Dialects";
 import { GetDialectMetadata } from "openarabicconjugation/dist/DialectsMetadata";
-import { Dictionary } from "acts-util-core";
+import { OpenArabDictDialect } from "openarabdict-domain";
+import { DialectTree } from "openarabdict-openarabicconjugation-bridge";
 
 @Injectable
 export class DialectsService
@@ -29,7 +29,6 @@ export class DialectsService
     constructor(private apiService: APIService)
     {
         this.dialects = [];
-        this.dialectTypeMap = {};
     }
 
     //Public methods
@@ -37,24 +36,15 @@ export class DialectsService
     {
         const response = await this.apiService.dialects.get();
         const dialects = response.data;
-        this.dialects = dialects;
 
-        const types: DialectType[] = [DialectType.ModernStandardArabic, DialectType.Lebanese, DialectType.SouthLevantine];
-        for (const type of types)
-        {
-            for (const dialect of dialects)
-            {
-                if(this.Match(type, dialect))
-                {
-                    this.dialectTypeMap[dialect.id] = type;
-                }
-            }
-        }
+        this.dialects = dialects;
+        DialectTree.DefineMultiple(dialects);
     }
 
     public FindDialect(dialectType: DialectType)
     {
-        return this.dialects.find(x => this.Match(dialectType, x));
+        const id = DialectTree.MapTypeToId(dialectType);
+        return this.dialects.find(x => x.id === id);
     }
 
     public GetDialect(dialectId: number)
@@ -72,13 +62,12 @@ export class DialectsService
 
     public MapIdToType(dialectId: number)
     {
-        const dialectType = this.dialectTypeMap[dialectId];
-        return dialectType;
+        return DialectTree.MapIdToType(dialectId);
     }
 
     public QueryConjugatableDialects()
     {
-        return this.dialects.filter(x => this.dialectTypeMap[x.id] !== undefined);
+        return this.dialects.filter(x => this.MapIdToType(x.id) !== undefined);
     }
 
     public QueryDialects()
@@ -86,16 +75,6 @@ export class DialectsService
         return this.dialects;
     }
 
-    //Private methods
-    private Match(type: DialectType, dialect: DialectData)
-    {
-        const metaData = GetDialectMetadata(type);
-        if( (dialect.iso639code === metaData.iso639code) && (dialect.glottoCode === metaData.glottoCode) )
-            return true;
-        return false;
-    }
-
     //State
-    private dialects: DialectData[];
-    private dialectTypeMap: Dictionary<DialectType>;
+    private dialects: OpenArabDictDialect[];
 }

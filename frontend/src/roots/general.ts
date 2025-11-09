@@ -65,7 +65,7 @@ export function RootToString(rootData: OpenArabDictRoot)
     return root.ToString();
 }
 
-export function RootTypeToPattern(rootType: RootType)
+export function RootTypeToPattern(rootType: RootType): string
 {
     switch(rootType)
     {
@@ -75,12 +75,16 @@ export function RootTypeToPattern(rootType: RootType)
             return "r1-r2-(و|ي)";
         case RootType.DoublyWeak_WawOnR1_WawOrYaOnR3:
             return "و-r2-(و|ي)";
+        case RootType.DoublyWeak_WawOrYaOnR2AndR3:
+            return "r1-(و|ي)-(و|ي)";
         case RootType.HamzaOnR1:
             return "ء-r2-r3";
         case RootType.MiddleWeak:
             return "r1-(و|ي)-r3";
         case RootType.Quadriliteral:
             return "r1-r2-r3-r4";
+        case RootType.Quadriliteral_FinalWeak:
+            return "r1-r2-r3-(و|ي)";
         case RootType.SecondConsonantDoubled:
             return "r1-r2-r2";
         case RootType.Regular:
@@ -88,7 +92,7 @@ export function RootTypeToPattern(rootType: RootType)
     }
 }
 
-export function RootTypeToString(rootType: RootType)
+export function RootTypeToString(rootType: RootType): string
 {
     switch(rootType)
     {
@@ -97,6 +101,7 @@ export function RootTypeToString(rootType: RootType)
         case RootType.FinalWeak:
             return "final-weak";
         case RootType.DoublyWeak_WawOnR1_WawOrYaOnR3:
+        case RootType.DoublyWeak_WawOrYaOnR2AndR3:
             return "Doubly-weak";
         case RootType.HamzaOnR1:
             return "Hamza on first radical";
@@ -104,6 +109,8 @@ export function RootTypeToString(rootType: RootType)
             return "middle-weak";
         case RootType.Quadriliteral:
             return "Quadriliteral";
+        case RootType.Quadriliteral_FinalWeak:
+            return "Quadriliteral final-weak";
         case RootType.SecondConsonantDoubled:
             return "Second consonant doubled";
         case RootType.Regular:

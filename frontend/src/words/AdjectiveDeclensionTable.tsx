@@ -22,6 +22,9 @@ import { DialectType } from "openarabicconjugation/src/Dialects";
 import { ConjugationService } from "../services/ConjugationService";
 import { OpenArabDictGenderedWord, OpenArabDictNonVerbDerivationType, OpenArabDictWordParentType } from "openarabdict-domain";
 import { CachedAPIService } from "../services/CachedAPIService";
+import { AdjectiveOrNounState, Numerus } from "openarabicconjugation/dist/Definitions";
+import { ParseVocalizedText } from "openarabicconjugation/dist/Vocalization";
+import { TargetAdjectiveNounDerivation } from "openarabicconjugation/dist/DialectConjugator";
 
 @Injectable
 export class AdjectiveDeclensionTable extends Component<{ word: OpenArabDictGenderedWord; }>
@@ -59,24 +62,39 @@ export class AdjectiveDeclensionTable extends Component<{ word: OpenArabDictGend
                     {this.RenderAdjectiveDeclensionTableForCase(Case.Nominative)}
                 </tr>
                 <tr>
-                    <td>Genitive</td>
-                    {this.RenderAdjectiveDeclensionTableForCase(Case.Genitive)}
-                </tr>
-                <tr>
                     <td>Accusative</td>
                     {this.RenderAdjectiveDeclensionTableForCase(Case.Accusative)}
+                </tr>
+                <tr>
+                    <td>Genitive</td>
+                    {this.RenderAdjectiveDeclensionTableForCase(Case.Genitive)}
                 </tr>
             </tbody>
         </table>;
     }
 
     //Private methods
+    private GetBaseVersion(gender: Gender)
+    {
+        const base = ParseVocalizedText(this.baseWord);
+
+        if(gender === Gender.Female)
+        {
+            const female = this.conjugationService.DeriveSoundAdjectiveOrNoun(DialectType.ModernStandardArabic, base, Gender.Male, TargetAdjectiveNounDerivation.DeriveFeminineSingular);
+            return female;
+        }
+        return base;
+    }
+
     private RenderAdjectiveDeclensionTableForCase(casus: Case)
     {
-        const render = (definite: boolean, gender: Gender, c: Case) => this.conjugationService.DeclineAdjective(DialectType.ModernStandardArabic, this.baseWord, {
-            definite,
+        const render = (definite: boolean, gender: Gender, c: Case) => this.conjugationService.DeclineAdjective(DialectType.ModernStandardArabic, {
             gender,
-            case: c
+            numerus: Numerus.Singular,
+            vocalized: this.GetBaseVersion(gender),
+        }, {
+            case: c,
+            state: definite ? AdjectiveOrNounState.Definite : AdjectiveOrNounState.Indefinite
         });
 
         return <>

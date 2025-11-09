@@ -20,10 +20,11 @@ import { Injectable } from "acfrontend";
 import { Conjugator } from "openarabicconjugation/dist/Conjugator";
 import { VerbRoot } from "openarabicconjugation/dist/VerbRoot";
 import { DisplayVocalized, VocalizedToString } from "openarabicconjugation/src/Vocalization";
-import { ConjugationParams, Person, Tense, Voice, Gender, Numerus, Mood, AdjectiveDeclensionParams, NounDeclensionParams, AdvancedStemNumber, VerbType } from "openarabicconjugation/src/Definitions";
-import { NounInput, TargetNounDerivation } from "openarabicconjugation/src/DialectConjugator";
+import { ConjugationParams, Person, Tense, Voice, Gender, Numerus, Mood, AdvancedStemNumber, VerbType } from "openarabicconjugation/src/Definitions";
 import { DialectType } from "openarabicconjugation/src/Dialects";
-import { CreateVerb, Verb, VerbStem1Data } from "openarabicconjugation/dist/Verb";
+import { CreateVerb, Verb } from "openarabicconjugation/dist/Verb";
+import { AdjectiveOrNounInput, TargetAdjectiveNounDerivation } from "openarabicconjugation/dist/DialectConjugator";
+import { AdjectiveOrNounDeclensionParams } from "openarabicconjugation/dist/Definitions";
 
 @Injectable
 export class ConjugationService
@@ -67,26 +68,25 @@ export class ConjugationService
         return this.conjugator.ConjugateParticiple(verb, Voice.Passive);
     }
 
-    public DeclineAdjective(dialect: DialectType, word: string, params: AdjectiveDeclensionParams)
+    public DeclineAdjective(dialect: DialectType, input: AdjectiveOrNounInput, params: AdjectiveOrNounDeclensionParams)
     {
-        const declined = this.conjugator.DeclineAdjective(word, params, dialect);
+        const declined = this.conjugator.DeclineAdjectiveOrNoun(input, params, dialect);
         return this.VocalizedToString(declined);
     }
 
-    public DeclineNoun(dialect: DialectType, inputNoun: NounInput, params: NounDeclensionParams)
+    public DeclineNoun(dialect: DialectType, input: AdjectiveOrNounInput, params: AdjectiveOrNounDeclensionParams)
     {
-        return this.conjugator.DeclineNoun(inputNoun, params, dialect);
+        return this.conjugator.DeclineAdjectiveOrNoun(input, params, dialect);
     }
 
-    public DeriveSoundNoun(dialect: DialectType, singular: DisplayVocalized[], singularGender: Gender, target: TargetNounDerivation): DisplayVocalized[]
+    public DeriveSoundAdjectiveOrNoun(dialect: DialectType, singular: DisplayVocalized[], singularGender: Gender, target: TargetAdjectiveNounDerivation): DisplayVocalized[]
     {
-        return this.conjugator.DeriveSoundNoun(singular, singularGender, target, dialect);
+        return this.conjugator.DeriveSoundAdjectiveOrNoun(singular, singularGender, target, dialect);
     }
 
-    public GenerateAllPossibleVerbalNouns(rootRadicals: string, stem: AdvancedStemNumber | string | VerbStem1Data<string>)
+    public GenerateAllPossibleVerbalNouns(verb: Verb<string>)
     {
-        const root = new VerbRoot(rootRadicals);
-        const nouns = this.conjugator.GenerateAllPossibleVerbalNouns(root, ((typeof stem === "number") || (typeof stem === "string")) ? this.CreateLegacyStem(rootRadicals, stem) : stem);
+        const nouns = this.conjugator.GenerateAllPossibleVerbalNouns(verb);
         return nouns.map(this.VocalizedToString.bind(this));
     }
 
@@ -98,16 +98,6 @@ export class ConjugationService
     public VocalizedToString(vocalized: DisplayVocalized[]): string
     {
         return vocalized.Values().Map(VocalizedToString).Join("");
-    }
-
-    //Private methods
-    private CreateLegacyStem(rootRadicals: string, stem: AdvancedStemNumber | string)
-    {
-        const root = new VerbRoot(rootRadicals);
-        const verb = CreateVerb(DialectType.ModernStandardArabic, root, stem);
-        if(verb.stem === 1)
-            return verb;
-        return verb.stem;
     }
 
     //State

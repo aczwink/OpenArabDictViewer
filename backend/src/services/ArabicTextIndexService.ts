@@ -83,7 +83,7 @@ export class ArabicTextIndexService
     {
         const trie = new PrefixTree<IndexEntry>;
 
-        const document = await this.databaseController.GetDocumentDB();
+        const document = await this.databaseController.GetDocumentDB("en");
 
         const state: CreationState = {
             activeParticiples: {},

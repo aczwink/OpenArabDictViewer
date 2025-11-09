@@ -20,9 +20,9 @@ import { Injectable } from "acfrontend";
 import { OpenArabDictVerbForm } from "openarabdict-domain";
 import { GlobalSettingsService } from "./GlobalSettingsService";
 import { DialectsService } from "./DialectsService";
-import { DialectType } from "openarabicconjugation/src/Dialects";
 import { GetDialectMetadata } from "openarabicconjugation/dist/DialectsMetadata";
 import { CreateVerbFromOADVerbForm } from "openarabdict-openarabicconjugation-bridge";
+import { DialectType, GetAllConjugatableDialects } from "openarabicconjugation/dist/Dialects";
 
 @Injectable
 export class VerbConjugationDialectResolver
@@ -34,39 +34,67 @@ export class VerbConjugationDialectResolver
     //Public methods
     public SelectDialect(rootRadicals: string, verbForm: OpenArabDictVerbForm): DialectType | null
     {
-        const dialectId = this.dialectsService.FindDialect(this.globalSettingsService.dialectType)!.id;
-        return this.WalkDialectTreeUpwards(dialectId, rootRadicals, verbForm);
+        const dialects = this.FindConjugatableDialects(rootRadicals, verbForm);
+        const dialectType = this.ChooseClosestDialect(dialects);
+
+        return dialectType;
     }
 
     //Private methods
-    private IsDialectConjugatable(dialectType: DialectType, rootRadicals: string, verbForm: OpenArabDictVerbForm)
+    private ChooseClosestDialect(dialects: DialectType[])
     {
-        if(verbForm.variants !== undefined)
+        let bestDistance = Number.MAX_SAFE_INTEGER;
+        let bestDialect = null;
+
+        const desired = this.globalSettingsService.dialectType;
+        for (const dialect of dialects)
         {
-            const dialectId = this.dialectsService.FindDialect(dialectType)!.id;
-            const variant = verbForm.variants.find(x => x.dialectId === dialectId);
-            if(variant === undefined)
-                return false;
+            const d = this.GetDistance(desired, dialect);
+            if(d < bestDistance)
+            {
+                bestDistance = d;
+                bestDialect = dialect;
+            }
         }
-        
-        const verb = CreateVerbFromOADVerbForm(dialectType, rootRadicals, verbForm);
-        return GetDialectMetadata(dialectType).IsConjugatable(verb);
+
+        return bestDialect;
     }
 
-    private WalkDialectTreeUpwards(dialectId: number, rootRadicals: string, verbForm: OpenArabDictVerbForm)
+    private FindConjugatableDialects(rootRadicals: string, verbForm: OpenArabDictVerbForm)
     {
-        while(true)
+        let dialects;
+        if(verbForm.variants === undefined)
+            dialects = GetAllConjugatableDialects();
+        else
+            dialects = verbForm.variants.map(x => this.dialectsService.MapIdToType(x.dialectId)).filter(x => x !== undefined);
+
+        return dialects.filter(x => this.IsDialectConjugatable(x, rootRadicals, verbForm));
+    }
+
+    private GetDistance(d1: DialectType, d2: DialectType): number
+    {
+        if(d1 === d2)
+            return 0;
+        if(d1 > d2)
+            return this.GetDistance(d2, d1);
+
+        const distances = [
+            { d1: DialectType.Lebanese, d2: DialectType.ModernStandardArabic, d: 2 },
+            { d1: DialectType.Lebanese, d2: DialectType.SouthLevantine, d: 1 },
+            { d1: DialectType.ModernStandardArabic, d2: DialectType.SouthLevantine, d: 2 },
+        ];
+
+        for (const pairs of distances)
         {
-            const dialectType = this.dialectsService.MapIdToType(dialectId);
-            if((dialectType !== undefined) && this.IsDialectConjugatable(dialectType, rootRadicals, verbForm))
-                return dialectType;
-
-            const dialect = this.dialectsService.GetDialect(dialectId);
-            if(dialect.parentId === null)
-                break;
-            dialectId = dialect.parentId;
+            if((pairs.d1 === d1) && (pairs.d2 === d2))
+                return pairs.d;
         }
+        throw new Error("Can't reach this!");
+    }
 
-        return null;
+    private IsDialectConjugatable(dialectType: DialectType, rootRadicals: string, verbForm: OpenArabDictVerbForm)
+    {
+        const verb = CreateVerbFromOADVerbForm(dialectType, rootRadicals, verbForm);
+        return GetDialectMetadata(dialectType).IsConjugatable(verb);
     }
 }

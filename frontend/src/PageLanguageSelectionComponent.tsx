@@ -18,21 +18,21 @@
 
 import { Component, Injectable, JSX_CreateElement } from "acfrontend";
 import { GlobalSettingsService } from "./services/GlobalSettingsService";
-import { TargetTranslationLanguage } from "../dist/api";
+import { TranslationLanguage } from "../dist/api";
 
 @Injectable
 export class PageLanguageSelectionComponent extends Component<{ onLanguageChanged: () => void }>
 {
-    constructor(private pageLanguageService: GlobalSettingsService)
+    constructor(private globalSettingsService: GlobalSettingsService)
     {
         super();
     }
 
     protected Render(): RenderValue
     {
-        const languages: TargetTranslationLanguage[] = ["en", "de"];
+        const languages: TranslationLanguage[] = ["en", "de"];
 
-        const activeLang = this.pageLanguageService.activeLanguage;
+        const activeLang = this.globalSettingsService.activeLanguage;
         return <div className="flex-shrink-0 py-2">
             <a href="#" className="text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
                 {this.RenderFlag(activeLang)}
@@ -44,41 +44,41 @@ export class PageLanguageSelectionComponent extends Component<{ onLanguageChange
     }
 
     //Private methods
-    private RenderFlag(pageLanguage: TargetTranslationLanguage)
+    private RenderFlag(pageLanguage: TranslationLanguage)
     {
         switch(pageLanguage)
         {
             case "de":
                 return "🇩🇪";
             case "en":
-                return "🇬🇧";
+                return "🇺🇸";
         }
     }
 
-    private RenderName(pageLanguage: TargetTranslationLanguage)
+    private RenderName(pageLanguage: TranslationLanguage)
     {
         switch(pageLanguage)
         {
             case "de":
                 return "Deutsch";
             case "en":
-                return "English";
+                return "English (US)";
         }
     }
     
-    private RenderSelection(pageLanguage: TargetTranslationLanguage)
+    private RenderSelection(pageLanguage: TranslationLanguage)
     {
-        const className = (pageLanguage === this.pageLanguageService.activeLanguage) ? "dropdown-item active" : "dropdown-item";
+        const className = (pageLanguage === this.globalSettingsService.activeLanguage) ? "dropdown-item active" : "dropdown-item";
         return <li>
             <a className={className} href="#" onclick={this.OnChangeLanguage.bind(this, pageLanguage)}>{this.RenderFlag(pageLanguage)} {this.RenderName(pageLanguage)}</a>
         </li>;
     }
 
     //Event handlers
-    private OnChangeLanguage(pageLanguage: TargetTranslationLanguage, event: Event)
+    private OnChangeLanguage(pageLanguage: TranslationLanguage, event: Event)
     {
         event.preventDefault();
-        this.pageLanguageService.activeLanguage = pageLanguage;
+        this.globalSettingsService.activeLanguage = pageLanguage;
 
         this.input.onLanguageChanged();
     }

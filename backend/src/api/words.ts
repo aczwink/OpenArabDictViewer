@@ -21,10 +21,10 @@ import { FullWordData, WordsController } from "../data-access/WordsController";
 import { OpenArabDictWordType } from "openarabdict-domain";
 import { WordFilterCriteria, WordSearchService } from "../services/WordSearchService";
 import { Of } from "acts-util-core";
-import { TargetTranslationLanguage } from "../services/TranslationService";
 import { SearchResultEntry as SearchResultEntryATIS } from "../services/ArabicTextIndexService";
 import { IsArabicPhrase } from "openarabicconjugation/src/Util";
 import { ParseVocalizedPhrase } from "openarabicconjugation/src/Vocalization";
+import { TranslationLanguage } from "../data-access/DatabaseController";
 
 type OptionalWordType = OpenArabDictWordType | null;
 
@@ -48,19 +48,19 @@ class _api_
         @Query wordType: OptionalWordType,
         @Query offset: number,
         @Query limit: number,
-        @Query targetLanguage: TargetTranslationLanguage
+        @Query translationLanguage: TranslationLanguage
     )
     {
         const filterCriteria: WordFilterCriteria = {
             textFilter,
             wordType
         };
-        const searchResults = await this.wordSearchService.FindWords(filterCriteria, offset, limit);
+        const searchResults = await this.wordSearchService.FindWords(filterCriteria, translationLanguage, offset, limit);
         const searchResultsArray = searchResults.ToArray();
         this.ScaleByMatchLength(textFilter, searchResultsArray);
 
         const words = searchResultsArray.Values().Map(async sq => {
-            const word = await this.wordsController.QueryWord(sq.word.id, targetLanguage);
+            const word = await this.wordsController.QueryWord(sq.word.id, translationLanguage);
             return Of<SearchResultEntry>({
                 conjugated: sq.conjugated,
                 score: sq.score,
@@ -113,9 +113,11 @@ class _api3_
     }
 
     @Get()
-    public async QueryRandomWord()
+    public async QueryRandomWord(
+        @Query translationLanguage: TranslationLanguage
+    )
     {
-        return await this.wordsController.QueryRandomWordId();
+        return await this.wordsController.QueryRandomWordId(translationLanguage);
     }
 }
 
@@ -129,10 +131,10 @@ class _api2_
     @Get()
     public async QueryWord(
         @Path wordId: string,
-        @Query targetLanguage: TargetTranslationLanguage
+        @Query translationLanguage: TranslationLanguage
     )
     {
-        const word = await this.wordsController.QueryWord(wordId, targetLanguage);
+        const word = await this.wordsController.QueryWord(wordId, translationLanguage);
         if(word === undefined)
             return NotFound("word not found");
         return word;

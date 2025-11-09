@@ -18,14 +18,15 @@
 
 import { Component, Injectable, JSX_CreateElement, ProgressSpinner } from "acfrontend";
 import { CachedAPIService } from "../services/CachedAPIService";
-import { Case, Gender, NounState, Numerus } from "openarabicconjugation/src/Definitions";
+import { Case, Gender, Numerus } from "openarabicconjugation/src/Definitions";
 import { OpenArabDictNonVerbDerivationType } from "../../dist/api";
 import { DisplayVocalized, ParseVocalizedText } from "openarabicconjugation/src/Vocalization";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
-import { TargetNounDerivation } from "openarabicconjugation/src/DialectConjugator";
 import { ConjugationService } from "../services/ConjugationService";
 import { DialectType } from "openarabicconjugation/src/Dialects";
 import { OpenArabDictGenderedWord, OpenArabDictWord, OpenArabDictWordParentType } from "openarabdict-domain";
+import { TargetAdjectiveNounDerivation } from "openarabicconjugation/dist/DialectConjugator";
+import { AdjectiveOrNounState } from "openarabicconjugation/dist/Definitions";
 
 @Injectable
 export class NounDeclensionTable extends Component<{ word: OpenArabDictGenderedWord; derivedWordIds: string[]; }>
@@ -62,7 +63,7 @@ export class NounDeclensionTable extends Component<{ word: OpenArabDictGenderedW
         switch(targetNumerus)
         {
             case Numerus.Dual:
-                return this.conjugationService.DeriveSoundNoun(DialectType.ModernStandardArabic, referenceWord, targetGender, TargetNounDerivation.DeriveDualSameGender);
+                return this.conjugationService.DeriveSoundAdjectiveOrNoun(DialectType.ModernStandardArabic, referenceWord, targetGender, TargetAdjectiveNounDerivation.DeriveDualSameGender);
             case Numerus.Plural:
             case Numerus.Singular:
                 return referenceWord;
@@ -79,7 +80,7 @@ export class NounDeclensionTable extends Component<{ word: OpenArabDictGenderedW
         if(this.input.word.parent !== undefined)
         {
             if(this.input.word.parent.type === OpenArabDictWordParentType.NonVerbWord)
-                this.input.word.parent.relationType !== OpenArabDictNonVerbDerivationType.Plural;
+                return this.input.word.parent.relationType !== OpenArabDictNonVerbDerivationType.Plural;
         }
         return true;
     }
@@ -113,7 +114,11 @@ export class NounDeclensionTable extends Component<{ word: OpenArabDictGenderedW
                 <th>Definite</th>
                 <th>Construct</th>
             </tr>
-            
+
+            <tr>
+                <td>Informal</td>
+                {this.RenderNumerusCase(numerus, Case.Informal)}
+            </tr>            
             <tr>
                 <td>Nominative</td>
                 {this.RenderNumerusCase(numerus, Case.Nominative)}
@@ -144,20 +149,20 @@ export class NounDeclensionTable extends Component<{ word: OpenArabDictGenderedW
         const parsed = ParseVocalizedText(inputWord);
 
         return <fragment>
-            <td>{this.RenderCell(numerus, c, gender, parsed, NounState.Indefinite)}</td>
-            <td>{this.RenderCell(numerus, c, gender, parsed, NounState.Definite)}</td>
-            <td>{this.RenderCell(numerus, c, gender, parsed, NounState.Construct)}</td>
+            <td>{this.RenderCell(numerus, c, gender, parsed, AdjectiveOrNounState.Indefinite)}</td>
+            <td>{this.RenderCell(numerus, c, gender, parsed, AdjectiveOrNounState.Definite)}</td>
+            <td>{this.RenderCell(numerus, c, gender, parsed, AdjectiveOrNounState.Construct)}</td>
         </fragment>;
     }
 
-    private RenderCell(numerus: Numerus, c: Case, gender: Gender, parsed: DisplayVocalized[], state: NounState)
+    private RenderCell(numerus: Numerus, c: Case, gender: Gender, parsed: DisplayVocalized[], state: AdjectiveOrNounState)
     {
         const base = this.BuildBaseNoun(parsed, gender, numerus);
 
         const declined = this.conjugationService.DeclineNoun(DialectType.ModernStandardArabic, {
             gender,
             numerus,
-            vocalized: base.DeepClone() //TODO: why is the clone necessary?
+            vocalized: base
         }, {
             state,
             case: c,

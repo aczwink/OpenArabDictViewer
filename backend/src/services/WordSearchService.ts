@@ -18,7 +18,7 @@
 
 import { Injectable } from "acts-util-node";
 import { OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
-import { DatabaseController } from "../data-access/DatabaseController";
+import { DatabaseController, TranslationLanguage } from "../data-access/DatabaseController";
 import { IsArabicPhrase } from "openarabicconjugation/src/Util";
 import { ArabicTextIndexService, SearchResultEntry } from "./ArabicTextIndexService";
 import { Of } from "acts-util-core";
@@ -37,9 +37,9 @@ export class WordSearchService
     }
 
     //Public methods
-    public async FindWords(filterCriteria: WordFilterCriteria, offset: number, limit: number)
+    public async FindWords(filterCriteria: WordFilterCriteria, translationLanguage: TranslationLanguage, offset: number, limit: number)
     {
-        const document = await this.dbController.GetDocumentDB();
+        const document = await this.dbController.GetDocumentDB(translationLanguage);
 
         filterCriteria.textFilter = filterCriteria.textFilter.trim();
         let filtered;

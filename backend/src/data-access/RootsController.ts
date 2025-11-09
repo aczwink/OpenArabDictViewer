@@ -29,7 +29,7 @@ export class RootsController
     //Public methods
     public async QueryRoots(prefix: string)
     {
-        const document = await this.dbController.GetDocumentDB();
+        const document = await this.dbController.GetDocumentDB("en");
 
         const filtered = document.roots.Values().Filter(x => x.radicals.startsWith(prefix));
         return filtered.OrderBy(x => x.radicals).ToArray();

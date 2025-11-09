@@ -18,10 +18,6 @@
 
 export default {
     corsOrigin: process.env.ARABDICT_ORIGIN!,
-    documentDBPath: process.env.ARABDICT_DICTDB_PATH!,
+    documentDBsPath: process.env.ARABDICT_DICTDB_PATH!,
     serverPort: process.env.ARABDICT_PORT,
-    translationService: {
-        key: process.env.ARABDICT_TRANSLATIONSERVICE_KEY!,
-        region: process.env.ARABDICT_TRANSLATIONSERVICE_REGION!,
-    }
 };

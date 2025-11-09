@@ -22,7 +22,6 @@ import { _Legacy_ExtractMiddleRadicalTashkil, _Legacy_ExtractPresentMiddleRadica
 import { Verb } from "openarabicconjugation/dist/Verb";
 import { VerbRoot, RootType } from "openarabicconjugation/dist/VerbRoot";
 
-const needPassive = 1;
 const need = 2;
 
 function IsSpecial(root: VerbRoot, verb: Verb<ModernStandardArabicStem1ParametersType>)
@@ -46,20 +45,6 @@ function IsSpecial(root: VerbRoot, verb: Verb<ModernStandardArabicStem1Parameter
                 break;
             }
             break;
-        case 2:
-            switch(root.type)
-            {
-                case RootType.Quadriliteral:
-                    return need;
-            }
-            break;
-        case 4:
-            switch(root.type)
-            {
-                case RootType.Quadriliteral:
-                    return needPassive;
-            }
-            break;
         case 6:
             switch(root.type)
             {
@@ -72,21 +57,6 @@ function IsSpecial(root: VerbRoot, verb: Verb<ModernStandardArabicStem1Parameter
             {
                 case RootType.SecondConsonantDoubled:
                     return need;
-            }
-            break;
-        case 9:
-            switch(root.type)
-            {
-                case RootType.InitialWeak:
-                case RootType.FinalWeak:
-                case RootType.DoublyWeak_WawOnR1_WawOrYaOnR3:
-                case RootType.HamzaOnR1:
-                case RootType.MiddleWeak:
-                case RootType.Quadriliteral:
-                case RootType.SecondConsonantDoubled:
-                    return need;
-                case RootType.Regular:
-                    return needPassive;
             }
             break;
     }
@@ -102,8 +72,6 @@ export function _TODO_CheckConjugation(dialectType: DialectType, root: VerbRoot,
     {
         case undefined:
             break;
-        case needPassive:
-            return <h1 className="text-bg-danger p-3">CHECK WIKTIONARY IF PASSIVE EXISTS AND WRITE TEST!</h1>;
         case need:
             return <h1 className="text-bg-danger p-3">CHECK WIKTIONARY AND WRITE TEST!</h1>;
     }

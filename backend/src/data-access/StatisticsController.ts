@@ -87,7 +87,7 @@ export class StatisticsController
 
     public async QueryStatistics(): Promise<DictionaryStatistics>
     {
-        const document = await this.dbController.GetDocumentDB();
+        const document = await this.dbController.GetDocumentDB("en");
 
         return {
             rootsCount: document.roots.length,
@@ -105,7 +105,7 @@ export class StatisticsController
     {
         const dialectCounts: DialectStatistics[] = [];
 
-        const document = await this.dbController.GetDocumentDB();
+        const document = await this.dbController.GetDocumentDB("en");
 
         for (const word of document.words)
         {
@@ -124,7 +124,7 @@ export class StatisticsController
 
     private async QueryVerbTypeCounts()
     {
-        const document = await this.dbController.GetDocumentDB();
+        const document = await this.dbController.GetDocumentDB("en");
 
         const counts: Dictionary<number> = {};
         for (const word of document.words)
@@ -164,7 +164,7 @@ export class StatisticsController
 
     private async QueryStemCounts()
     {
-        const document = await this.dbController.GetDocumentDB();
+        const document = await this.dbController.GetDocumentDB("en");
 
         const counts: Dictionary<number> = {};
         for (const word of document.words)
@@ -182,7 +182,7 @@ export class StatisticsController
 
     private async QueryStem1Frequencies()
     {
-        const document = await this.dbController.GetDocumentDB();
+        const document = await this.dbController.GetDocumentDB("en");
 
         const dict: Dictionary<VerbStem1Frequencies> = {};
         for (const word of document.words)
@@ -223,10 +223,8 @@ export class StatisticsController
     private async QueryVerbalNounFrequencies()
     {
         function ProcessVerbInstance(wordText: string, verbInstance: Verb<string>)
-        {
-            const root = verbInstance.root;
-            
-            const generated = conjugator.GenerateAllPossibleVerbalNouns(root, (verbInstance.stem === 1) ? verbInstance : verbInstance.stem);
+        {            
+            const generated = conjugator.GenerateAllPossibleVerbalNouns(verbInstance);
             const verbalNounPossibilities = generated.map(VocalizedArrayToString);
 
             const verbalNounIndex = verbalNounPossibilities.indexOf(wordText);
@@ -251,7 +249,7 @@ export class StatisticsController
             return vocalized.Values().Map(VocalizedToString).Join("");
         }
 
-        const document = await this.dbController.GetDocumentDB();
+        const document = await this.dbController.GetDocumentDB("en");
 
         const conjugator = new Conjugator();
 

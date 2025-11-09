@@ -17,9 +17,8 @@
  * */
 
 import { Injectable } from "acts-util-node";
-import { DatabaseController } from "./DatabaseController";
-import { OpenArabDictTranslationEntry, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordRelationshipType } from "openarabdict-domain";
-import { TargetTranslationLanguage, TranslationService } from "../services/TranslationService";
+import { DatabaseController, TranslationLanguage } from "./DatabaseController";
+import { OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordRelationshipType } from "openarabdict-domain";
 
 interface WordRelation
 {
@@ -30,7 +29,6 @@ interface WordRelation
 export interface FullWordData
 {
     word: OpenArabDictWord;
-    translations: OpenArabDictTranslationEntry[];
     derived: string[];
     related: WordRelation[];
 }
@@ -38,14 +36,14 @@ export interface FullWordData
 @Injectable
 export class WordsController
 {
-    constructor(private dbController: DatabaseController, private translationService: TranslationService)
+    constructor(private dbController: DatabaseController)
     {
     }
 
     //Public methods
-    public async QueryRandomWordId()
+    public async QueryRandomWordId(translationLanguage: TranslationLanguage)
     {
-        const document = await this.dbController.GetDocumentDB();
+        const document = await this.dbController.GetDocumentDB(translationLanguage);
 
         const count = document.words.length;
         const index = Math.floor(count * Math.random());
@@ -53,33 +51,33 @@ export class WordsController
         return document.words[index].id;
     }
 
-    public async QueryRootDerivedWords(rootId: string, targetLanguage: TargetTranslationLanguage)
+    public async QueryRootDerivedWords(rootId: string, translationLanguage: TranslationLanguage)
     {
         function filterFunc(x: OpenArabDictWord)
         {
             return (x.parent?.type === OpenArabDictWordParentType.Root) && (x.parent.rootId === rootId);
         }
 
-        const document = await this.dbController.GetDocumentDB();
+        const document = await this.dbController.GetDocumentDB(translationLanguage);
 
         const words = document.words.Values().Filter(filterFunc);
 
-        return words.Map(x => this.QueryFullWordData(x, targetLanguage));
+        return words.Map(x => this.QueryFullWordData(x, translationLanguage));
     }
 
-    public async QueryWord(wordId: string, targetLanguage: TargetTranslationLanguage)
+    public async QueryWord(wordId: string, translationLanguage: TranslationLanguage)
     {
-        const document = await this.dbController.GetDocumentDB();
+        const document = await this.dbController.GetDocumentDB(translationLanguage);
 
         const word = document.words.find(x => x.id === wordId);
         if(word !== undefined)
-            return await this.QueryFullWordData(word, targetLanguage);
+            return await this.QueryFullWordData(word, translationLanguage);
 
         return undefined;
     }
 
     //Private methods
-    private async QueryDerivedLinks(wordId: string)
+    private async QueryDerivedLinks(wordId: string, translationLanguage: TranslationLanguage)
     {
         function filterFunc(x: OpenArabDictWord)
         {
@@ -90,27 +88,26 @@ export class WordsController
             return false;
         }
 
-        const document = await this.dbController.GetDocumentDB();
+        const document = await this.dbController.GetDocumentDB(translationLanguage);
 
         const children = document.words.filter(filterFunc).map(x => x.id);
         return children;
     }
 
-    private async QueryFullWordData(word: OpenArabDictWord, targetLanguage: TargetTranslationLanguage)
+    private async QueryFullWordData(word: OpenArabDictWord, translationLanguage: TranslationLanguage)
     {
         const result: FullWordData = {
             word,
-            translations: await this.translationService.TranslateToTargetLanguage(word, targetLanguage),
-            derived: await this.QueryDerivedLinks(word.id),
-            related: await this.QueryRelatedWords(word.id),
+            derived: await this.QueryDerivedLinks(word.id, translationLanguage),
+            related: await this.QueryRelatedWords(word.id, translationLanguage),
         };
 
         return result;
     }
 
-    private async QueryRelatedWords(wordId: string)
+    private async QueryRelatedWords(wordId: string, translationLanguage: TranslationLanguage)
     {
-        const document = await this.dbController.GetDocumentDB();
+        const document = await this.dbController.GetDocumentDB(translationLanguage);
 
         return document.wordRelations.Values().Filter(x => (x.word1Id === wordId) || (x.word2Id === wordId)).Map<WordRelation>(x => ({
             relatedWordId: x.word1Id === wordId ? x.word2Id : x.word1Id,

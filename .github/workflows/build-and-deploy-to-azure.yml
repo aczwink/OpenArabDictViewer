@@ -91,17 +91,25 @@ jobs:
           repository: aczwink/OpenArabDict
           path: openarabdict
 
-      - name: Building OpenArabDict
+      - name: Building OpenArabDict domain
         run: |
           npm install
           npm run build
           npm link
         working-directory: ./openarabdict/domain
 
+      - name: Building OpenArabDict OpenArabicConjugation bridge
+        run: |
+          npm link acts-util-core openarabdict-domain openarabicconjugation
+          npm install
+          npm run build
+          npm link
+        working-directory: ./openarabdict/openarabicconjugation-bridge
+
       #OpenArabDictViewer
       - name: Building OpenArabDictViewer Backend
         run: |
-          npm link acts-util-apilib acts-util-core acts-util-node openarabdict-domain openarabicconjugation
+          npm link acts-util-apilib acts-util-core acts-util-node openarabdict-domain openarabdict-openarabicconjugation-bridge openarabicconjugation
           npm install
           npm run build
         working-directory: ./backend

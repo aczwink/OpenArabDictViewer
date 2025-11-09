@@ -37,7 +37,7 @@ export class RootsIndexService
     
     public async RebuildIndex()
     {
-        const document = await this.databaseController.GetDocumentDB();
+        const document = await this.databaseController.GetDocumentDB("en");
 
         const dict: Dictionary<OpenArabDictRoot> = {};
         for (const root of document.roots)

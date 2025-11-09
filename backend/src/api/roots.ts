@@ -20,7 +20,7 @@ import { APIController, Get, Path, Query } from "acts-util-apilib";
 import { RootsController } from "../data-access/RootsController";
 import { WordsController } from "../data-access/WordsController";
 import { RootsIndexService } from "../services/RootsIndexService";
-import { TargetTranslationLanguage } from "../services/TranslationService";
+import { TranslationLanguage } from "../data-access/DatabaseController";
 
 @APIController("roots")
 class _api_
@@ -56,9 +56,9 @@ class _api2_
     @Get("words")
     public async QueryRootDerivedWords(
         @Path rootId: string,
-        @Query targetLanguage: TargetTranslationLanguage
+        @Query translationLanguage: TranslationLanguage
     )
     {
-        return (await this.wordsController.QueryRootDerivedWords(rootId, targetLanguage)).PromiseAll();
+        return (await this.wordsController.QueryRootDerivedWords(rootId, translationLanguage)).PromiseAll();
     }
 }

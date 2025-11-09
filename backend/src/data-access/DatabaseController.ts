@@ -16,30 +16,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 import fs from "fs";
+import path from "path";
 import { Injectable } from "acts-util-node";
 import { OpenArabDictDocument } from "openarabdict-domain";
 import ENV from "../env";
+import { Dictionary } from "acts-util-core";
+
+export type TranslationLanguage = "en" | "de";
 
 @Injectable
 export class DatabaseController
 {
     constructor()
     {
-        this.documentDB = null;
+        this.documentDBs = {};
     }
 
     //Public methods
-    public async GetDocumentDB()
+    public async GetDocumentDB(translationLanguage: TranslationLanguage)
     {
-        if(this.documentDB === null)
+        const document = this.documentDBs[translationLanguage];
+        if(document === undefined)
         {
-            const filePath = ENV.documentDBPath;
+            const filePath = path.join(ENV.documentDBsPath, translationLanguage + ".json");
             const data = await fs.promises.readFile(filePath, "utf-8");
-            this.documentDB = JSON.parse(data);
+            const document = JSON.parse(data) as OpenArabDictDocument;
+            this.documentDBs[translationLanguage] = document;
+            return document;
         }
-        return this.documentDB!;
+        return document;
     }
 
     //Private state
-    private documentDB: OpenArabDictDocument | null;
+    private documentDBs: Dictionary<OpenArabDictDocument>;
 }

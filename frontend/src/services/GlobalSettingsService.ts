@@ -17,8 +17,8 @@
  * */
 
 import { I18nManager, Injectable } from "acfrontend";
-import { TargetTranslationLanguage } from "../../dist/api";
 import { DialectType } from "openarabicconjugation/src/Dialects";
+import { TranslationLanguage } from "../../dist/api";
 
 @Injectable
 export class GlobalSettingsService
@@ -31,10 +31,10 @@ export class GlobalSettingsService
     //Properties
     public get activeLanguage()
     {
-        return this.i18nManager.activeLanguage as TargetTranslationLanguage;
+        return this.i18nManager.activeLanguage as TranslationLanguage;
     }
 
-    public set activeLanguage(newValue: TargetTranslationLanguage)
+    public set activeLanguage(newValue: TranslationLanguage)
     {
         this.i18nManager.activeLanguage = newValue;
     }

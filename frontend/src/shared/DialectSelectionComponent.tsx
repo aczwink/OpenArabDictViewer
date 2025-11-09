@@ -17,9 +17,9 @@
  * */
 
 import { Component, Injectable, JSX_CreateElement } from "acfrontend";
-import { DialectData } from "../../dist/api";
 import { DialectsService } from "../services/DialectsService";
 import { DialectType } from "openarabicconjugation/src/Dialects";
+import { OpenArabDictDialect } from "../../dist/api";
 
 @Injectable
 export class DialectSelectionComponent extends Component<{ dialectId: number; onValueChanged: (dialectId: number) => void; }>
@@ -48,7 +48,7 @@ export class DialectSelectionComponent extends Component<{ dialectId: number; on
     }
 
     //State
-    private dialects: DialectData[];
+    private dialects: OpenArabDictDialect[];
 
     //Private methods
     private RenderDialectChildrenOf(parent: number | null, level: number)
@@ -61,7 +61,7 @@ export class DialectSelectionComponent extends Component<{ dialectId: number; on
         //{this.RenderDialectChildrenOf(x.id, level + 1)}
     }
 
-    private RenderDialect(x: DialectData, level: number)
+    private RenderDialect(x: OpenArabDictDialect, level: number)
     {        
         const indention = "  ".repeat(level);
         return <li>
@@ -70,7 +70,7 @@ export class DialectSelectionComponent extends Component<{ dialectId: number; on
     }
 
     //Event handlers
-    private OnChangeDialect(dialect: DialectData, event: Event)
+    private OnChangeDialect(dialect: OpenArabDictDialect, event: Event)
     {
         event.preventDefault();
         this.input.onValueChanged(dialect.id);

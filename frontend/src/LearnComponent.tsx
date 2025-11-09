@@ -23,11 +23,12 @@ import { WordTypeToText } from "./shared/words";
 import { CachedAPIService } from "./services/CachedAPIService";
 import { OpenArabDictWord } from "openarabdict-domain";
 import { RemoveTashkilButKeepShadda } from "openarabicconjugation/src/Util";
+import { GlobalSettingsService } from "./services/GlobalSettingsService";
 
 @Injectable
 export class LearnComponent extends Component
 {
-    constructor(private apiService: APIService, private cachedAPIService: CachedAPIService)
+    constructor(private apiService: APIService, private cachedAPIService: CachedAPIService, private globalSettingsService: GlobalSettingsService)
     {
         super();
 
@@ -82,7 +83,7 @@ export class LearnComponent extends Component
         this.showTashkil = false;
         this.resolve = false;
 
-        const response = await this.apiService.randomword.get();
+        const response = await this.apiService.randomword.get({ translationLanguage: this.globalSettingsService.activeLanguage });
         const wordId = response.data;
 
         const word = await this.cachedAPIService.QueryWord(wordId);

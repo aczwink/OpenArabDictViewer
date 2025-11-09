@@ -24,6 +24,8 @@ import { RootsIndexService } from "./services/RootsIndexService";
 import { DialectsService } from "./services/DialectsService";
 import { ArabicTextIndexService } from "./services/ArabicTextIndexService";
 import ENV from "./env";
+import { DialectTree } from "openarabdict-openarabicconjugation-bridge";
+import { DialectsController } from "./data-access/DialectsController";
 
 async function ComputeIndexes()
 {
@@ -36,8 +38,17 @@ async function ComputeIndexes()
     await arabicTextIndexService.RebuildIndex();
 }
 
+async function DefineDialects()
+{
+    const dialectsController = GlobalInjector.Resolve(DialectsController);
+    const dialects = await dialectsController.QueryDialects();
+    DialectTree.DefineMultiple(dialects);
+}
+
 async function SetupServer()
 {
+    await DefineDialects();
+    
     console.log("Computing indexes...");
     await ComputeIndexes();
     console.log("Finished computing indexes...");
