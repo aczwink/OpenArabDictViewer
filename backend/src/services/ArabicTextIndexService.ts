@@ -21,15 +21,16 @@ import { DatabaseController } from "../data-access/DatabaseController";
 import { OpenArabDictGenderedWord, OpenArabDictNonVerbDerivationType, OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbDerivationType, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
 import { Conjugator } from "openarabicconjugation/dist/Conjugator";
 import { RootsIndexService } from "./RootsIndexService";
-import { Case, Gender, Mood, Numerus, Person, Tense, Voice } from "openarabicconjugation/dist/Definitions";
+import { Gender, Mood, Numerus, Person, Tense, Voice } from "openarabicconjugation/dist/Definitions";
 import { DialectsService } from "./DialectsService";
-import { CompareVocalized, DisplayVocalized, MapLetterToComparisonEquivalenceClass, ParseVocalizedPhrase, VocalizedWordTostring } from "openarabicconjugation/dist/Vocalization";
+import { CompareVocalized, DisplayVocalized, MapLetterToComparisonEquivalenceClass, ParseVocalizedPhrase, ParseVocalizedText, VocalizedWordTostring } from "openarabicconjugation/dist/Vocalization";
 import { PrefixTree } from "../indexes/PrefixTree";
 import { Dictionary, ObjectExtensions, Of } from "acts-util-core";
 import { Verb } from "openarabicconjugation/dist/Verb";
 import { DialectType } from "openarabicconjugation/dist/Dialects";
 import { GetDialectMetadata } from "openarabicconjugation/dist/DialectsMetadata";
 import { CreateVerbFromOADVerb, FindHighestConjugatableDialect } from "openarabdict-openarabicconjugation-bridge";
+import { TargetAdjectiveNounDerivation } from "openarabicconjugation/dist/DialectConjugator";
 
 interface IndexEntry
 {
@@ -120,11 +121,7 @@ export class ArabicTextIndexService
         }, trie);
 
         const conjugator = new Conjugator();
-        const female = conjugator.DeclineAdjective(word.text, {
-            case: Case.Informal,
-            definite: false,
-            gender: Gender.Female
-        }, DialectType.ModernStandardArabic);
+        const female = conjugator.DeriveSoundAdjectiveOrNoun(ParseVocalizedText(word.text), Gender.Male, TargetAdjectiveNounDerivation.DeriveFeminineSingular, DialectType.ModernStandardArabic);
 
         this.AddConjugatedWordToIndex(trie, female, word);
     }
@@ -154,7 +151,7 @@ export class ArabicTextIndexService
 
         if(verb.form.variants === undefined)
         {
-            const dialectType = FindHighestConjugatableDialect(verb);
+            const dialectType = FindHighestConjugatableDialect(root.radicals, verb);
             this.AddVerbVariantToIndex(dialectType, root, verb, state, trie);
             dialects.delete(dialectType);
         }

@@ -138,7 +138,7 @@ export class StatisticsController
 
             if(word.form.variants === undefined)
             {
-                const verb = CreateVerbFromOADVerb(FindHighestConjugatableDialect(word), root, word);
+                const verb = CreateVerbFromOADVerb(FindHighestConjugatableDialect(root.radicals, word), root, word);
                 types.add(verb.type);
             }
             else
