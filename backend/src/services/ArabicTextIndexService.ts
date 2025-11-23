@@ -239,10 +239,13 @@ export class ArabicTextIndexService
             verbInstance,
             verb
         };
-        state.passiveParticiples[verb.id] = {
-            verbInstance,
-            verb
-        };
+        if(dialectMeta.hasPassive)
+        {
+            state.passiveParticiples[verb.id] = {
+                verbInstance,
+                verb
+            };
+        }
     }
 
     private AddWordToIndex(word: OpenArabDictWord, state: CreationState, trie: PrefixTree<IndexEntry>)

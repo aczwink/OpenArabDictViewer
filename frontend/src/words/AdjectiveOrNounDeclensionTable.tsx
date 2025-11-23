@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Component, Injectable, JSX_CreateElement, ProgressSpinner } from "acfrontend";
+import { Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "acfrontend";
 import { CachedAPIService } from "../services/CachedAPIService";
 import { Case, Gender, Numerus } from "openarabicconjugation/src/Definitions";
 import { OpenArabDictNonVerbDerivationType } from "../../dist/api";
@@ -24,12 +24,12 @@ import { DisplayVocalized, ParseVocalizedText } from "openarabicconjugation/src/
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { ConjugationService } from "../services/ConjugationService";
 import { DialectType } from "openarabicconjugation/src/Dialects";
-import { OpenArabDictGenderedWord, OpenArabDictWord, OpenArabDictWordParentType } from "openarabdict-domain";
-import { TargetAdjectiveNounDerivation } from "openarabicconjugation/dist/DialectConjugator";
+import { OpenArabDictGenderedWord, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
+import { AdjectiveOrNounInput, TargetAdjectiveNounDerivation } from "openarabicconjugation/dist/DialectConjugator";
 import { AdjectiveOrNounState } from "openarabicconjugation/dist/Definitions";
 
 @Injectable
-export class NounDeclensionTable extends Component<{ word: OpenArabDictGenderedWord; derivedWordIds: string[]; }>
+export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDictGenderedWord; derivedWordIds: string[]; }>
 {
     constructor(private cachedAPIService: CachedAPIService, private conjugationService: ConjugationService)
     {
@@ -58,21 +58,58 @@ export class NounDeclensionTable extends Component<{ word: OpenArabDictGenderedW
     private plurals: OpenArabDictWord[] | null;
 
     //Private methods
-    private BuildBaseNoun(referenceWord: DisplayVocalized[], targetGender: Gender, targetNumerus: Numerus)
+    private DeriveBase(targetGender: Gender, targetNumerus: Numerus)
+    {
+        const sourceState = this.GetSourceState();
+
+        if(sourceState.gender !== targetGender)
+        {
+            if(sourceState.gender === Gender.Female)
+                throw new Error("TODO1");
+            if(sourceState.numerus !== Numerus.Singular)
+                throw new Error("TODO2");
+
+            const feminine = this.conjugationService.DeriveSoundAdjectiveOrNoun(DialectType.ModernStandardArabic, sourceState.vocalized, sourceState.gender, TargetAdjectiveNounDerivation.DeriveFeminineSingular);
+            return this.DeriveNumerus({
+                gender: targetGender,
+                numerus: sourceState.numerus,
+                vocalized: feminine
+            }, targetNumerus);
+        }
+        return this.DeriveNumerus(sourceState, targetNumerus);
+    }
+
+    private DeriveNumerus(sourceState: AdjectiveOrNounInput, targetNumerus: Numerus)
     {
         switch(targetNumerus)
         {
             case Numerus.Dual:
-                return this.conjugationService.DeriveSoundAdjectiveOrNoun(DialectType.ModernStandardArabic, referenceWord, targetGender, TargetAdjectiveNounDerivation.DeriveDualSameGender);
+                return this.conjugationService.DeriveSoundAdjectiveOrNoun(DialectType.ModernStandardArabic, sourceState.vocalized, sourceState.gender, TargetAdjectiveNounDerivation.DeriveDualSameGender);
             case Numerus.Plural:
+                return sourceState.vocalized;
             case Numerus.Singular:
-                return referenceWord;
+                return sourceState.vocalized;
         }
+    }
+
+    private GetSourceState(): AdjectiveOrNounInput
+    {
+        const w = this.input.word;
+        return {
+            gender: w.isMale ? Gender.Male : Gender.Female,
+            numerus: this.IsSingular() ? Numerus.Singular : Numerus.Plural,
+            vocalized: ParseVocalizedText(w.text)
+        };
     }
 
     private HasPlural()
     {
         return this.plurals!.length > 0;
+    }
+
+    private IsAdjective()
+    {
+        return this.input.word.type === OpenArabDictWordType.Adjective;
     }
 
     private IsSingular()
@@ -91,8 +128,8 @@ export class NounDeclensionTable extends Component<{ word: OpenArabDictGenderedW
 
         this.plurals = derived.filter(x => (x.parent?.type === OpenArabDictWordParentType.NonVerbWord) && (x.parent.relationType === OpenArabDictNonVerbDerivationType.Plural));
     }
-    
-    private RenderNumerus(numerus: Numerus)
+
+    private RenderHeader(numerus: Numerus)
     {
         function headline()
         {
@@ -107,13 +144,36 @@ export class NounDeclensionTable extends Component<{ word: OpenArabDictGenderedW
             }
         }
 
+        if(this.IsAdjective() && this.IsSingular())
+        {
+            return <>
+                <tr>
+                    <th>{headline()}</th>
+                    <th colSpan="2">Masculine</th>
+                    <th colSpan="2">Feminine</th>
+                </tr>
+                <tr>
+                    <th> </th>
+                    <th>Indefinite</th>
+                    <th>Definite</th>
+                    <th>Indefinite</th>
+                    <th>Definite</th>
+                </tr>
+            </>;
+        }
+
+        return <tr>
+            <th>{headline()}</th>
+            <th>Indefinite</th>
+            <th>Definite</th>
+            {this.input.word.type === OpenArabDictWordType.Noun ? <th>Construct</th> : null}
+        </tr>;
+    }
+    
+    private RenderNumerus(numerus: Numerus)
+    {
         return <fragment>
-            <tr>
-                <th>{headline()}</th>
-                <th>Indefinite</th>
-                <th>Definite</th>
-                <th>Construct</th>
-            </tr>
+            {this.RenderHeader(numerus)}
 
             <tr>
                 <td>Informal</td>
@@ -136,32 +196,34 @@ export class NounDeclensionTable extends Component<{ word: OpenArabDictGenderedW
 
     private RenderNumerusCase(numerus: Numerus, c: Case)
     {
-        const hasMale = this.input.word.isMale;
-        const gender = hasMale ? Gender.Male : Gender.Female;
         return <fragment>
-            {this.RenderNumerusCaseGender(numerus, c, gender)}
+            {this.RenderNumerusCaseGender(numerus, c)}
         </fragment>;
     }
 
-    private RenderNumerusCaseGender(numerus: Numerus, c: Case, gender: Gender)
+    private RenderNumerusCaseGender(numerus: Numerus, c: Case)
     {
         const inputWord = this.input.word.text;
         const parsed = ParseVocalizedText(inputWord);
 
+        const gender = this.GetSourceState().gender;
+        const hasSecondGender = this.IsAdjective() && this.IsSingular();
         return <fragment>
             <td>{this.RenderCell(numerus, c, gender, parsed, AdjectiveOrNounState.Indefinite)}</td>
             <td>{this.RenderCell(numerus, c, gender, parsed, AdjectiveOrNounState.Definite)}</td>
-            <td>{this.RenderCell(numerus, c, gender, parsed, AdjectiveOrNounState.Construct)}</td>
+            {(this.input.word.type === OpenArabDictWordType.Noun) ? <td>{this.RenderCell(numerus, c, gender, parsed, AdjectiveOrNounState.Construct)}</td> : null}
+            {hasSecondGender ? <td>{this.RenderCell(numerus, c, Gender.Female, parsed, AdjectiveOrNounState.Indefinite)}</td> : null}
+            {hasSecondGender ? <td>{this.RenderCell(numerus, c, Gender.Female, parsed, AdjectiveOrNounState.Definite)}</td> : null}
         </fragment>;
     }
 
-    private RenderCell(numerus: Numerus, c: Case, gender: Gender, parsed: DisplayVocalized[], state: AdjectiveOrNounState)
+    private RenderCell(targetNumerus: Numerus, c: Case, targetGender: Gender, parsed: DisplayVocalized[], state: AdjectiveOrNounState)
     {
-        const base = this.BuildBaseNoun(parsed, gender, numerus);
+        const base = this.DeriveBase(targetGender, targetNumerus);
 
-        const declined = this.conjugationService.DeclineNoun(DialectType.ModernStandardArabic, {
-            gender,
-            numerus,
+        const declined = this.conjugationService.DeclineAdjectiveOrNoun(DialectType.ModernStandardArabic, {
+            gender: targetGender,
+            numerus: targetNumerus,
             vocalized: base
         }, {
             state,

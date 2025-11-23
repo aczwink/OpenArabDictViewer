@@ -68,13 +68,7 @@ export class ConjugationService
         return this.conjugator.ConjugateParticiple(verb, Voice.Passive);
     }
 
-    public DeclineAdjective(dialect: DialectType, input: AdjectiveOrNounInput, params: AdjectiveOrNounDeclensionParams)
-    {
-        const declined = this.conjugator.DeclineAdjectiveOrNoun(input, params, dialect);
-        return this.VocalizedToString(declined);
-    }
-
-    public DeclineNoun(dialect: DialectType, input: AdjectiveOrNounInput, params: AdjectiveOrNounDeclensionParams)
+    public DeclineAdjectiveOrNoun(dialect: DialectType, input: AdjectiveOrNounInput, params: AdjectiveOrNounDeclensionParams)
     {
         return this.conjugator.DeclineAdjectiveOrNoun(input, params, dialect);
     }

@@ -22,12 +22,11 @@ import { RenderTranslations } from "../shared/translations";
 import { WordMayHaveGender, WordRelationshipTypeToString, WordTypeToText } from "../shared/words";
 import { RemoveTashkil } from "openarabicconjugation/src/Util";
 import { WordIdReferenceComponent } from "./WordReferenceComponent";
-import { NounDeclensionTable } from "./NounDeclensionTable";
+import { AdjectiveOrNounDeclensionTable } from "./AdjectiveOrNounDeclensionTable";
 import { RenderDerivedTerm, WordDerivationComponent } from "./WordDerivationComponent";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
 import { OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
 import { ShowVerbComponent } from "../verbs/ShowVerbComponent";
-import { AdjectiveDeclensionTable } from "./AdjectiveDeclensionTable";
 
 @Injectable
 export class ShowWordComponent extends Component
@@ -161,9 +160,8 @@ export class ShowWordComponent extends Component
         switch(this.data!.word.type)
         {
             case OpenArabDictWordType.Adjective:
-                return <AdjectiveDeclensionTable word={this.data!.word} />;
             case OpenArabDictWordType.Noun:
-                return <NounDeclensionTable word={this.data!.word} derivedWordIds={this.data!.derived} />;
+                return <AdjectiveOrNounDeclensionTable word={this.data!.word} derivedWordIds={this.data!.derived} />;
         }
         return null;
     }

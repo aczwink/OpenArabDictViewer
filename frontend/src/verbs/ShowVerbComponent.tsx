@@ -333,6 +333,10 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         </tr>;
 
         const type = verb.type;
+        const passiveParticiple = (this.dialectsService.GetDialectMetaData(dialect.id).hasPassive) ? <tr>
+            <th>Passive participle اِسْم الْمَفْعُول:</th>
+            <td>{RenderWithDiffHighlights(this.conjugationService.ConjugatePassiveParticiple(verb), past)}</td>
+        </tr> : null;
         return <table>
             <tbody>
                 <tr>
@@ -357,10 +361,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
                     <th>Active participle اِسْم الْفَاعِل:</th>
                     <td>{RenderWithDiffHighlights(this.conjugationService.ConjugateActiveParticiple(verb, data.form.stativeActiveParticiple === true), past)}</td>
                 </tr>
-                <tr>
-                    <th>Passive participle اِسْم الْمَفْعُول:</th>
-                    <td>{RenderWithDiffHighlights(this.conjugationService.ConjugatePassiveParticiple(verb), past)}</td>
-                </tr>
+                {passiveParticiple}
                 {verbalNounRow}
                 <tr>
                     <th>Related:</th>
