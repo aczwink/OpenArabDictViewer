@@ -21,7 +21,6 @@ import { WordGenderToAbbreviation, WordMayHaveGender, WordTypeToAbbreviationText
 import { OpenArabDictRoot, OpenArabDictVerbDerivationType, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
 import { CachedAPIService } from "../services/CachedAPIService";
 import { DialectsService } from "../services/DialectsService";
-import { StemNumberComponent } from "../shared/RomanNumberComponent";
 import { VerbConjugationService } from "../services/VerbConjugationService";
 import { ModernStandardArabicStem1ParametersType } from "openarabicconjugation/src/dialects/msa/conjugation/r2tashkil";
 import { VerbType } from "openarabicconjugation/src/Definitions";
@@ -57,6 +56,7 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
             case DialectType.ModernStandardArabic:
                 switch(verbType)
                 {
+                    case VerbType.AssimilatedAndDefective:
                     case VerbType.Defective:
                     case VerbType.Irregular:
                         return ModernStandardArabicStem1ParametersType.DefectiveType1;
@@ -100,7 +100,6 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
                 {this.verbConjugationService.RenderCheck(dialectType, this.root.radicals, word)}
                 {this.dialectsService.FindDialect(verb.dialect)?.emojiCodes}
                 {this.RenderDialectHint(dialectType)}
-                <StemNumberComponent verbType={verb.type} stem={word.form.stem} />:
                 {verbPresentation}
             </>;
         }

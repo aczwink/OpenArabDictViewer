@@ -18,7 +18,7 @@
 
 import { BootstrapIcon, JSX_CreateElement, JSX_Fragment, RootInjector } from "acfrontend";
 import { DialectsService } from "../services/DialectsService";
-import { OpenArabDictTranslationEntry } from "../../dist/api";
+import { OpenArabDictTranslationEntry, UsageType } from "../../dist/api";
 
 function RenderExample(example: { text: string; translation: string; }): RenderValue
 {
@@ -96,17 +96,21 @@ function RenderTranslationEntry(translationEntry: OpenArabDictTranslationEntry)
 {
     const d = RootInjector.Resolve(DialectsService).GetDialect(translationEntry.dialectId);
 
+    const examples = translationEntry.usage?.filter(x => x.type === UsageType.Example);
+    const contextual = translationEntry.usage?.filter(x => x.type === UsageType.MeaningInContext);
+
     return <div className="row">
+        <div className="col-auto">
+            {d.emojiCodes}
+        </div>
         <div className="col" style="white-space: pre-wrap;">
             {RenderText(translationEntry.text)}
         </div>
         <div className="col-auto">
-            {d.emojiCodes}
-            {" "}
             {RenderSource(translationEntry)}
         </div>
-        {RenderExamples(translationEntry.examples)}
-        {RenderContextDependentMeanings(translationEntry.contextual)}
+        {RenderExamples(examples)}
+        {RenderContextDependentMeanings(contextual)}
     </div>;
 }
 
@@ -115,5 +119,6 @@ export function RenderTranslations(translations: OpenArabDictTranslationEntry[])
     if(translations.length === 1)
         return RenderTranslationEntry(translations[0]);
 
-    return <ul>{translations.map(x => <li>{RenderTranslationEntry(x)}</li>)}</ul>;
+    const entries = translations.map(x => RenderTranslationEntry(x));
+    return entries.Interleave(<hr className="my-1" />);
 }

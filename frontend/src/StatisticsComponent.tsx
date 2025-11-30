@@ -90,14 +90,14 @@ export class StatisticsComponent extends Component
                 form: "Form",
                 verbalNoun: "Verbal noun",
                 count: "Count",
-                likelihood: "Likelihood"
+                distribution: "Distribution"
             }, this.data.verbalNounFreq.map(x => ({
                 verbType: ConjugationSchemeToString(x.scheme),
                 stem: <StemNumberComponent verbType={x.scheme} stem={x.stem} />,
                 form: (x.stemParameters === undefined) ? "" : this.BuildForm(x.scheme, x.stemParameters, this.dialectsService.FindDialect(DialectType.ModernStandardArabic)!.id),
                 verbalNoun: this.GenerateVerbalNoun(x.scheme, x.stem, x.stemParameters, x.verbalNounIndex),
                 count: x.count,
-                likelihood: this.ComputeVerbalNounLikelihood(x, this.data!.verbalNounFreq)
+                distribution: this.ComputeVerbalNounDistribution(x, this.data!.verbalNounFreq)
             })))}
         </div>;
     }
@@ -129,7 +129,7 @@ export class StatisticsComponent extends Component
         });
     }
 
-    private ComputeVerbalNounLikelihood(freq: VerbalNounFrequencies, total: VerbalNounFrequencies[])
+    private ComputeVerbalNounDistribution(freq: VerbalNounFrequencies, total: VerbalNounFrequencies[])
     {
         const allMatching = total.Values().Filter(x => (x.scheme === freq.scheme) && (x.stem === freq.stem) && (x.stemParameters === freq.stemParameters)).Map(x => x.count).Sum();
 
@@ -244,17 +244,20 @@ export class StatisticsComponent extends Component
         this.data.verbTypeCounts.SortByDescending(x => x.count);
         this.data.stemCounts.SortByDescending(x => x.count);
 
-        this.data.stem1Freq.SortByDescending(x => x.count);
         this.data.stem1Freq = this.data.stem1Freq.Values()
             .Filter(x => x.scheme !== VerbType.Irregular)
             .GroupBy(x => x.scheme)
             .Filter(x => x.value.length > 1)
-            .Map(x => x.value.Values().OrderByDescending(x => x.count)).Flatten().ToArray();
+            .Map(x => x.value.Values()).Flatten()
+            .OrderByDescending(x => [x.dialectId, x.scheme, x.count])
+            .ToArray();
 
         this.data.verbalNounFreq = this.data.verbalNounFreq.Values()
             .Filter(x => x.scheme !== VerbType.Irregular)
             .GroupBy(x => x.scheme)
             .Map(FilterComplex)
-            .Map(x => x.OrderBy(x => [x.stem, x.count])).Flatten().ToArray();
+            .Flatten()
+            .OrderBy(x => [x.stem, x.scheme, x.stemParameters ?? "", x.count])
+            .ToArray();
     }
 }
