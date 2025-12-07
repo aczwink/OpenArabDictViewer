@@ -24,6 +24,7 @@ import { OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
 import { SearchResultEntry } from "../dist/api";
 import { WordReferenceComponent } from "./words/WordReferenceComponent";
 import { GlobalSettingsService } from "./services/GlobalSettingsService";
+import { WordDerivationComponent } from "./words/WordDerivationComponent";
 
 @Injectable
 export class GlobalSearchComponent extends Component
@@ -119,7 +120,7 @@ export class GlobalSearchComponent extends Component
 
     private RenderResultEntry(entry: SearchResultEntry)
     {
-        if(entry.conjugated === undefined)
+        if(entry.derived === undefined)
         {
             return <tr>
                 <td><WordReferenceComponent word={entry.word.word as OpenArabDictWord} /></td>
@@ -127,9 +128,17 @@ export class GlobalSearchComponent extends Component
             </tr>;
         }
 
+        if(entry.derived.parent === "conjugated")
+        {
+            return <tr>
+                <td>{entry.derived.text}</td>
+                <td><i>conjugation of</i> <WordReferenceComponent word={entry.word.word as OpenArabDictWord} /></td>
+            </tr>;
+        }
+
         return <tr>
-            <td>{entry.conjugated}</td>
-            <td><i>conjugation of</i> <WordReferenceComponent word={entry.word.word as OpenArabDictWord} /></td>
+            <td>{entry.derived.text}</td>
+            <td><WordDerivationComponent parent={entry.derived.parent} /></td>
         </tr>;
     }
 

@@ -18,7 +18,7 @@
 
 import { APIController, Get, NotFound, Path, Query } from "acts-util-apilib";
 import { FullWordData, WordsController } from "../data-access/WordsController";
-import { OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictWordParent, OpenArabDictWordType } from "openarabdict-domain";
 import { WordFilterCriteria, WordSearchService } from "../services/WordSearchService";
 import { Of } from "acts-util-core";
 import { SearchResultEntry as SearchResultEntryATIS } from "../services/ArabicTextIndexService";
@@ -30,7 +30,10 @@ type OptionalWordType = OpenArabDictWordType | null;
 
 interface SearchResultEntry
 {
-    conjugated?: string;
+    derived?: {
+        text: string;
+        parent: OpenArabDictWordParent | "conjugated";
+    };
     score: number;
     word: FullWordData;
 }
@@ -62,7 +65,7 @@ class _api_
         const words = searchResultsArray.Values().Map(async sq => {
             const word = await this.wordsController.QueryWord(sq.word.id, translationLanguage);
             return Of<SearchResultEntry>({
-                conjugated: sq.conjugated,
+                derived: sq.derived,
                 score: sq.score,
                 word: word!
             });
@@ -74,7 +77,7 @@ class _api_
     //Private methods
     private ComputePhraseLength(entry: SearchResultEntryATIS)
     {
-        const text = entry.conjugated ?? entry.word.text;
+        const text = entry.derived?.text ?? entry.word.text;
         const parsed = ParseVocalizedPhrase(text);
         return parsed.Values().Map(x => x.length).Sum();
     }

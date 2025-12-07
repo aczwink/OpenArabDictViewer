@@ -18,7 +18,7 @@
 
 import { Injectable } from "acts-util-node";
 import { DatabaseController } from "../data-access/DatabaseController";
-import { OpenArabDictGenderedWord, OpenArabDictNonVerbDerivationType, OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbDerivationType, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictGenderedWord, OpenArabDictNonVerbDerivationType, OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbDerivationType, OpenArabDictWord, OpenArabDictWordParent, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
 import { Conjugator } from "openarabicconjugation/dist/Conjugator";
 import { RootsIndexService } from "./RootsIndexService";
 import { Gender, Mood, Numerus, Person, Tense, Voice } from "openarabicconjugation/dist/Definitions";
@@ -34,14 +34,20 @@ import { TargetAdjectiveNounDerivation } from "openarabicconjugation/dist/Dialec
 
 interface IndexEntry
 {
-    conjugated?: string;
+    derived?: {
+        text: string;
+        parent: OpenArabDictWordParent | "conjugated";
+    };
     vocalized: DisplayVocalized[][];
     word: OpenArabDictWord;
 }
 
 export interface SearchResultEntry
 {
-    conjugated?: string;
+    derived?: {
+        text: string;
+        parent: OpenArabDictWordParent | "conjugated";
+    };
     score: number;
     word: OpenArabDictWord;
 }
@@ -74,7 +80,7 @@ export class ArabicTextIndexService
 
         const indexEntries = this.trie.Find(key);
         return indexEntries.Map(x => Of<SearchResultEntry>({
-            conjugated: x.conjugated,
+            derived: x.derived,
             score: this.ComparePhrases(parsed, x.vocalized),
             word: x.word
         }));
@@ -98,14 +104,14 @@ export class ArabicTextIndexService
             const conjugator = new Conjugator();
 
             const activeParticiple = (part.verb.form.stativeActiveParticiple === true) ? conjugator.DeclineStativeActiveParticiple(part.verbInstance) : conjugator.ConjugateParticiple(part.verbInstance, Voice.Active);
-            this.AddConjugatedWordToIndex(trie, activeParticiple, part.verb);
+            this.AddDerivedWordToIndex(trie, activeParticiple, { type: OpenArabDictWordParentType.Verb, derivation: OpenArabDictVerbDerivationType.ActiveParticiple, verbId: part.verb.id }, part.verb);
         }
         for (const part of ObjectExtensions.Values(state.passiveParticiples).NotUndefined())
         {
             const conjugator = new Conjugator();
 
             const passiveParticiple = conjugator.ConjugateParticiple(part.verbInstance, Voice.Passive);
-            this.AddConjugatedWordToIndex(trie, passiveParticiple, part.verb);
+            this.AddDerivedWordToIndex(trie, passiveParticiple, { type: OpenArabDictWordParentType.Verb, derivation: OpenArabDictVerbDerivationType.PassiveParticiple, verbId: part.verb.id }, part.verb);
         }
 
         this.trie = trie;
@@ -123,13 +129,16 @@ export class ArabicTextIndexService
         const conjugator = new Conjugator();
         const female = conjugator.DeriveSoundAdjectiveOrNoun(ParseVocalizedText(word.text), Gender.Male, TargetAdjectiveNounDerivation.DeriveFeminineSingular, DialectType.ModernStandardArabic);
 
-        this.AddConjugatedWordToIndex(trie, female, word);
+        this.AddDerivedWordToIndex(trie, female, { type: OpenArabDictWordParentType.NonVerbWord, relationType: OpenArabDictNonVerbDerivationType.Feminine, wordId: word.id }, word);
     }
 
-    private AddConjugatedWordToIndex(trie: PrefixTree<IndexEntry>, conjugated: DisplayVocalized[], word: OpenArabDictWord)
+    private AddDerivedWordToIndex(trie: PrefixTree<IndexEntry>, conjugated: DisplayVocalized[], derivation: OpenArabDictWordParent | "conjugated", word: OpenArabDictWord)
     {
         this.AddToIndex({
-            conjugated: VocalizedWordTostring(conjugated),
+            derived: {
+                text: VocalizedWordTostring(conjugated),
+                parent: derivation
+            },
             vocalized: [conjugated],
             word,
         }, trie);
@@ -227,7 +236,7 @@ export class ArabicTextIndexService
                                     mood: mood as any
                                 });
 
-                                this.AddConjugatedWordToIndex(trie, conjugated, verb);
+                                this.AddDerivedWordToIndex(trie, conjugated, "conjugated", verb);
                             }
                         }
                     }
