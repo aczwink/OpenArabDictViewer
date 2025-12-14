@@ -32,14 +32,18 @@ export const allWordTypes = [
     OpenArabDictWordType.Particle,
 ];
 
-export function WordDerivationTypeFromWordToString(type: OpenArabDictNonVerbDerivationType)
+export function WordDerivationTypeFromWordToString(type: OpenArabDictNonVerbDerivationType): string
 {
     switch(type)
     {
+        case OpenArabDictNonVerbDerivationType.AdverbialAccusative:
+            return "adverbial accusative";
         case OpenArabDictNonVerbDerivationType.Feminine:
             return "feminine version";
         case OpenArabDictNonVerbDerivationType.Plural:
             return "plural";
+        case OpenArabDictNonVerbDerivationType.InstanceNoun:
+            return "instance noun";
         case OpenArabDictNonVerbDerivationType.Nisba:
             return "relative adjective (nisbah اَلنِّسْبَة)";
         case OpenArabDictNonVerbDerivationType.Colloquial:

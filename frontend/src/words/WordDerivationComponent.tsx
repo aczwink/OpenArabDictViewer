@@ -23,7 +23,7 @@ import { WordDerivationTypeFromWordToString } from "../shared/words";
 import { OpenArabDictOtherWordParent, OpenArabDictWordParent, OpenArabDictWordParentType, OpenArabDictWordVerbParent } from "openarabdict-domain";
 import { RootIdReferenceComponent } from "../roots/RootReferenceComponent";
 
-function RelationshipToText(relationType: OpenArabDictNonVerbDerivationType, outgoing: boolean)
+function RelationshipToText(relationType: OpenArabDictNonVerbDerivationType, outgoing: boolean): string
 {
     if(outgoing)
         return WordDerivationTypeFromWordToString(relationType);
@@ -38,7 +38,9 @@ function RelationshipToText(relationType: OpenArabDictNonVerbDerivationType, out
             return "noun version";
         case OpenArabDictNonVerbDerivationType.Colloquial:
             return "فصحى version";
+        case OpenArabDictNonVerbDerivationType.AdverbialAccusative:
         case OpenArabDictNonVerbDerivationType.Extension:
+        case OpenArabDictNonVerbDerivationType.InstanceNoun:
             return "base";
         case OpenArabDictNonVerbDerivationType.ElativeDegree:
             return "positive degree";

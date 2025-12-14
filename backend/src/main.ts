@@ -33,9 +33,16 @@ async function ComputeIndexes()
     const rootsIndexService = GlobalInjector.Resolve(RootsIndexService);
     const arabicTextIndexService = GlobalInjector.Resolve(ArabicTextIndexService);
 
+    const mem1 = process.memoryUsage();
+
     await dialectsService.RebuildIndex();
     await rootsIndexService.RebuildIndex();
     await arabicTextIndexService.RebuildIndex();
+
+    const mem2 = process.memoryUsage();
+
+    console.log("Memory in use:", mem2.rss.FormatBinaryPrefixed());
+    console.log("Memory in use by indexes:", (mem2.rss - mem1.rss).FormatBinaryPrefixed());
 }
 
 async function DefineDialects()
