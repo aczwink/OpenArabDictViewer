@@ -39,7 +39,7 @@ resource backend 'Microsoft.Web/sites@2024-04-01' = {
       appSettings: [
         {
           name: 'ARABDICT_DICTDB_PATH'
-          value: '/srv/db/en.json'
+          value: '/srv/db'
         }
         {
           name: 'ARABDICT_ORIGIN'
