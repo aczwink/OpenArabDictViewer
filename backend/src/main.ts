@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,12 +37,16 @@ async function ComputeIndexes()
 
     await dialectsService.RebuildIndex();
     await rootsIndexService.RebuildIndex();
-    await arabicTextIndexService.RebuildIndex();
 
     const mem2 = process.memoryUsage();
 
-    console.log("Memory in use:", mem2.rss.FormatBinaryPrefixed());
-    console.log("Memory in use by indexes:", (mem2.rss - mem1.rss).FormatBinaryPrefixed());
+    await arabicTextIndexService.RebuildIndex();
+
+    const mem3 = process.memoryUsage();
+
+    console.log("Memory in use:", mem3.rss.FormatBinaryPrefixed());
+    console.log("Memory in use by indexes:", (mem3.rss - mem1.rss).FormatBinaryPrefixed());
+    console.log("Memory in use by arabic text index:", (mem3.rss - mem2.rss).FormatBinaryPrefixed());
 }
 
 async function DefineDialects()

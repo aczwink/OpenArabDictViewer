@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@ import { FullWordData, WordsController } from "../data-access/WordsController";
 import { OpenArabDictWordParent, OpenArabDictWordType } from "openarabdict-domain";
 import { WordFilterCriteria, WordSearchService } from "../services/WordSearchService";
 import { Of } from "acts-util-core";
-import { SearchResultEntry as SearchResultEntryATIS } from "../services/ArabicTextIndexService";
+import { ImplicitWordParent, SearchResultEntry as SearchResultEntryATIS } from "../services/ArabicTextIndexService";
 import { IsArabicPhrase } from "openarabicconjugation/src/Util";
 import { ParseVocalizedPhrase } from "openarabicconjugation/src/Vocalization";
 import { TranslationLanguage } from "../data-access/DatabaseController";
@@ -32,7 +32,7 @@ interface SearchResultEntry
 {
     derived?: {
         text: string;
-        parent: OpenArabDictWordParent | "conjugated";
+        parent: OpenArabDictWordParent | ImplicitWordParent;
     };
     score: number;
     word: FullWordData;

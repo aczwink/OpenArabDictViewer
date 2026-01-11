@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2025-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,11 +32,24 @@ import { GetDialectMetadata } from "openarabicconjugation/dist/DialectsMetadata"
 import { CreateVerbFromOADVerb, FindHighestConjugatableDialect } from "openarabdict-openarabicconjugation-bridge";
 import { TargetAdjectiveNounDerivation } from "openarabicconjugation/dist/DialectConjugator";
 
+enum ImplicitWordDerivation
+{
+    ConjugatedVerb,
+    FeminineActiveParticiple,
+    FemininePassiveParticiple,
+}
+
+export interface ImplicitWordParent
+{
+    type: "i";
+    kind: ImplicitWordDerivation;
+}
+
 interface IndexEntry
 {
     derived?: {
         text: string;
-        parent: OpenArabDictWordParent | "conjugated";
+        parent: OpenArabDictWordParent | ImplicitWordParent;
     };
     vocalized: DisplayVocalized[][];
     word: OpenArabDictWord;
@@ -46,7 +59,7 @@ export interface SearchResultEntry
 {
     derived?: {
         text: string;
-        parent: OpenArabDictWordParent | "conjugated";
+        parent: OpenArabDictWordParent | ImplicitWordParent;
     };
     score: number;
     word: OpenArabDictWord;
@@ -100,19 +113,9 @@ export class ArabicTextIndexService
             this.AddWordToIndex(word, state, trie);
 
         for (const part of ObjectExtensions.Values(state.activeParticiples).NotUndefined())
-        {
-            const conjugator = new Conjugator();
-
-            const activeParticiple = (part.verb.form.stativeActiveParticiple === true) ? conjugator.DeclineStativeActiveParticiple(part.verbInstance) : conjugator.ConjugateParticiple(part.verbInstance, Voice.Active);
-            this.AddDerivedWordToIndex(trie, activeParticiple, { type: OpenArabDictWordParentType.Verb, derivation: OpenArabDictVerbDerivationType.ActiveParticiple, verbId: part.verb.id }, part.verb);
-        }
+            this.AddParticipleToIndex(Voice.Active, part, trie);
         for (const part of ObjectExtensions.Values(state.passiveParticiples).NotUndefined())
-        {
-            const conjugator = new Conjugator();
-
-            const passiveParticiple = conjugator.ConjugateParticiple(part.verbInstance, Voice.Passive);
-            this.AddDerivedWordToIndex(trie, passiveParticiple, { type: OpenArabDictWordParentType.Verb, derivation: OpenArabDictVerbDerivationType.PassiveParticiple, verbId: part.verb.id }, part.verb);
-        }
+            this.AddParticipleToIndex(Voice.Passive, part, trie);
 
         this.trie = trie;
     }
@@ -132,16 +135,29 @@ export class ArabicTextIndexService
         this.AddDerivedWordToIndex(trie, female, { type: OpenArabDictWordParentType.NonVerbWord, relationType: OpenArabDictNonVerbDerivationType.Feminine, wordId: word.id }, word);
     }
 
-    private AddDerivedWordToIndex(trie: PrefixTree<IndexEntry>, conjugated: DisplayVocalized[], derivation: OpenArabDictWordParent | "conjugated", word: OpenArabDictWord)
+    private AddDerivedWordToIndex(trie: PrefixTree<IndexEntry>, conjugated: DisplayVocalized[], derivation: OpenArabDictWordParent | ImplicitWordDerivation, word: OpenArabDictWord)
     {
         this.AddToIndex({
             derived: {
                 text: VocalizedWordTostring(conjugated),
-                parent: derivation
+                parent: (typeof derivation === "number") ? { type: "i", kind: derivation } : derivation,
             },
             vocalized: [conjugated],
             word,
         }, trie);
+    }
+
+    private AddParticipleToIndex(voice: Voice, part: ParticipleCreationState, trie: PrefixTree<IndexEntry>)
+    {
+        const conjugator = new Conjugator();
+
+        const participle = ((voice === Voice.Active) && (part.verb.form.stativeActiveParticiple === true))
+            ? conjugator.DeclineStativeActiveParticiple(part.verbInstance)
+            : conjugator.ConjugateParticiple(part.verbInstance, voice);
+        this.AddDerivedWordToIndex(trie, participle, { type: OpenArabDictWordParentType.Verb, derivation: (voice === Voice.Active) ? OpenArabDictVerbDerivationType.ActiveParticiple : OpenArabDictVerbDerivationType.PassiveParticiple, verbId: part.verb.id }, part.verb);
+
+        const female = conjugator.DeriveSoundAdjectiveOrNoun(participle, Gender.Male, TargetAdjectiveNounDerivation.DeriveFeminineSingular, DialectType.ModernStandardArabic);
+        this.AddDerivedWordToIndex(trie, female, (voice === Voice.Active) ? ImplicitWordDerivation.FeminineActiveParticiple : ImplicitWordDerivation.FemininePassiveParticiple, part.verb);
     }
 
     private AddToIndex(indexEntry: IndexEntry, trie: PrefixTree<IndexEntry>)
@@ -236,7 +252,7 @@ export class ArabicTextIndexService
                                     mood: mood as any
                                 });
 
-                                this.AddDerivedWordToIndex(trie, conjugated, "conjugated", verb);
+                                this.AddDerivedWordToIndex(trie, conjugated, ImplicitWordDerivation.ConjugatedVerb, verb);
                             }
                         }
                     }

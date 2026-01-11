@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@ import { allWordTypes, WordTypeToText } from "./shared/words";
 import { APIService } from "./services/APIService";
 import { WordFunctionComponent } from "./words/WordFunctionComponent";
 import { OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
-import { SearchResultEntry } from "../dist/api";
+import { ImplicitWordDerivation, SearchResultEntry } from "../dist/api";
 import { WordReferenceComponent } from "./words/WordReferenceComponent";
 import { GlobalSettingsService } from "./services/GlobalSettingsService";
 import { WordDerivationComponent } from "./words/WordDerivationComponent";
@@ -128,11 +128,23 @@ export class GlobalSearchComponent extends Component
             </tr>;
         }
 
-        if(entry.derived.parent === "conjugated")
+        if(entry.derived.parent.type === "i")
         {
+            function Type2Text(type: ImplicitWordDerivation)
+            {
+                switch(type)
+                {
+                    case ImplicitWordDerivation.ConjugatedVerb:
+                        return "conjugation";
+                    case ImplicitWordDerivation.FeminineActiveParticiple:
+                        return "feminine active participle";
+                    case ImplicitWordDerivation.FemininePassiveParticiple:
+                        return "feminine passive participle";
+                }
+            }
             return <tr>
                 <td>{entry.derived.text}</td>
-                <td><i>conjugation of</i> <WordReferenceComponent word={entry.word.word as OpenArabDictWord} /></td>
+                <td><i>{Type2Text(entry.derived.parent.kind) + " of"}</i> <WordReferenceComponent word={entry.word.word as OpenArabDictWord} /></td>
             </tr>;
         }
 
