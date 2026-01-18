@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Anchor, BootstrapIcon, Component, Injectable, JSX_CreateElement, ProgressSpinner, RouterState } from "acfrontend";
+import { Anchor, BootstrapIcon, Component, I18n, Injectable, JSX_CreateElement, ProgressSpinner, RouterState } from "acfrontend";
 import { APIService } from "../services/APIService";
 import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
 import { AreValidRootCharacters, DoRootCharactersFormValidRoot, RootToString } from "./general";
@@ -115,7 +115,7 @@ export class ListRootsComponent extends Component
                     return "Root " + root.ToString() + " does not exist.";
                 }
             }
-            return "No roots found...";
+            return I18n("search.empty");
         }
 
         return <table className="table table-striped table-hover table-sm text-center" style="margin-left: auto; margin-right: auto; width: auto;">

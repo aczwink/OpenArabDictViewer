@@ -89,9 +89,9 @@ export class GlobalSearchComponent extends Component
             return null;
         return <div className="row">
             <div className="col">
-                <FormField title="Word type">
+                <FormField title={I18n("search.wordType")}>
                     <Select onChanged={this.OnWordTypeChanged.bind(this)}>
-                        <option selected={this.wordType === null} value={"null"}>Any</option>
+                        <option selected={this.wordType === null} value={"null"}>{I18n("search.wordTypes.Any")}</option>
                         {allWordTypes.map(x => <option selected={x === this.wordType} value={x}>{WordTypeToText(x)}</option>)}
                     </Select>
                 </FormField>
