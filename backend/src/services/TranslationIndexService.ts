@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2025-2026 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -17,34 +17,37 @@
  * */
 
 import { Injectable } from "acts-util-node";
-import { DatabaseController } from "../data-access/DatabaseController";
+import { DatabaseController, TranslationLanguage } from "../data-access/DatabaseController";
 import { Dictionary } from "acts-util-core";
-import { OpenArabDictRoot } from "openarabdict-domain";
+import { OpenArabDictTranslationEntry } from "openarabdict-domain";
 
 @Injectable
-export class RootsIndexService
+export class TranslationIndexService
 {
     constructor(private databaseController: DatabaseController)
     {
-        this.roots = {};
+        this.translationsMap = {};
     }
 
-    //Public methods
-    public GetRoot(id: string)
+    public GetTranslationsOf(wordId: string, translationLanguage: TranslationLanguage)
     {
-        return this.roots[id];
+        return this.translationsMap[translationLanguage]![wordId]!;
     }
-    
+
     public async RebuildIndex()
     {
-        const document = await this.databaseController.GetDocumentDB();
+        const langs: TranslationLanguage[] = ["de", "en"];
+        for (const lang of langs)
+        {
+            const document = await this.databaseController.GetTranslationsDocumentDB(lang);
 
-        const dict: Dictionary<OpenArabDictRoot> = {};
-        for (const root of document.roots)
-            dict[root.id] = root;
-        this.roots = dict;
+            const map: Dictionary<OpenArabDictTranslationEntry[]> = {};
+            for (const entry of document.entries)
+                map[entry.wordId] = entry.translations;
+            this.translationsMap[lang] = map;
+        }
     }
 
     //State
-    private roots: Dictionary<OpenArabDictRoot>;
+    private translationsMap: Dictionary<Dictionary<OpenArabDictTranslationEntry[]>>;
 }

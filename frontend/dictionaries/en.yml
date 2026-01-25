@@ -33,3 +33,6 @@ search:
   wordType: Word type
   wordTypes:
     Any: Any
+
+word:
+  notFound: This word does not exist.

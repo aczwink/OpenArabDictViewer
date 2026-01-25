@@ -33,3 +33,6 @@ search:
   wordType: Wortart
   wordTypes:
     Any: Jede
+
+word:
+  notFound: Das angeforderte Wort existiert nicht.

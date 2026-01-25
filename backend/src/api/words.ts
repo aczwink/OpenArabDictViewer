@@ -116,11 +116,9 @@ class _api3_
     }
 
     @Get()
-    public async QueryRandomWord(
-        @Query translationLanguage: TranslationLanguage
-    )
+    public async QueryRandomWord()
     {
-        return await this.wordsController.QueryRandomWordId(translationLanguage);
+        return await this.wordsController.QueryRandomWordId();
     }
 }
 

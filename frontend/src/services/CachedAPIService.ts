@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2024-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2024-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -59,6 +59,13 @@ export class CachedAPIService
         };
     }
 
+    public async QueryFullWord(wordId: string)
+    {
+        const fwd = await this.QueryFullWordData(wordId);
+
+        return fwd!;
+    }
+
     public async QueryRootData(rootId: string)
     {
         const cached = this.rootsCache[rootId];
@@ -83,7 +90,7 @@ export class CachedAPIService
         for (const word of words)
             this.CacheWord(word);
 
-        return words.map(x => this.FormFullWordDataResult(x)) as WordWithConnections[];
+        return words as WordWithConnections[];
     }
 
     public async QueryVerb(verbId: string)
@@ -98,14 +105,14 @@ export class CachedAPIService
     {
         const fwd = await this.QueryFullWordData(wordId);
 
-        return fwd.word as OpenArabDictWord;
+        return fwd!.word as OpenArabDictWord;
     }
 
     public async QueryWordWithConnections(wordId: string)
     {
         const fwd = await this.QueryFullWordData(wordId);
 
-        return fwd as WordWithConnections;
+        return fwd as WordWithConnections | undefined;
     }
 
     //Private methods
@@ -115,29 +122,27 @@ export class CachedAPIService
         this.wordsCache[data.word.id + "-" + targetLanguage] = data;
     }
 
-    private FormFullWordDataResult(fwd: FullWordData): FullWordData
-    {
-        return {
-            derived: fwd.derived,
-            related: fwd.related,
-            word: fwd.word
-        };
-    }
-
     private async QueryFullWordData(wordId: string)
     {
         const translationLanguage = this.pageLanguageService.activeLanguage;
 
         const cached = this.wordsCache[wordId + "-" + translationLanguage];
         if(cached !== undefined)
-            return this.FormFullWordDataResult(cached);
+            return cached;
 
         const response = await this.apiService.words._any_.get(wordId, { translationLanguage });
-        if(response.statusCode !== 200)
-            throw new Error("HERE");
+        switch(response.statusCode)
+        {
+            case 200:
+                break;
+            case 404:
+                return undefined;
+            default:
+                throw new Error("HERE");
+        }
         this.CacheWord(response.data);
 
-        return this.FormFullWordDataResult(response.data);
+        return response.data;
     }
 
     //State

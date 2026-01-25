@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -121,7 +121,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
 
     private async LoadDerivedWords()
     {
-        this.derivedWords = await this.fullWord!.derived.Values().Map(x => this.cachedAPIService.QueryWordWithConnections(x)).PromiseAll();
+        this.derivedWords = await this.fullWord!.derived.Values().Map(x => this.cachedAPIService.QueryWordWithConnections(x)).Async().NotUndefined().ToArray();
     }
 
     private RenderConjugation(verb: Verb<string>)
@@ -369,7 +369,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
                 </tr>
                 <tr>
                     <th>Translation:</th>
-                    <td>{RenderTranslations(data.translations)}</td>
+                    <td>{RenderTranslations(this.fullWord!.translations)}</td>
                 </tr>
             </tbody>
         </table>;
@@ -427,7 +427,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
     override async OnInitiated(): Promise<void>
     {
         const full = await this.cachedAPIService.QueryWordWithConnections(this.input.verbId);
-        if(full.word.type !== OpenArabDictWordType.Verb)
+        if(full?.word.type !== OpenArabDictWordType.Verb)
             throw new Error("TODO implement me");
 
         const root = await this.cachedAPIService.QueryRootData(full.word.rootId);

@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Component, Injectable, JSX_CreateElement, ProgressSpinner, RouterState, TitleService } from "acfrontend";
+import { Component, I18n, Injectable, JSX_CreateElement, ProgressSpinner, RouterState, TitleService } from "acfrontend";
 import { WordRelation } from "../../dist/api";
 import { RenderTranslations } from "../shared/translations";
 import { WordMayHaveGender, WordRelationshipTypeToString, WordTypeToText } from "../shared/words";
@@ -36,12 +36,15 @@ export class ShowWordComponent extends Component
         super();
 
         this.wordId = routerState.routeParams.wordId!;
+        this.notFound = false;
         this.data = null;
         this.derived = [];
     }
 
     protected Render(): RenderValue
     {
+        if(this.notFound)
+            return I18n("word.notFound");
         if(this.data === null)
             return <ProgressSpinner />;
 
@@ -70,7 +73,7 @@ export class ShowWordComponent extends Component
                     </tr>
                     <tr>
                         <th>Translation:</th>
-                        <td>{RenderTranslations(this.data.word.translations)}</td>
+                        <td>{RenderTranslations(this.data.translations)}</td>
                     </tr>
                     <tr>
                         <th>Declension:</th>
@@ -170,6 +173,11 @@ export class ShowWordComponent extends Component
     override async OnInitiated(): Promise<void>
     {
         const word = await this.cachedAPIService.QueryWordWithConnections(this.wordId);
+        if(word === undefined)
+        {
+            this.notFound = true;
+            return;
+        }
 
         this.derived = await word.derived.Values().Map(x => this.cachedAPIService.QueryWord(x)).PromiseAll();
 
@@ -179,6 +187,7 @@ export class ShowWordComponent extends Component
 
     //Private state
     private wordId: string;
+    private notFound: boolean;
     private data: WordWithConnections | null;
     private derived: OpenArabDictWord[];
 }

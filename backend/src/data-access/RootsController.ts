@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,7 @@ export class RootsController
     //Public methods
     public async QueryRoots(prefix: string)
     {
-        const document = await this.dbController.GetDocumentDB("en");
+        const document = await this.dbController.GetDocumentDB();
 
         const filtered = document.roots.Values().Filter(x => x.radicals.startsWith(prefix));
         return filtered.OrderBy(x => x.radicals).ToArray();

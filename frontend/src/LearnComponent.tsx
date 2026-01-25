@@ -21,9 +21,9 @@ import { APIService } from "./services/APIService";
 import { RenderTranslations } from "./shared/translations";
 import { WordTypeToText } from "./shared/words";
 import { CachedAPIService } from "./services/CachedAPIService";
-import { OpenArabDictWord } from "openarabdict-domain";
 import { RemoveTashkilButKeepShadda } from "openarabicconjugation/src/Util";
 import { GlobalSettingsService } from "./services/GlobalSettingsService";
+import { FullWordData } from "../dist/api";
 
 @Injectable
 export class LearnComponent extends Component
@@ -42,7 +42,7 @@ export class LearnComponent extends Component
         if(this.data === null)
             return <ProgressSpinner />;
 
-        const title = this.data.text;
+        const title = this.data.word.text;
         if(this.resolve)
         {
             return <div className="row justify-content-center text-center">
@@ -72,7 +72,7 @@ export class LearnComponent extends Component
     }
 
     //Private state
-    private data: OpenArabDictWord | null;
+    private data: FullWordData | null;
     private showTashkil: boolean;
     private resolve: boolean;
 
@@ -86,14 +86,14 @@ export class LearnComponent extends Component
         const response = await this.apiService.randomword.get({ translationLanguage: this.globalSettingsService.activeLanguage });
         const wordId = response.data;
 
-        const word = await this.cachedAPIService.QueryWord(wordId);
+        const word = await this.cachedAPIService.QueryFullWord(wordId);
         this.data = word;
     }
 
-    private RenderFunction(func: OpenArabDictWord)
+    private RenderFunction(func: FullWordData)
     {
         return <fragment>
-            <h4>{WordTypeToText(func.type)}</h4>
+            <h4>{WordTypeToText(func.word.type)}</h4>
             {RenderTranslations(func.translations)}
         </fragment>;
     }

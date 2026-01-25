@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -17,11 +17,12 @@
  * */
 
 import { Injectable } from "acts-util-node";
-import { OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictTranslationEntry, OpenArabDictWordType } from "openarabdict-domain";
 import { DatabaseController, TranslationLanguage } from "../data-access/DatabaseController";
 import { IsArabicPhrase } from "openarabicconjugation/src/Util";
 import { ArabicTextIndexService, SearchResultEntry } from "./ArabicTextIndexService";
 import { Of } from "acts-util-core";
+import { WordsIndexService } from "./WordsIndexService";
 
 export interface WordFilterCriteria
 {
@@ -32,14 +33,15 @@ export interface WordFilterCriteria
 @Injectable
 export class WordSearchService
 {
-    constructor(private dbController: DatabaseController, private arabicTextIndexService: ArabicTextIndexService)
+    constructor(private dbController: DatabaseController, private arabicTextIndexService: ArabicTextIndexService, private wordsIndexService: WordsIndexService)
     {
     }
 
     //Public methods
     public async FindWords(filterCriteria: WordFilterCriteria, translationLanguage: TranslationLanguage, offset: number, limit: number)
     {
-        const document = await this.dbController.GetDocumentDB(translationLanguage);
+        const document = await this.dbController.GetDocumentDB();
+        const translationDocument = await this.dbController.GetTranslationsDocumentDB(translationLanguage);
 
         filterCriteria.textFilter = filterCriteria.textFilter.trim();
         let filtered;
@@ -51,7 +53,7 @@ export class WordSearchService
             else
             {
                 filterCriteria.textFilter = filterCriteria.textFilter.toLowerCase();
-                filtered = document.words.Values()
+                filtered = translationDocument.entries.Values()
                     .Map(this.SearchByTranslation.bind(this, filterCriteria));
             }
         }
@@ -65,9 +67,10 @@ export class WordSearchService
     }
 
     //Private methods
-    private SearchByTranslation(filterCriteria: WordFilterCriteria, word: OpenArabDictWord): SearchResultEntry
+    private SearchByTranslation(filterCriteria: WordFilterCriteria, entry: { wordId: string; translations: OpenArabDictTranslationEntry[] }): SearchResultEntry
     {
-        const translationMatch = word.translations.Values().Map(x => x.text.Values().Map(x => x.toLowerCase().includes(filterCriteria.textFilter))).Flatten().AnyTrue();
+        const translationMatch = entry.translations.Values().Map(x => x.text.Values().Map(x => x.toLowerCase().includes(filterCriteria.textFilter))).Flatten().AnyTrue();
+        const word = this.wordsIndexService.GetWord(entry.wordId);
         if(!translationMatch)
             return { score: 0, word };
         return {

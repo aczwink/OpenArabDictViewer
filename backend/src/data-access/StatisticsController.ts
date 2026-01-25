@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,8 +26,10 @@ import { DialectsService } from "../services/DialectsService";
 import { OpenArabDictVerbDerivationType, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
 import { RootsIndexService } from "../services/RootsIndexService";
 import { DialectType } from "openarabicconjugation/dist/Dialects";
-import { CreateVerbFromOADVerb, FindHighestConjugatableDialect } from "openarabdict-openarabicconjugation-bridge";
+import { CreateVerbFromOADVerb, FindHighestConjugatableDialectOf } from "openarabdict-openarabicconjugation-bridge";
 import { Verb } from "openarabicconjugation/dist/Verb";
+import { WordsIndexService } from "../services/WordsIndexService";
+import { TranslationIndexService } from "../services/TranslationIndexService";
 
 interface DialectStatistics
 {
@@ -79,15 +81,14 @@ interface DictionaryStatistics
 @Injectable
 export class StatisticsController
 {
-    constructor(private dbController: DatabaseController, private dialectsService: DialectsService,
-        private rootsIndexService: RootsIndexService
-    )
+    constructor(private dbController: DatabaseController, private dialectsService: DialectsService, private rootsIndexService: RootsIndexService, private wordsIndexService: WordsIndexService,
+        private translationIndexService: TranslationIndexService)
     {
     }
 
     public async QueryStatistics(): Promise<DictionaryStatistics>
     {
-        const document = await this.dbController.GetDocumentDB("en");
+        const document = await this.dbController.GetDocumentDB();
 
         return {
             rootsCount: document.roots.length,
@@ -105,9 +106,9 @@ export class StatisticsController
     {
         const dialectCounts: DialectStatistics[] = [];
 
-        const document = await this.dbController.GetDocumentDB("en");
+        const document = await this.dbController.GetTranslationsDocumentDB("en");
 
-        for (const word of document.words)
+        for (const word of document.entries)
         {
             for (const t of word.translations)
             {
@@ -124,7 +125,7 @@ export class StatisticsController
 
     private async QueryVerbTypeCounts()
     {
-        const document = await this.dbController.GetDocumentDB("en");
+        const document = await this.dbController.GetDocumentDB();
 
         const counts: Dictionary<number> = {};
         for (const word of document.words)
@@ -138,7 +139,7 @@ export class StatisticsController
 
             if(word.form.variants === undefined)
             {
-                const verb = CreateVerbFromOADVerb(FindHighestConjugatableDialect(root.radicals, word), root, word);
+                const verb = CreateVerbFromOADVerb(FindHighestConjugatableDialectOf(root.radicals, word.form, this.translationIndexService.GetTranslationsOf(word.id, "en")), root, word);
                 types.add(verb.type);
             }
             else
@@ -164,7 +165,7 @@ export class StatisticsController
 
     private async QueryStemCounts()
     {
-        const document = await this.dbController.GetDocumentDB("en");
+        const document = await this.dbController.GetDocumentDB();
 
         const counts: Dictionary<number> = {};
         for (const word of document.words)
@@ -182,7 +183,7 @@ export class StatisticsController
 
     private async QueryStem1Frequencies()
     {
-        const document = await this.dbController.GetDocumentDB("en");
+        const document = await this.dbController.GetDocumentDB();
 
         const dict: Dictionary<VerbStem1Frequencies> = {};
         for (const word of document.words)
@@ -249,7 +250,7 @@ export class StatisticsController
             return vocalized.Values().Map(VocalizedToString).Join("");
         }
 
-        const document = await this.dbController.GetDocumentDB("en");
+        const document = await this.dbController.GetDocumentDB();
 
         const conjugator = new Conjugator();
 
@@ -264,7 +265,7 @@ export class StatisticsController
                 continue;
 
             const verbId = word.parent.verbId;
-            const verb = document.words.find(x => x.id === verbId)!;
+            const verb = this.wordsIndexService.GetWord(verbId);
             if(verb.type !== OpenArabDictWordType.Verb)
                 throw new Error("Should never happen");
 

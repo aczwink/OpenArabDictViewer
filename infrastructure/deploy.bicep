@@ -34,6 +34,7 @@ resource backend 'Microsoft.Web/sites@2024-04-01' = {
     serverFarmId: appServicePlan.id
     
     siteConfig: {
+      alwaysOn: true
       appCommandLine: './bundle.js'
 
       appSettings: [

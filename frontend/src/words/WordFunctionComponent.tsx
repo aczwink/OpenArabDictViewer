@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,16 +19,16 @@
 import { Component, Injectable, JSX_CreateElement } from "acfrontend";
 import { RenderTranslations } from "../shared/translations";
 import { WordDerivationComponent } from "./WordDerivationComponent";
-import { OpenArabDictWord } from "openarabdict-domain";
+import { FullWordData } from "../../dist/api";
 
 @Injectable
-export class WordFunctionComponent extends Component<{ word: OpenArabDictWord; }>
+export class WordFunctionComponent extends Component<{ word: FullWordData; }>
 {
     protected Render(): RenderValue
     {
         const func = this.input.word;
         if(func.translations.length === 0)
-            return <WordDerivationComponent parent={this.input.word.parent} />;
+            return <WordDerivationComponent parent={this.input.word.word.parent} />;
         return RenderTranslations(func.translations);
     }
 }

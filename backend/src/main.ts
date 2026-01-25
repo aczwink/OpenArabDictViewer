@@ -26,17 +26,23 @@ import { ArabicTextIndexService } from "./services/ArabicTextIndexService";
 import ENV from "./env";
 import { DialectTree } from "openarabdict-openarabicconjugation-bridge";
 import { DialectsController } from "./data-access/DialectsController";
+import { WordsIndexService } from "./services/WordsIndexService";
+import { TranslationIndexService } from "./services/TranslationIndexService";
 
 async function ComputeIndexes()
 {
     const dialectsService = GlobalInjector.Resolve(DialectsService);
     const rootsIndexService = GlobalInjector.Resolve(RootsIndexService);
+    const translationIndexService = GlobalInjector.Resolve(TranslationIndexService);
+    const wordsIndexService = GlobalInjector.Resolve(WordsIndexService);
     const arabicTextIndexService = GlobalInjector.Resolve(ArabicTextIndexService);
 
     const mem1 = process.memoryUsage();
 
     await dialectsService.RebuildIndex();
     await rootsIndexService.RebuildIndex();
+    await wordsIndexService.RebuildIndex();
+    await translationIndexService.RebuildIndex();
 
     const mem2 = process.memoryUsage();
 

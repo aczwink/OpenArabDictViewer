@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ import { ModernStandardArabicStem1ParametersType } from "openarabicconjugation/s
 import { VerbType } from "openarabicconjugation/src/Definitions";
 import { DialectType } from "openarabicconjugation/src/Dialects";
 import { GlobalSettingsService } from "../services/GlobalSettingsService";
+import { Verb } from "openarabicconjugation/dist/Verb";
 
 @Injectable
 export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; }>
@@ -49,17 +50,28 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
     }
 
     //Private methods
-    private GetComparisonStemParameters(dialect: DialectType, verbType: VerbType)
+    private GetComparisonStemParameters(verb: Verb<string>)
     {
-        switch(dialect)
+        switch(verb.dialect)
         {
             case DialectType.ModernStandardArabic:
-                switch(verbType)
+                switch(verb.type)
                 {
                     case VerbType.AssimilatedAndDefective:
                     case VerbType.Defective:
                     case VerbType.Irregular:
                         return ModernStandardArabicStem1ParametersType.DefectiveType1;
+                    case VerbType.Sound:
+                        if(verb.stem === 1)
+                        {
+                            switch(verb.stemParameterization)
+                            {
+                                case ModernStandardArabicStem1ParametersType.PastA_PresentI:
+                                case ModernStandardArabicStem1ParametersType.PastI_PresentA:
+                                    return ModernStandardArabicStem1ParametersType.PastU_PresentU;
+                            }
+                        }
+                        break;
                 }
         }
         return ModernStandardArabicStem1ParametersType.PastI_PresentI;
@@ -94,7 +106,7 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
             const verb = this.verbConjugationService.ConstructVerb(dialectType, this.root.radicals, word.form);
             const dialect = this.dialectsService.FindDialect(verb.dialect)!;
 
-            const verbPresentation = this.verbConjugationService.CreateDefaultDisplayVersionOfVerbWithDiff(dialectType, this.root.radicals, word.form, { ...word, stem: 1, variants: [{ stemParameters: this.GetComparisonStemParameters(verb.dialect, verb.type), dialectId: dialect.id }] });
+            const verbPresentation = this.verbConjugationService.CreateDefaultDisplayVersionOfVerbWithDiff(dialectType, this.root.radicals, word.form, { ...word, stem: 1, variants: [{ stemParameters: this.GetComparisonStemParameters(verb), dialectId: dialect.id }] });
 
             return <>
                 {this.verbConjugationService.RenderCheck(dialectType, this.root.radicals, word)}

@@ -124,7 +124,7 @@ export class GlobalSearchComponent extends Component
         {
             return <tr>
                 <td><WordReferenceComponent word={entry.word.word as OpenArabDictWord} /></td>
-                <td><WordFunctionComponent word={entry.word.word as OpenArabDictWord} /></td>
+                <td><WordFunctionComponent word={entry.word} /></td>
             </tr>;
         }
 

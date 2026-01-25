@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +18,7 @@
 import fs from "fs";
 import path from "path";
 import { Injectable } from "acts-util-node";
-import { OpenArabDictDocument } from "openarabdict-domain";
+import { OpenArabDictDocument, OpenArabDictTranslationDocument } from "openarabdict-domain";
 import ENV from "../env";
 import { Dictionary } from "acts-util-core";
 
@@ -29,24 +29,38 @@ export class DatabaseController
 {
     constructor()
     {
-        this.documentDBs = {};
+        this.translationDocumentDBs = {};
     }
 
     //Public methods
-    public async GetDocumentDB(translationLanguage: TranslationLanguage)
+    public async GetDocumentDB()
     {
-        const document = this.documentDBs[translationLanguage];
+        if(this.documentDB === undefined)
+        {
+            const filePath = path.join(ENV.documentDBsPath, "dict.json");
+            const data = await fs.promises.readFile(filePath, "utf-8");
+            const document = JSON.parse(data) as OpenArabDictDocument;
+            this.documentDB = document;
+            return document;
+        }
+        return this.documentDB;
+    }
+
+    public async GetTranslationsDocumentDB(translationLanguage: TranslationLanguage)
+    {
+        const document = this.translationDocumentDBs[translationLanguage];
         if(document === undefined)
         {
             const filePath = path.join(ENV.documentDBsPath, translationLanguage + ".json");
             const data = await fs.promises.readFile(filePath, "utf-8");
-            const document = JSON.parse(data) as OpenArabDictDocument;
-            this.documentDBs[translationLanguage] = document;
+            const document = JSON.parse(data) as OpenArabDictTranslationDocument;
+            this.translationDocumentDBs[translationLanguage] = document;
             return document;
         }
         return document;
     }
 
     //Private state
-    private documentDBs: Dictionary<OpenArabDictDocument>;
+    private documentDB: OpenArabDictDocument | undefined;
+    private translationDocumentDBs: Dictionary<OpenArabDictTranslationDocument>;
 }

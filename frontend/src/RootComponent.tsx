@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,10 +30,13 @@ export class RootComponent extends Component
         super();
 
         this.loading = true;
+        this.cachingFailed = false;
     }
     
     protected Render()
     {
+        if(this.cachingFailed)
+            return "OpenArabDict - Error contacting backend";
         if(this.loading)
             return <ProgressSpinner />;
 
@@ -70,7 +73,14 @@ export class RootComponent extends Component
     {
         await this.pageLanguageService.LoadLanguages();
 
-        await this.dialectsService.CacheDialects(); //dialects are required to be loaded and cached
+        try
+        {
+            await this.dialectsService.CacheDialects(); //dialects are required to be loaded and cached
+        }
+        catch(_)
+        {
+            this.cachingFailed = true;
+        }
         this.loading = false;
     }
 
@@ -84,4 +94,5 @@ export class RootComponent extends Component
 
     //State
     private loading: boolean;
+    private cachingFailed: boolean;
 }

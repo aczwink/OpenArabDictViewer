@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,13 +19,13 @@
 import { BootstrapIcon, Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "acfrontend";
 import { WordFunctionComponent } from "./WordFunctionComponent";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
-import { OpenArabDictWord } from "openarabdict-domain";
 import { WordReferenceComponent } from "./WordReferenceComponent";
+import { FullWordData } from "../../dist/api";
 
 interface WordWithLevel
 {
     level: number;
-    word: OpenArabDictWord;
+    word: FullWordData;
 }
 
 @Injectable
@@ -57,7 +57,7 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Wo
                 {this.words.map(x => <tr>
                     <td>
                         <span style="white-space: pre">{this.Indent(x.level)}</span>
-                        <WordReferenceComponent word={x.word} />
+                        <WordReferenceComponent word={x.word.word} />
                     </td>
                     <td><WordFunctionComponent word={x.word} /></td>
                 </tr>)}
@@ -88,10 +88,11 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Wo
     {
         for (const wordId of wordIds)
         {
-            const word = await this.cachedAPIService.QueryWordWithConnections(wordId);
+            const result = await this.cachedAPIService.QueryWordWithConnections(wordId);
+            const word = result!;
 
             destination.push({
-                word: word.word,
+                word: word,
                 level
             });
 
@@ -106,7 +107,7 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Wo
         {
             this.words = this.input.words.map(x => ({
                 level: 0,
-                word: x.word
+                word: x
             }));
             this.loading = false;
             return;
@@ -117,7 +118,7 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Wo
         {
             words.push({
                 level: 0,
-                word: rootWord.word
+                word: rootWord
             });
 
             await this.LoadChildren(1, rootWord.derived, words);
