@@ -17,9 +17,9 @@
  * */
 import http from "http";
 
-import { OpenAPI } from "acts-util-core";
-import { Factory, GlobalInjector, HTTP } from "acts-util-node";
-import { APIRegistry } from "acts-util-apilib";
+import { OpenAPI } from "@aczwink/acts-util-core";
+import { Factory, GlobalInjector, HTTP } from "@aczwink/acts-util-node";
+import { APIRegistry } from "@aczwink/acts-util-apilib";
 import { RootsIndexService } from "./services/RootsIndexService";
 import { DialectsService } from "./services/DialectsService";
 import { ArabicTextIndexService } from "./services/ArabicTextIndexService";

@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Injectable } from "acts-util-node";
+import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController } from "../data-access/DatabaseController";
-import { Dictionary } from "acts-util-core";
+import { Dictionary } from "@aczwink/acts-util-core";
 import { OpenArabDictWord, OpenArabDictWordParent, OpenArabDictWordParentType } from "openarabdict-domain";
 
 type ChildLink = OpenArabDictWordParent & { childWordId: string; }

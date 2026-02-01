@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Injectable } from "acts-util-node";
+import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController } from "./DatabaseController";
-import { Dictionary, ObjectExtensions } from "acts-util-core";
+import { Dictionary, ObjectExtensions } from "@aczwink/acts-util-core";
 import { Conjugator } from "openarabicconjugation/dist/Conjugator";
 import { DisplayVocalized, VocalizedToString } from "openarabicconjugation/dist/Vocalization";
 import { VerbType } from "openarabicconjugation/dist/Definitions";

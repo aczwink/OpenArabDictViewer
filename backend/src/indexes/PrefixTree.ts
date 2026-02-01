@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Dictionary, Enumerable, EnumeratorBuilder } from "acts-util-core";
+import { Dictionary, Enumerable, EnumeratorBuilder } from "@aczwink/acts-util-core";
 
 class TrieNode<T>
 {

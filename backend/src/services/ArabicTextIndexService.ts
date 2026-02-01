@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Injectable } from "acts-util-node";
+import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController } from "../data-access/DatabaseController";
 import { OpenArabDictGenderedWord, OpenArabDictNonVerbDerivationType, OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbDerivationType, OpenArabDictWord, OpenArabDictWordParent, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
 import { Conjugator } from "openarabicconjugation/dist/Conjugator";
@@ -25,7 +25,7 @@ import { AdjectiveOrNounState, Case, Gender, Mood, Numerus, Person, Tense, Voice
 import { DialectsService } from "./DialectsService";
 import { CompareVocalized, DisplayVocalized, MapLetterToComparisonEquivalenceClass, ParseVocalizedPhrase, ParseVocalizedText, VocalizedWordTostring } from "openarabicconjugation/dist/Vocalization";
 import { PrefixTree } from "../indexes/PrefixTree";
-import { Of } from "acts-util-core";
+import { Of } from "@aczwink/acts-util-core";
 import { Verb } from "openarabicconjugation/dist/Verb";
 import { DialectType } from "openarabicconjugation/dist/Dialects";
 import { GetDialectMetadata } from "openarabicconjugation/dist/DialectsMetadata";
@@ -34,7 +34,7 @@ import { TargetAdjectiveNounDerivation } from "openarabicconjugation/dist/Dialec
 import { TranslationIndexService } from "./TranslationIndexService";
 import { WordsIndexService } from "./WordsIndexService";
 
-enum ImplicitWordDerivation
+export enum ImplicitWordDerivation
 {
     ConjugatedVerb,
     FeminineActiveParticiple,

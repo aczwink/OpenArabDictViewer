@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { APIController, Get, NotFound, Path, Query } from "acts-util-apilib";
+import { APIController, Get, NotFound, Path, Query } from "@aczwink/acts-util-apilib";
 import { FullWordData, WordsController } from "../data-access/WordsController";
 import { OpenArabDictWordParent, OpenArabDictWordType } from "openarabdict-domain";
 import { WordFilterCriteria, WordSearchService } from "../services/WordSearchService";
-import { Of } from "acts-util-core";
+import { Of } from "@aczwink/acts-util-core";
 import { ImplicitWordParent, SearchResultEntry as SearchResultEntryATIS } from "../services/ArabicTextIndexService";
 import { IsArabicPhrase } from "openarabicconjugation/src/Util";
 import { ParseVocalizedPhrase } from "openarabicconjugation/src/Vocalization";

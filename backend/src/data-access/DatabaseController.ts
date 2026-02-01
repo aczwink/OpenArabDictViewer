@@ -17,10 +17,10 @@
  * */
 import fs from "fs";
 import path from "path";
-import { Injectable } from "acts-util-node";
+import { Injectable } from "@aczwink/acts-util-node";
 import { OpenArabDictDocument, OpenArabDictTranslationDocument } from "openarabdict-domain";
 import ENV from "../env";
-import { Dictionary } from "acts-util-core";
+import { Dictionary } from "@aczwink/acts-util-core";
 
 export type TranslationLanguage = "en" | "de";
 

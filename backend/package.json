@@ -11,9 +11,9 @@
   "author": "Amir Czwink",
   "license": "AGPL-3.0",
   "dependencies": {
-    "acts-util-apilib": "*",
-    "acts-util-core": "*",
-    "acts-util-node": "*",
+    "@aczwink/acts-util-apilib": "^1.0.0",
+    "@aczwink/acts-util-core": "^1.0.0",
+    "@aczwink/acts-util-node": "^1.0.0",
     "openarabdict-domain": "*",
     "openarabdict-openarabicconjugation-bridge": "*",
     "openarabicconjugation": "*",

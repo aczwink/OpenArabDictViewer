@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Injectable } from "acts-util-node";
+import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController, TranslationLanguage } from "./DatabaseController";
 import { OpenArabDictTranslationEntry, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordRelationshipType } from "openarabdict-domain";
 import { WordsIndexService } from "../services/WordsIndexService";

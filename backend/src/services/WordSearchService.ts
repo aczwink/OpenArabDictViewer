@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Injectable } from "acts-util-node";
+import { Injectable } from "@aczwink/acts-util-node";
 import { OpenArabDictTranslationEntry, OpenArabDictWordType } from "openarabdict-domain";
 import { DatabaseController, TranslationLanguage } from "../data-access/DatabaseController";
 import { IsArabicPhrase } from "openarabicconjugation/src/Util";
-import { ArabicTextIndexService, SearchResultEntry } from "./ArabicTextIndexService";
-import { Of } from "acts-util-core";
+import { ArabicTextIndexService, ImplicitWordDerivation, SearchResultEntry } from "./ArabicTextIndexService";
+import { Of } from "@aczwink/acts-util-core";
 import { WordsIndexService } from "./WordsIndexService";
 
 export interface WordFilterCriteria
@@ -62,8 +62,17 @@ export class WordSearchService
 
         if(filterCriteria.wordType !== null)
             filtered = filtered.Filter(x => x.word.type === filterCriteria.wordType);
+        else
+        {
+            //make search slightly prefer non-verbs such that verbal nouns and so actually do appear
+            filtered = filtered.Map(x => {
+                if((x.derived?.parent.type === "i") && (x.derived.parent.kind === ImplicitWordDerivation.ConjugatedVerb))
+                    x.score -= 0.001;
+                return x;
+            });
+        }
 
-        return filtered.Filter(x => x.score > 0.25).Skip(offset).Take(limit);
+        return filtered.Filter(x => x.score > 0.25).OrderByDescending(x => x.score).Skip(offset).Take(limit);
     }
 
     //Private methods
