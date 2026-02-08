@@ -17,12 +17,12 @@
  * */
 
 import { Injectable } from "@aczwink/acts-util-node";
-import { OpenArabDictTranslationEntry, OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictTranslationEntry, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { DatabaseController, TranslationLanguage } from "../data-access/DatabaseController";
-import { IsArabicPhrase } from "openarabicconjugation/src/Util";
 import { ArabicTextIndexService, ImplicitWordDerivation, SearchResultEntry } from "./ArabicTextIndexService";
 import { Of } from "@aczwink/acts-util-core";
 import { WordsIndexService } from "./WordsIndexService";
+import { ArabicText } from "@aczwink/openarabicconjugation";
 
 export interface WordFilterCriteria
 {
@@ -47,7 +47,7 @@ export class WordSearchService
         let filtered;
         if(filterCriteria.textFilter.length > 0)
         {
-            const isArabic = IsArabicPhrase(filterCriteria.textFilter);
+            const isArabic = ArabicText.IsArabicPhrase(filterCriteria.textFilter);
             if(isArabic)
                 filtered = this.arabicTextIndexService.Find(filterCriteria.textFilter);
             else

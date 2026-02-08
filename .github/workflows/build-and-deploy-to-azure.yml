@@ -38,69 +38,16 @@ jobs:
         with:
           submodules: true
 
-      #build acfrontend
-      - name: Checkout ACFrontEnd repo
-        uses: actions/checkout@v4
-        with:
-          repository: aczwink/ACFrontEnd
-          path: acfrontend
-
-      - name: Building acfrontend
-        run: |
-          npm install
-          npm run compile
-          npm run build
-          npm link
-        working-directory: ./acfrontend
-
-      #OpenArabicConjugation
-      - name: Checkout OpenArabicConjugation repo
-        uses: actions/checkout@v4
-        with:
-          repository: aczwink/OpenArabicConjugation
-          path: openarabicconjugation
-
-      - name: Building OpenArabicConjugation
-        run: |
-          npm install
-          npm run build
-          npm link
-        working-directory: ./openarabicconjugation/conjugation_engine
-
-      #OpenArabDict
-      - name: Checkout OpenArabDict repo
-        uses: actions/checkout@v4
-        with:
-          repository: aczwink/OpenArabDict
-          path: openarabdict
-
-      - name: Building OpenArabDict domain
-        run: |
-          npm install
-          npm run build
-          npm link
-        working-directory: ./openarabdict/domain
-
-      - name: Building OpenArabDict OpenArabicConjugation bridge
-        run: |
-          npm link openarabdict-domain openarabicconjugation
-          npm install
-          npm run build
-          npm link
-        working-directory: ./openarabdict/openarabicconjugation-bridge
-
       #OpenArabDictViewer
       - name: Building OpenArabDictViewer Backend
         run: |
-          npm link acts-util-apilib acts-util-core acts-util-node openarabdict-domain openarabdict-openarabicconjugation-bridge openarabicconjugation
-          npm install
+          npm ci
           npm run build
         working-directory: ./backend
         
       - name: Building OpenArabDictViewer Frontend
         run: |
-          npm link acfrontend acts-util-core openarabicconjugation openarabdict-domain openarabdict-openarabicconjugation-bridge
-          npm install
+          npm ci
           npm run generate-api
           npm run build
         working-directory: ./frontend

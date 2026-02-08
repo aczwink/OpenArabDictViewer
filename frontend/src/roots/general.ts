@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { RootType, VerbRoot } from "openarabicconjugation/src/VerbRoot";
-import { Letter } from "openarabicconjugation/src/Definitions";
-import { IsValidRootRadical } from "openarabicconjugation/src/Util";
-import { OpenArabDictRoot } from "openarabdict-domain";
+import { RootType, VerbRoot } from "@aczwink/openarabicconjugation/dist/VerbRoot";
+import { Letter } from "@aczwink/openarabicconjugation/dist/Definitions";
+import { IsValidRootRadical } from "@aczwink/openarabicconjugation/dist/Util";
+import { OpenArabDictRoot } from "@aczwink/openarabdict-domain";
 
 export function AreValidRootCharacters(rootRadicals: string)
 {

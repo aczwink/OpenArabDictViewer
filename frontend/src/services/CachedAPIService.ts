@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Injectable } from "acfrontend";
+import { Injectable } from "@aczwink/acfrontend";
 import { APIService } from "./APIService";
 import { FullWordData } from "../../dist/api";
-import { Dictionary } from "acts-util-core";
-import { OpenArabDictRoot, OpenArabDictVerb, OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
+import { Dictionary } from "@aczwink/acts-util-core";
+import { OpenArabDictRoot, OpenArabDictVerb, OpenArabDictWord, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { GlobalSettingsService } from "./GlobalSettingsService";
 
 export interface WordWithConnections extends FullWordData

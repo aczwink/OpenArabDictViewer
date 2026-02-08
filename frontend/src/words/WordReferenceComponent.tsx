@@ -16,17 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Anchor, Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "acfrontend";
+import { Anchor, Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "@aczwink/acfrontend";
 import { WordGenderToAbbreviation, WordMayHaveGender, WordTypeToAbbreviationText } from "../shared/words";
-import { OpenArabDictRoot, OpenArabDictVerbDerivationType, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictRoot, OpenArabDictVerbDerivationType, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { CachedAPIService } from "../services/CachedAPIService";
 import { DialectsService } from "../services/DialectsService";
 import { VerbConjugationService } from "../services/VerbConjugationService";
-import { ModernStandardArabicStem1ParametersType } from "openarabicconjugation/src/dialects/msa/conjugation/r2tashkil";
-import { VerbType } from "openarabicconjugation/src/Definitions";
-import { DialectType } from "openarabicconjugation/src/Dialects";
+import { ModernStandardArabicStem1ParametersType } from "@aczwink/openarabicconjugation/dist/dialects/msa/conjugation/r2tashkil";
+import { VerbType } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { GlobalSettingsService } from "../services/GlobalSettingsService";
-import { Verb } from "openarabicconjugation/dist/Verb";
+import { Verb } from "@aczwink/openarabicconjugation/dist/Verb";
+import { DialectType } from "@aczwink/openarabicconjugation";
 
 @Injectable
 export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; }>

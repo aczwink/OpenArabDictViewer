@@ -32,7 +32,20 @@ search:
   searchDescription: Enter any conjugated verb, parts of a word, parts of a translation, etc.
   wordType: Word type
   wordTypes:
-    Any: Any
+    any: Any
 
 word:
+  declension: Declension
+  derivedFrom: Derived from
+  gender: Gender
   notFound: This word does not exist.
+  seeOnWiktionary: See on Wiktionary
+  translation: Translation
+  word: Word
+
+  genders:
+    female: female
+    male: male
+
+  types:
+    noun: Noun

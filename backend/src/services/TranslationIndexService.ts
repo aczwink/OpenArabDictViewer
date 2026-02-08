@@ -19,7 +19,7 @@
 import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController, TranslationLanguage } from "../data-access/DatabaseController";
 import { Dictionary } from "@aczwink/acts-util-core";
-import { OpenArabDictTranslationEntry } from "openarabdict-domain";
+import { OpenArabDictTranslationEntry } from "@aczwink/openarabdict-domain";
 
 @Injectable
 export class TranslationIndexService

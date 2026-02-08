@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { JSX_CreateElement, JSX_Fragment } from "acfrontend";
+import { JSX_CreateElement, JSX_Fragment } from "@aczwink/acfrontend";
 import { OpenArabDictNonVerbDerivationType, OpenArabDictVerbDerivationType } from "../../dist/api";
 import { WordIdReferenceComponent } from "./WordReferenceComponent";
 import { WordDerivationTypeFromWordToString } from "../shared/words";
-import { OpenArabDictOtherWordParent, OpenArabDictWordParent, OpenArabDictWordParentType, OpenArabDictWordVerbParent } from "openarabdict-domain";
+import { OpenArabDictOtherWordParent, OpenArabDictWordParent, OpenArabDictWordParentType, OpenArabDictWordVerbParent } from "@aczwink/openarabdict-domain";
 import { RootIdReferenceComponent } from "../roots/RootReferenceComponent";
 
 function RelationshipToText(relationType: OpenArabDictNonVerbDerivationType, outgoing: boolean): string

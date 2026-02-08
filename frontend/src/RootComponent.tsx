@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { BootstrapIcon, Component, I18n, Injectable, JSX_CreateElement, Navigation, NavItem, ProgressSpinner, RouterComponent } from "acfrontend";
+import { BootstrapIcon, Component, I18n, Injectable, JSX_CreateElement, Navigation, NavItem, ProgressSpinner, RouterComponent } from "@aczwink/acfrontend";
 import { DialectsService } from "./services/DialectsService";
 import { GlobalSettingsService } from "./services/GlobalSettingsService";
 import { PageLanguageSelectionComponent } from "./PageLanguageSelectionComponent";

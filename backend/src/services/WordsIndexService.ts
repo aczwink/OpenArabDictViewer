@@ -19,7 +19,7 @@
 import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController } from "../data-access/DatabaseController";
 import { Dictionary } from "@aczwink/acts-util-core";
-import { OpenArabDictWord, OpenArabDictWordParent, OpenArabDictWordParentType } from "openarabdict-domain";
+import { OpenArabDictWord, OpenArabDictWordParent, OpenArabDictWordParentType } from "@aczwink/openarabdict-domain";
 
 type ChildLink = OpenArabDictWordParent & { childWordId: string; }
 

@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2024-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2024-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -16,17 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "acfrontend";
+import { Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "@aczwink/acfrontend";
 import { CachedAPIService } from "../services/CachedAPIService";
-import { Case, Gender, Numerus } from "openarabicconjugation/src/Definitions";
+import { Case, Gender, Numerus } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { OpenArabDictNonVerbDerivationType } from "../../dist/api";
-import { DisplayVocalized, ParseVocalizedText } from "openarabicconjugation/src/Vocalization";
+import { DisplayVocalized, ParseVocalizedText } from "@aczwink/openarabicconjugation/dist/Vocalization";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { ConjugationService } from "../services/ConjugationService";
-import { DialectType } from "openarabicconjugation/src/Dialects";
-import { OpenArabDictGenderedWord, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
-import { AdjectiveOrNounInput, TargetAdjectiveNounDerivation } from "openarabicconjugation/dist/DialectConjugator";
-import { AdjectiveOrNounState } from "openarabicconjugation/dist/Definitions";
+import { OpenArabDictGenderedWord, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { AdjectiveOrNounInput, TargetAdjectiveNounDerivation } from "@aczwink/openarabicconjugation/dist/DialectConjugator";
+import { AdjectiveOrNounState } from "@aczwink/openarabicconjugation/dist/Definitions";
+import { DialectType } from "@aczwink/openarabicconjugation";
 
 @Injectable
 export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDictGenderedWord; derivedWordIds: string[]; }>

@@ -18,6 +18,8 @@
 
 import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController } from "./DatabaseController";
+import { Letter } from "@aczwink/openarabicconjugation/dist/Definitions";
+import { OpenArabDictRoot } from "@aczwink/openarabdict-domain";
 
 @Injectable
 export class RootsController
@@ -31,7 +33,20 @@ export class RootsController
     {
         const document = await this.dbController.GetDocumentDB();
 
-        const filtered = document.roots.Values().Filter(x => x.radicals.startsWith(prefix));
+        const filtered = document.roots.Values().Filter(this.Matches.bind(this, prefix));
         return filtered.OrderBy(x => x.radicals).ToArray();
+    }
+
+    //Private methods
+    private Matches(prefix: string, root: OpenArabDictRoot)
+    {
+        if((prefix[1] === Letter.Ya) && (root.radicals[1] === Letter.Waw) && (root.ya === true))
+        {
+            const prefixWithWaw = prefix[0] + Letter.Waw + prefix.substring(2);
+            if(root.radicals.startsWith(prefixWithWaw))
+                return true;
+        }
+
+        return root.radicals.startsWith(prefix);
     }
 }

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { BootstrapIcon, JSX_CreateElement, JSX_Fragment, RootInjector } from "acfrontend";
+import { BootstrapIcon, JSX_CreateElement, JSX_Fragment, RootInjector } from "@aczwink/acfrontend";
 import { DialectsService } from "../services/DialectsService";
 import { OpenArabDictTranslationEntry, UsageType } from "../../dist/api";
 

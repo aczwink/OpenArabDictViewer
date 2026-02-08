@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { OpenArabDictGenderedWord, OpenArabDictWordRelationshipType, OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictGenderedWord, OpenArabDictWordRelationshipType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { OpenArabDictNonVerbDerivationType, OpenArabDictWord } from "../../dist/api";
+import { I18n } from "@aczwink/acfrontend";
 
 export const allWordTypes = [
     OpenArabDictWordType.Adjective,
@@ -128,12 +129,12 @@ export function WordTypeToAbbreviationText(wordType: OpenArabDictWordType)
     }
 }
 
-export function WordTypeToText(wordType: OpenArabDictWordType)
+function WordTypeToDictionaryKey(wordType: OpenArabDictWordType)
 {
     switch(wordType)
     {
         case OpenArabDictWordType.Noun:
-            return "Noun";
+            return "noun";
         case OpenArabDictWordType.Preposition:
             return "Preposition";
         case OpenArabDictWordType.Adjective:
@@ -157,4 +158,9 @@ export function WordTypeToText(wordType: OpenArabDictWordType)
         case OpenArabDictWordType.Numeral:
             return "Numeral";
     }
+}
+
+export function WordTypeToText(wordType: OpenArabDictWordType)
+{
+    return I18n("word.types." + WordTypeToDictionaryKey(wordType));
 }

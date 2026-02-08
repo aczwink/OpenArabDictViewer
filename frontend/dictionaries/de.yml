@@ -32,7 +32,20 @@ search:
   searchDescription: Suche nach konjugierten Verben, Wortteilen, Übersetzungen etc.
   wordType: Wortart
   wordTypes:
-    Any: Jede
+    any: Jede
 
 word:
+  declension: Deklination
+  derivedFrom: Abgeleitet vom
+  gender: Genus
   notFound: Das angeforderte Wort existiert nicht.
+  seeOnWiktionary: Auf Wiktionary ansehen
+  translation: Übersetzung
+  word: Wort
+
+  genders:
+    female: weiblich
+    male: männlich
+
+  types:
+    noun: Substantiv

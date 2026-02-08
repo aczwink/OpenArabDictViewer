@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2024-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2024-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Injectable } from "acfrontend";
+import { Injectable } from "@aczwink/acfrontend";
 import { APIService } from "./APIService";
-import { DialectType } from "openarabicconjugation/src/Dialects";
-import { GetDialectMetadata } from "openarabicconjugation/dist/DialectsMetadata";
-import { OpenArabDictDialect } from "openarabdict-domain";
-import { DialectTree } from "openarabdict-openarabicconjugation-bridge";
+import { GetDialectMetadata } from "@aczwink/openarabicconjugation/dist/DialectsMetadata";
+import { OpenArabDictDialect } from "@aczwink/openarabdict-domain";
+import { DialectTree } from "@aczwink/openarabdict-openarabicconjugation-bridge";
+import { DialectType } from "@aczwink/openarabicconjugation";
 
 @Injectable
 export class DialectsService

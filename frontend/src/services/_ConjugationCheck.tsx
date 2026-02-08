@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -15,12 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
-import { JSX_CreateElement } from "acfrontend";
-import { Letter, Tashkil } from "openarabicconjugation/src/Definitions";
-import { DialectType } from "openarabicconjugation/src/Dialects";
-import { _Legacy_ExtractMiddleRadicalTashkil, _Legacy_ExtractPresentMiddleRadicalTashkil, ModernStandardArabicStem1ParametersType } from "openarabicconjugation/src/dialects/msa/conjugation/r2tashkil";
-import { Verb } from "openarabicconjugation/dist/Verb";
-import { VerbRoot, RootType } from "openarabicconjugation/dist/VerbRoot";
+import { JSX_CreateElement } from "@aczwink/acfrontend";
+import { DialectType } from "@aczwink/openarabicconjugation";
+import { Letter, Tashkil } from "@aczwink/openarabicconjugation/dist/Definitions";
+import { _Legacy_ExtractMiddleRadicalTashkil, _Legacy_ExtractPresentMiddleRadicalTashkil, ModernStandardArabicStem1ParametersType } from "@aczwink/openarabicconjugation/dist/dialects/msa/conjugation/r2tashkil";
+import { Verb } from "@aczwink/openarabicconjugation/dist/Verb";
+import { VerbRoot, RootType } from "@aczwink/openarabicconjugation/dist/VerbRoot";
 
 const need = 2;
 

@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -16,13 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Component, Injectable, JSX_CreateElement, ProgressSpinner, RouterState, TitleService } from "acfrontend";
+import { Component, Injectable, JSX_CreateElement, ProgressSpinner, RouterState, TitleService } from "@aczwink/acfrontend";
 import { RootToString, RootTypeToPattern, RootTypeToString } from "./general";
-import { Buckwalter } from "openarabicconjugation/dist/Transliteration";
-import { Letter } from "openarabicconjugation/src/Definitions";
-import { RootType, VerbRoot } from "openarabicconjugation/src/VerbRoot";
+import { Buckwalter } from "@aczwink/openarabicconjugation/dist/Transliteration";
+import { Letter } from "@aczwink/openarabicconjugation/dist/Definitions";
+import { RootType, VerbRoot } from "@aczwink/openarabicconjugation/dist/VerbRoot";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
-import { OpenArabDictRoot } from "openarabdict-domain";
+import { OpenArabDictRoot } from "@aczwink/openarabdict-domain";
 import { WordTableComponent } from "../words/WordTableComponent";
 
 interface ShowRootData

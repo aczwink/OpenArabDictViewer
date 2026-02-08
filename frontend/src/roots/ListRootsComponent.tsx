@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Anchor, BootstrapIcon, Component, I18n, Injectable, JSX_CreateElement, ProgressSpinner, RouterState } from "acfrontend";
+import { Anchor, BootstrapIcon, Component, I18n, Injectable, JSX_CreateElement, ProgressSpinner, RouterState } from "@aczwink/acfrontend";
 import { APIService } from "../services/APIService";
-import { VerbRoot } from "openarabicconjugation/src/VerbRoot";
+import { VerbRoot } from "@aczwink/openarabicconjugation/dist/VerbRoot";
 import { AreValidRootCharacters, DoRootCharactersFormValidRoot, RootToString } from "./general";
 import { RadicalsEditorComponent } from "./RadicalsEditorComponent";
-import { OpenArabDictRoot } from "openarabdict-domain";
+import { OpenArabDictRoot } from "@aczwink/openarabdict-domain";
 
 interface AlphabetRange
 {

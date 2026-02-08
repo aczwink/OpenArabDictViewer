@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Anchor, JSX_CreateElement, ProgressSpinner, Use, UseEffectOnce, UseState } from "acfrontend";
+import { Anchor, JSX_CreateElement, ProgressSpinner, Use, UseEffectOnce, UseState } from "@aczwink/acfrontend";
 import { RootToString } from "./general";
 import { CachedAPIService } from "../services/CachedAPIService";
-import { Of } from "acts-util-core";
-import { OpenArabDictRoot } from "openarabdict-domain";
+import { Of } from "@aczwink/acts-util-core";
+import { OpenArabDictRoot } from "@aczwink/openarabdict-domain";
 
 export function RootIdReferenceComponent(input: { rootId: string })
 {

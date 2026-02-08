@@ -19,15 +19,15 @@
 import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController } from "./DatabaseController";
 import { Dictionary, ObjectExtensions } from "@aczwink/acts-util-core";
-import { Conjugator } from "openarabicconjugation/dist/Conjugator";
-import { DisplayVocalized, VocalizedToString } from "openarabicconjugation/dist/Vocalization";
-import { VerbType } from "openarabicconjugation/dist/Definitions";
+import { Conjugator } from "@aczwink/openarabicconjugation/dist/Conjugator";
+import { DisplayVocalized, VocalizedToString } from "@aczwink/openarabicconjugation/dist/Vocalization";
+import { VerbType } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { DialectsService } from "../services/DialectsService";
-import { OpenArabDictVerbDerivationType, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictVerbDerivationType, OpenArabDictWordParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { RootsIndexService } from "../services/RootsIndexService";
-import { DialectType } from "openarabicconjugation/dist/Dialects";
-import { CreateVerbFromOADVerb, FindHighestConjugatableDialectOf } from "openarabdict-openarabicconjugation-bridge";
-import { Verb } from "openarabicconjugation/dist/Verb";
+import { DialectType } from "@aczwink/openarabicconjugation/dist/Dialects";
+import { CreateVerbFromOADVerb, FindHighestConjugatableDialectOf } from "@aczwink/openarabdict-openarabicconjugation-bridge";
+import { Verb } from "@aczwink/openarabicconjugation/dist/Verb";
 import { WordsIndexService } from "../services/WordsIndexService";
 import { TranslationIndexService } from "../services/TranslationIndexService";
 

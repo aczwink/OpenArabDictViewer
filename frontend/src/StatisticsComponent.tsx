@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -16,19 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Component, Injectable, JSX_CreateElement, ProgressSpinner } from "acfrontend";
+import { Component, Injectable, JSX_CreateElement, ProgressSpinner } from "@aczwink/acfrontend";
 import { APIService } from "./services/APIService";
 import { DialectStatistics, DictionaryStatistics, VerbalNounFrequencies, VerbType } from "../dist/api";
 import { DialectsService } from "./services/DialectsService";
-import { Dictionary, KeyValuePair, ObjectExtensions } from "acts-util-core";
+import { Dictionary, KeyValuePair, ObjectExtensions } from "@aczwink/acts-util-core";
 import { ConjugationService } from "./services/ConjugationService";
 import { RomanNumberComponent, StemNumberComponent } from "./shared/RomanNumberComponent";
-import { DialectType } from "openarabicconjugation/src/Dialects";
 import { ConjugationSchemeToString } from "./verbs/ToStringStuff";
-import { AdvancedStemNumber } from "openarabicconjugation/src/Definitions";
+import { AdvancedStemNumber } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { VerbConjugationService } from "./services/VerbConjugationService";
-import { CreateVerb } from "openarabicconjugation/dist/Verb";
-import { VerbRoot } from "openarabicconjugation/dist/VerbRoot";
+import { CreateVerb } from "@aczwink/openarabicconjugation/dist/Verb";
+import { VerbRoot } from "@aczwink/openarabicconjugation/dist/VerbRoot";
+import { DialectType } from "@aczwink/openarabicconjugation";
 
 @Injectable
 export class StatisticsComponent extends Component

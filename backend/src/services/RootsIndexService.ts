@@ -19,7 +19,7 @@
 import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController } from "../data-access/DatabaseController";
 import { Dictionary } from "@aczwink/acts-util-core";
-import { OpenArabDictRoot } from "openarabdict-domain";
+import { OpenArabDictRoot } from "@aczwink/openarabdict-domain";
 
 @Injectable
 export class RootsIndexService

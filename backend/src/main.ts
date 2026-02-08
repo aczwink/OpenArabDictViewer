@@ -24,7 +24,7 @@ import { RootsIndexService } from "./services/RootsIndexService";
 import { DialectsService } from "./services/DialectsService";
 import { ArabicTextIndexService } from "./services/ArabicTextIndexService";
 import ENV from "./env";
-import { DialectTree } from "openarabdict-openarabicconjugation-bridge";
+import { DialectTree } from "@aczwink/openarabdict-openarabicconjugation-bridge";
 import { DialectsController } from "./data-access/DialectsController";
 import { WordsIndexService } from "./services/WordsIndexService";
 import { TranslationIndexService } from "./services/TranslationIndexService";

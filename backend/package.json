@@ -14,9 +14,9 @@
     "@aczwink/acts-util-apilib": "^1.0.0",
     "@aczwink/acts-util-core": "^1.0.0",
     "@aczwink/acts-util-node": "^1.0.0",
-    "openarabdict-domain": "*",
-    "openarabdict-openarabicconjugation-bridge": "*",
-    "openarabicconjugation": "*",
+    "@aczwink/openarabdict-domain": "^1.0.0",
+    "@aczwink/openarabdict-openarabicconjugation-bridge": "^1.0.0",
+    "@aczwink/openarabicconjugation": "^1.0.0",
     "xml-js": "^1.6.11",
     "yaml": "^2.8.2"
   },

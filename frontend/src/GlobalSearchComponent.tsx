@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Component, FormField, I18n, Injectable, JSX_CreateElement, LineEdit, ProgressSpinner, Select, Switch } from "acfrontend";
+import { Component, FormField, I18n, Injectable, JSX_CreateElement, LineEdit, ProgressSpinner, Select, Switch } from "@aczwink/acfrontend";
 import { allWordTypes, WordTypeToText } from "./shared/words";
 import { APIService } from "./services/APIService";
 import { WordFunctionComponent } from "./words/WordFunctionComponent";
-import { OpenArabDictWord, OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictWord, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { ImplicitWordDerivation, SearchResultEntry } from "../dist/api";
 import { WordReferenceComponent } from "./words/WordReferenceComponent";
 import { GlobalSettingsService } from "./services/GlobalSettingsService";
@@ -91,7 +91,7 @@ export class GlobalSearchComponent extends Component
             <div className="col">
                 <FormField title={I18n("search.wordType")}>
                     <Select onChanged={this.OnWordTypeChanged.bind(this)}>
-                        <option selected={this.wordType === null} value={"null"}>{I18n("search.wordTypes.Any")}</option>
+                        <option selected={this.wordType === null} value={"null"}>{I18n("search.wordTypes.any")}</option>
                         {allWordTypes.map(x => <option selected={x === this.wordType} value={x}>{WordTypeToText(x)}</option>)}
                     </Select>
                 </FormField>

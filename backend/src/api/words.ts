@@ -18,13 +18,12 @@
 
 import { APIController, Get, NotFound, Path, Query } from "@aczwink/acts-util-apilib";
 import { FullWordData, WordsController } from "../data-access/WordsController";
-import { OpenArabDictWordParent, OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictWordParent, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { WordFilterCriteria, WordSearchService } from "../services/WordSearchService";
 import { Of } from "@aczwink/acts-util-core";
 import { ImplicitWordParent, SearchResultEntry as SearchResultEntryATIS } from "../services/ArabicTextIndexService";
-import { IsArabicPhrase } from "openarabicconjugation/src/Util";
-import { ParseVocalizedPhrase } from "openarabicconjugation/src/Vocalization";
 import { TranslationLanguage } from "../data-access/DatabaseController";
+import { ArabicText } from "@aczwink/openarabicconjugation";
 
 type OptionalWordType = OpenArabDictWordType | null;
 
@@ -78,13 +77,13 @@ class _api_
     private ComputePhraseLength(entry: SearchResultEntryATIS)
     {
         const text = entry.derived?.text ?? entry.word.text;
-        const parsed = ParseVocalizedPhrase(text);
+        const parsed = ArabicText.ParseVocalizedPhrase(text);
         return parsed.Values().Map(x => x.length).Sum();
     }
 
     private ScaleByMatchLength(textFilter: string, searchResultsArray: SearchResultEntryATIS[])
     {
-        if((textFilter.length > 0) && IsArabicPhrase(textFilter))
+        if((textFilter.length > 0) && ArabicText.IsArabicPhrase(textFilter))
         {
             const lengths = searchResultsArray.map(x => this.ComputePhraseLength(x));
             const min = Math.min(...lengths);

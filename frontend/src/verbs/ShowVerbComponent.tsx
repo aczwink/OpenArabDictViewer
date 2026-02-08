@@ -16,27 +16,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Anchor, Component, Injectable, JSX_CreateElement, ProgressSpinner } from "acfrontend";
+import { Anchor, Component, Injectable, JSX_CreateElement, ProgressSpinner } from "@aczwink/acfrontend";
 import { VerbVariant, WordRelation } from "../../dist/api";
 import { StemNumberComponent } from "../shared/RomanNumberComponent";
-import { RemoveTashkil } from "openarabicconjugation/src/Util";
+import { RemoveTashkil } from "@aczwink/openarabicconjugation/dist/Util";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { ConjugationService } from "../services/ConjugationService";
 import { RenderTranslations } from "../shared/translations";
 import { WordRelationshipTypeToString } from "../shared/words";
 import { RootToString } from "../roots/general";
-import { Person, Numerus, Gender, Mood, Voice } from "openarabicconjugation/src/Definitions";
-import { DisplayVocalized } from "openarabicconjugation/src/Vocalization";
-import { Tense } from "openarabicconjugation/dist/Definitions";
+import { Person, Numerus, Gender, Mood, Voice } from "@aczwink/openarabicconjugation/dist/Definitions";
+import { DisplayVocalized } from "@aczwink/openarabicconjugation/dist/Vocalization";
+import { Tense } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { DialectsService } from "../services/DialectsService";
 import { ConjugationSchemeToString } from "./ToStringStuff";
 import { VerbConjugationService } from "../services/VerbConjugationService";
-import { OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbForm, OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbForm, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { WordIdReferenceComponent } from "../words/WordReferenceComponent";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
 import { WordTableComponent } from "../words/WordTableComponent";
-import { Verb } from "openarabicconjugation/dist/Verb";
-import { DialectType } from "openarabicconjugation/dist/Dialects";
+import { Verb } from "@aczwink/openarabicconjugation/dist/Verb";
+import { DialectType } from "@aczwink/openarabicconjugation/dist/Dialects";
 import { GlobalSettingsService } from "../services/GlobalSettingsService";
 
 @Injectable

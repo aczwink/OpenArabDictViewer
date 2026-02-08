@@ -16,16 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Component, I18n, Injectable, JSX_CreateElement, ProgressSpinner, RouterState, TitleService } from "acfrontend";
+import { Component, I18n, Injectable, JSX_CreateElement, ProgressSpinner, RouterState, TitleService } from "@aczwink/acfrontend";
 import { WordRelation } from "../../dist/api";
 import { RenderTranslations } from "../shared/translations";
 import { WordMayHaveGender, WordRelationshipTypeToString, WordTypeToText } from "../shared/words";
-import { RemoveTashkil } from "openarabicconjugation/src/Util";
+import { RemoveTashkil } from "@aczwink/openarabicconjugation/dist/Util";
 import { WordIdReferenceComponent } from "./WordReferenceComponent";
 import { AdjectiveOrNounDeclensionTable } from "./AdjectiveOrNounDeclensionTable";
 import { RenderDerivedTerm, WordDerivationComponent } from "./WordDerivationComponent";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
-import { OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
+import { OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { ShowVerbComponent } from "../verbs/ShowVerbComponent";
 
 @Injectable
@@ -53,35 +53,29 @@ export class ShowWordComponent extends Component
 
         return <fragment>
             <div className="row">
-                <h1>Word: {this.data.word.text}</h1>
+                <h1>{I18n("word.word")}: {this.data.word.text}</h1>
             </div>
             <table>
                 <tbody>
                     {this.RenderGenderLine()}
                     {this.RenderDerivationData()}
+                    {this.RenderRelated(this.data.related)}
+                    {this.RenderDerivedTerms()}
                     <tr>
-                        <th>Related:</th>
-                        <td>{this.RenderRelations(this.data.related)}</td>
-                    </tr>
-                    <tr>
-                        <th>Derived words/terms:</th>
-                        <td>{this.RenderDerivedTerms()}</td>
-                    </tr>
-                    <tr>
-                        <th>Type:</th>
+                        <th>{I18n("search.wordType")}:</th>
                         <td>{WordTypeToText(this.data.word.type)}</td>
                     </tr>
                     <tr>
-                        <th>Translation:</th>
+                        <th>{I18n("word.translation")}:</th>
                         <td>{RenderTranslations(this.data.translations)}</td>
                     </tr>
                     <tr>
-                        <th>Declension:</th>
+                        <th>{I18n("word.declension")}:</th>
                         <td>{this.RenderWordDeclensionTables()}</td>
                     </tr>
                 </tbody>
             </table>
-            <a href={"https://en.wiktionary.org/wiki/" + RemoveTashkil(this.data.word.text)} target="_blank">See on Wiktionary</a>
+            <a href={"https://en.wiktionary.org/wiki/" + RemoveTashkil(this.data.word.text)} target="_blank">{I18n("word.seeOnWiktionary")}</a>
         </fragment>;
     }
 
@@ -93,7 +87,7 @@ export class ShowWordComponent extends Component
             return null;
 
         return <tr>
-            <th>Derived from {this.RenderDerivationSource()}:</th>
+            <th>{I18n("word.derivedFrom")} {this.RenderDerivationSource()}:</th>
             <td><WordDerivationComponent parent={this.data?.word.parent} /></td>
         </tr>;
     }
@@ -121,15 +115,20 @@ export class ShowWordComponent extends Component
         if(this.data!.derived.length === 0)
             return null;
 
-        return <ul>{this.derived.map(x => <li>{RenderDerivedTerm(false, { relationType: (x.parent as any).relationType, type: OpenArabDictWordParentType.NonVerbWord, wordId: x.id })}</li>)}</ul>;
+        return <tr>
+            <th>Derived words/terms:</th>
+            <td>
+                <ul>{this.derived.map(x => <li>{RenderDerivedTerm(false, { relationType: (x.parent as any).relationType, type: OpenArabDictWordParentType.NonVerbWord, wordId: x.id })}</li>)}</ul>
+            </td>
+        </tr>;
     }
 
     private RenderGender(isMale: boolean | null)
     {
         if(isMale)
-            return "male";
+            return I18n("word.genders.male");
         else if(isMale === false)
-            return "female";
+            return I18n("word.genders.female");
         return "unknown";
     }
 
@@ -139,8 +138,19 @@ export class ShowWordComponent extends Component
             return null;
 
         return <tr>
-            <th>Gender:</th>
+            <th>{I18n("word.gender")}:</th>
             <td>{this.RenderGender(this.data!.word.isMale)}</td>
+        </tr>;
+    }
+
+    private RenderRelated(related: WordRelation[])
+    {
+        if(related.length === 0)
+            return null;
+
+        return <tr>
+            <th>Related:</th>
+            <td>{this.RenderRelations(related)}</td>
         </tr>;
     }
 

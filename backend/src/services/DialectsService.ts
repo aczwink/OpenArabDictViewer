@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2025-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -17,9 +17,8 @@
  * */
 
 import { Injectable } from "@aczwink/acts-util-node";
-import { DialectType, GetAllConjugatableDialects } from "openarabicconjugation/src/Dialects";
 import { DialectsController } from "../data-access/DialectsController";
-import { GetDialectMetadata } from "openarabicconjugation/src/DialectsMetadata";
+import { Dialects, DialectType } from "@aczwink/openarabicconjugation";
 
 @Injectable
 export class DialectsService
@@ -36,8 +35,8 @@ export class DialectsService
         const type = this.dialectMap.get(dialectId);
         if(type === undefined)
             throw new Error("Dialect not conjugatable");
-        
-        return GetDialectMetadata(type);
+
+        return Dialects.GetDialectMetadata(type);
     }
 
     public MapDialectId(dialectId: number)
@@ -53,13 +52,13 @@ export class DialectsService
     public async RebuildIndex()
     {
         const dialects = await this.dialectsController.QueryDialects();
-        const conjugatable = GetAllConjugatableDialects();
+        const conjugatable = Dialects.GetAllConjugatableDialects();
 
         const map = new Map();
         const reverseMap = new Map();
         for (const dialectType of conjugatable)
         {
-            const md = GetDialectMetadata(dialectType);
+            const md = Dialects.GetDialectMetadata(dialectType);
             const dialect = dialects.find(x => (md.glottoCode === x.glottoCode) && (md.iso639code === x.iso639code));
 
             map.set(dialect!.id, dialectType);

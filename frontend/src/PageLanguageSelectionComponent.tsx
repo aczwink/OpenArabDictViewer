@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Component, Injectable, JSX_CreateElement } from "acfrontend";
+import { Component, Injectable, JSX_CreateElement } from "@aczwink/acfrontend";
 import { GlobalSettingsService } from "./services/GlobalSettingsService";
 import { TranslationLanguage } from "../dist/api";
 

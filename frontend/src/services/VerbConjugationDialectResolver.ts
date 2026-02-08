@@ -16,13 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Injectable } from "acfrontend";
-import { OpenArabDictVerbForm } from "openarabdict-domain";
+import { Injectable } from "@aczwink/acfrontend";
+import { OpenArabDictVerbForm } from "@aczwink/openarabdict-domain";
 import { GlobalSettingsService } from "./GlobalSettingsService";
 import { DialectsService } from "./DialectsService";
-import { GetDialectMetadata } from "openarabicconjugation/dist/DialectsMetadata";
-import { CreateVerbFromOADVerbForm } from "openarabdict-openarabicconjugation-bridge";
-import { DialectType, GetAllConjugatableDialects } from "openarabicconjugation/dist/Dialects";
+import { GetDialectMetadata } from "@aczwink/openarabicconjugation/dist/DialectsMetadata";
+import { CreateVerbFromOADVerbForm } from "@aczwink/openarabdict-openarabicconjugation-bridge";
+import { DialectType, GetAllConjugatableDialects } from "@aczwink/openarabicconjugation/dist/Dialects";
 
 @Injectable
 export class VerbConjugationDialectResolver

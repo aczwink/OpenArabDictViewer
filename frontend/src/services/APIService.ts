@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
-import { APIServiceBase, HTTPService, Injectable } from "acfrontend";
+import { APIServiceBase, HTTPService, Injectable } from "@aczwink/acfrontend";
 import { API } from "../../dist/api";
 import { APIServiceInterceptor } from "../shared/APIServiceInterceptor";
 

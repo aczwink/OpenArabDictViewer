@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { CheckBox, Component, FormField, I18n, Injectable, JSX_CreateElement, ProgressSpinner } from "acfrontend";
+import { CheckBox, Component, FormField, I18n, Injectable, JSX_CreateElement, ProgressSpinner } from "@aczwink/acfrontend";
 import { APIService } from "./services/APIService";
 import { RenderTranslations } from "./shared/translations";
 import { WordTypeToText } from "./shared/words";
 import { CachedAPIService } from "./services/CachedAPIService";
-import { RemoveTashkilButKeepShadda } from "openarabicconjugation/src/Util";
+import { RemoveTashkilButKeepShadda } from "@aczwink/openarabicconjugation/dist/Util";
 import { GlobalSettingsService } from "./services/GlobalSettingsService";
 import { FullWordData } from "../dist/api";
 

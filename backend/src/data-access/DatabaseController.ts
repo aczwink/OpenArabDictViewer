@@ -18,7 +18,7 @@
 import fs from "fs";
 import path from "path";
 import { Injectable } from "@aczwink/acts-util-node";
-import { OpenArabDictDocument, OpenArabDictTranslationDocument } from "openarabdict-domain";
+import { OpenArabDictDocument, OpenArabDictTranslationDocument } from "@aczwink/openarabdict-domain";
 import ENV from "../env";
 import { Dictionary } from "@aczwink/acts-util-core";
 

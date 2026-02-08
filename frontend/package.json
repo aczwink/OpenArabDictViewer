@@ -21,10 +21,10 @@
     "webpack-dev-server": "^4.13.1"
   },
   "dependencies": {
-    "acfrontend": "*",
-    "acts-util-core": "*",
-    "openarabdict-domain": "*",
-    "openarabdict-openarabicconjugation-bridge": "*",
-    "openarabicconjugation": "*"
+    "@aczwink/acfrontend": "^1.0.0",
+    "@aczwink/acts-util-core": "^1.0.0",
+    "@aczwink/openarabdict-domain": "^1.0.0",
+    "@aczwink/openarabdict-openarabicconjugation-bridge": "^1.0.0",
+    "@aczwink/openarabicconjugation": "^1.0.0"
   }
 }

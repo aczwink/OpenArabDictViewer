@@ -99,7 +99,7 @@
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
   },
   "include": [
-    "./node_modules/acfrontend/dist/JSX.d.ts",
+    "./node_modules/@aczwink/acfrontend/dist/JSX.d.ts",
     "src/**/*"
   ]
 }

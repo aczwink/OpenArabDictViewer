@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Routes } from "acfrontend";
+import { Routes } from "@aczwink/acfrontend";
 import { LearnComponent } from "./LearnComponent";
 import { StatisticsComponent } from "./StatisticsComponent";
 import { GlobalSearchComponent } from "./GlobalSearchComponent";

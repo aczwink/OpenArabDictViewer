@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { BootstrapIcon, Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "acfrontend";
+import { BootstrapIcon, Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "@aczwink/acfrontend";
 import { WordFunctionComponent } from "./WordFunctionComponent";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
 import { WordReferenceComponent } from "./WordReferenceComponent";

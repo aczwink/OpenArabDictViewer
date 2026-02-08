@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -16,15 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Injectable } from "acfrontend";
-import { Conjugator } from "openarabicconjugation/dist/Conjugator";
-import { VerbRoot } from "openarabicconjugation/dist/VerbRoot";
-import { DisplayVocalized, VocalizedToString } from "openarabicconjugation/src/Vocalization";
-import { ConjugationParams, Person, Tense, Voice, Gender, Numerus, Mood, AdvancedStemNumber, VerbType } from "openarabicconjugation/src/Definitions";
-import { DialectType } from "openarabicconjugation/src/Dialects";
-import { CreateVerb, Verb } from "openarabicconjugation/dist/Verb";
-import { AdjectiveOrNounInput, TargetAdjectiveNounDerivation } from "openarabicconjugation/dist/DialectConjugator";
-import { AdjectiveOrNounDeclensionParams } from "openarabicconjugation/dist/Definitions";
+import { Injectable } from "@aczwink/acfrontend";
+import { Conjugator } from "@aczwink/openarabicconjugation/dist/Conjugator";
+import { VerbRoot } from "@aczwink/openarabicconjugation/dist/VerbRoot";
+import { DisplayVocalized, VocalizedToString } from "@aczwink/openarabicconjugation/dist/Vocalization";
+import { ConjugationParams, Person, Tense, Voice, Gender, Numerus, Mood, AdvancedStemNumber, VerbType } from "@aczwink/openarabicconjugation/dist/Definitions";
+import { CreateVerb, Verb } from "@aczwink/openarabicconjugation/dist/Verb";
+import { AdjectiveOrNounInput, TargetAdjectiveNounDerivation } from "@aczwink/openarabicconjugation/dist/DialectConjugator";
+import { AdjectiveOrNounDeclensionParams } from "@aczwink/openarabicconjugation/dist/Definitions";
+import { DialectType } from "@aczwink/openarabicconjugation";
 
 @Injectable
 export class ConjugationService

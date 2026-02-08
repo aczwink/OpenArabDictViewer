@@ -16,17 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Injectable } from "acfrontend";
-import { Gender, Person, Numerus, Tense, Voice, ConjugationParams } from "openarabicconjugation/dist/Definitions";
-import { VerbRoot } from "openarabicconjugation/dist/VerbRoot";
+import { Injectable } from "@aczwink/acfrontend";
+import { Gender, Person, Numerus, Tense, Voice, ConjugationParams } from "@aczwink/openarabicconjugation/dist/Definitions";
+import { VerbRoot } from "@aczwink/openarabicconjugation/dist/VerbRoot";
 import { ConjugationService } from "./ConjugationService";
-import { OpenArabDictVerb, OpenArabDictVerbForm } from "openarabdict-domain";
+import { OpenArabDictVerb, OpenArabDictVerbForm } from "@aczwink/openarabdict-domain";
 import { _TODO_CheckConjugation } from "./_ConjugationCheck";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { VerbConjugationDialectResolver } from "./VerbConjugationDialectResolver";
-import { CreateVerbFromOADVerbForm } from "openarabdict-openarabicconjugation-bridge";
-import { DialectType } from "openarabicconjugation/dist/Dialects";
-import { GetDialectMetadata } from "openarabicconjugation/dist/DialectsMetadata";
+import { CreateVerbFromOADVerbForm } from "@aczwink/openarabdict-openarabicconjugation-bridge";
+import { DialectType } from "@aczwink/openarabicconjugation/dist/Dialects";
+import { GetDialectMetadata } from "@aczwink/openarabicconjugation/dist/DialectsMetadata";
 
 @Injectable
 export class VerbConjugationService

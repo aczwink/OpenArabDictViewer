@@ -18,7 +18,7 @@
 
 import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController, TranslationLanguage } from "./DatabaseController";
-import { OpenArabDictTranslationEntry, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordRelationshipType } from "openarabdict-domain";
+import { OpenArabDictTranslationEntry, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordRelationshipType } from "@aczwink/openarabdict-domain";
 import { WordsIndexService } from "../services/WordsIndexService";
 import { TranslationIndexService } from "../services/TranslationIndexService";
 

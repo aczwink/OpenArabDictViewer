@@ -18,19 +18,19 @@
 
 import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController } from "../data-access/DatabaseController";
-import { OpenArabDictGenderedWord, OpenArabDictNonVerbDerivationType, OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbDerivationType, OpenArabDictWord, OpenArabDictWordParent, OpenArabDictWordParentType, OpenArabDictWordType } from "openarabdict-domain";
-import { Conjugator } from "openarabicconjugation/dist/Conjugator";
+import { OpenArabDictGenderedWord, OpenArabDictNonVerbDerivationType, OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbDerivationType, OpenArabDictWord, OpenArabDictWordParent, OpenArabDictWordParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { Conjugator } from "@aczwink/openarabicconjugation/dist/Conjugator";
 import { RootsIndexService } from "./RootsIndexService";
-import { AdjectiveOrNounState, Case, Gender, Mood, Numerus, Person, Tense, Voice } from "openarabicconjugation/dist/Definitions";
+import { AdjectiveOrNounState, Case, Gender, Mood, Numerus, Person, Tense, Voice } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { DialectsService } from "./DialectsService";
-import { CompareVocalized, DisplayVocalized, MapLetterToComparisonEquivalenceClass, ParseVocalizedPhrase, ParseVocalizedText, VocalizedWordTostring } from "openarabicconjugation/dist/Vocalization";
+import { CompareVocalized, DisplayVocalized, MapLetterToComparisonEquivalenceClass, ParseVocalizedPhrase, ParseVocalizedText, VocalizedWordTostring } from "@aczwink/openarabicconjugation/dist/Vocalization";
 import { PrefixTree } from "../indexes/PrefixTree";
 import { Of } from "@aczwink/acts-util-core";
-import { Verb } from "openarabicconjugation/dist/Verb";
-import { DialectType } from "openarabicconjugation/dist/Dialects";
-import { GetDialectMetadata } from "openarabicconjugation/dist/DialectsMetadata";
-import { CreateVerbFromOADVerb, FindHighestConjugatableDialectOf } from "openarabdict-openarabicconjugation-bridge";
-import { TargetAdjectiveNounDerivation } from "openarabicconjugation/dist/DialectConjugator";
+import { Verb } from "@aczwink/openarabicconjugation/dist/Verb";
+import { DialectType } from "@aczwink/openarabicconjugation/dist/Dialects";
+import { GetDialectMetadata } from "@aczwink/openarabicconjugation/dist/DialectsMetadata";
+import { CreateVerbFromOADVerb, FindHighestConjugatableDialectOf } from "@aczwink/openarabdict-openarabicconjugation-bridge";
+import { TargetAdjectiveNounDerivation } from "@aczwink/openarabicconjugation/dist/DialectConjugator";
 import { TranslationIndexService } from "./TranslationIndexService";
 import { WordsIndexService } from "./WordsIndexService";
 

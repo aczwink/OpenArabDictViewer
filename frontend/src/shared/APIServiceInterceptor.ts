@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2024 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Injectable, HTTPInterceptor, InfoMessageManager } from "acfrontend";
-import { ResponseData } from "acfrontend/dist/Services/HTTPService";
+import { Injectable, HTTPInterceptor, InfoMessageManager } from "@aczwink/acfrontend";
+import { ResponseData } from "@aczwink/acfrontend/dist/Services/HTTPService";
 
 @Injectable
 export class APIServiceInterceptor implements HTTPInterceptor
