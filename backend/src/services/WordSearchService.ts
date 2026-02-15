@@ -76,9 +76,24 @@ export class WordSearchService
     }
 
     //Private methods
+    private DoesFilterMatchEntry(filterCriteria: WordFilterCriteria, entry: OpenArabDictTranslationEntry)
+    {
+        const texts = entry.text.Values().Map(this.DoesFilterMatchText.bind(this, filterCriteria));
+
+        if(entry.usage !== undefined)
+            return texts.Concat(entry.usage.Values().Map(x => this.DoesFilterMatchText(filterCriteria, x.translation)));
+
+        return texts;
+    }
+
+    private DoesFilterMatchText(filterCriteria: WordFilterCriteria, text: string)
+    {
+        return text.toLowerCase().includes(filterCriteria.textFilter);
+    }
+
     private SearchByTranslation(filterCriteria: WordFilterCriteria, entry: { wordId: string; translations: OpenArabDictTranslationEntry[] }): SearchResultEntry
     {
-        const translationMatch = entry.translations.Values().Map(x => x.text.Values().Map(x => x.toLowerCase().includes(filterCriteria.textFilter))).Flatten().AnyTrue();
+        const translationMatch = entry.translations.Values().Map(this.DoesFilterMatchEntry.bind(this, filterCriteria)).Flatten().AnyTrue();
         const word = this.wordsIndexService.GetWord(entry.wordId);
         if(!translationMatch)
             return { score: 0, word };

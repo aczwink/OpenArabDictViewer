@@ -138,7 +138,7 @@ function WordTypeToDictionaryKey(wordType: OpenArabDictWordType)
         case OpenArabDictWordType.Preposition:
             return "Preposition";
         case OpenArabDictWordType.Adjective:
-            return "Adjective";
+            return "adjective";
         case OpenArabDictWordType.Conjunction:
             return "Conjunction";
         case OpenArabDictWordType.ForeignVerb:
@@ -150,7 +150,7 @@ function WordTypeToDictionaryKey(wordType: OpenArabDictWordType)
         case OpenArabDictWordType.Phrase:
             return "Phrase";
         case OpenArabDictWordType.Particle:
-            return "Particle";
+            return "particle";
         case OpenArabDictWordType.Interjection:
             return "Interjection";
         case OpenArabDictWordType.Verb:

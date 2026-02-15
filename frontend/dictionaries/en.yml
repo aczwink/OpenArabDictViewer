@@ -48,4 +48,6 @@ word:
     male: male
 
   types:
+    adjective: Adjective
     noun: Noun
+    particle: Particle
