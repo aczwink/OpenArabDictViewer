@@ -69,10 +69,7 @@ export class ShowWordComponent extends Component
                         <th>{I18n("word.translation")}:</th>
                         <td>{RenderTranslations(this.data.translations)}</td>
                     </tr>
-                    <tr>
-                        <th>{I18n("word.declension")}:</th>
-                        <td>{this.RenderWordDeclensionTables()}</td>
-                    </tr>
+                    {this.RenderWordDeclensionTables()}
                 </tbody>
             </table>
             <a href={"https://en.wiktionary.org/wiki/" + RemoveTashkil(this.data.word.text)} target="_blank">{I18n("word.seeOnWiktionary")}</a>
@@ -174,7 +171,10 @@ export class ShowWordComponent extends Component
         {
             case OpenArabDictWordType.Adjective:
             case OpenArabDictWordType.Noun:
-                return <AdjectiveOrNounDeclensionTable word={this.data!.word} derivedWordIds={this.data!.derived} />;
+                return <tr>
+                    <th>{I18n("word.declension")}:</th>
+                    <td><AdjectiveOrNounDeclensionTable word={this.data!.word} derivedWordIds={this.data!.derived} /></td>
+                </tr>;
         }
         return null;
     }

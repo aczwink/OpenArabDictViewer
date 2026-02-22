@@ -49,5 +49,7 @@ word:
 
   types:
     adjective: Adjective
+    adverb: Adverb
     noun: Noun
     particle: Particle
+    preposition: Preposition

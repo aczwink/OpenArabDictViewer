@@ -55,6 +55,8 @@ export function WordDerivationTypeFromWordToString(type: OpenArabDictNonVerbDeri
             return "elative degree";
         case OpenArabDictNonVerbDerivationType.Singulative:
             return "singulative";
+        case OpenArabDictNonVerbDerivationType.DefinitiveState:
+            return "definitive state";
     }
 }
 
@@ -136,7 +138,7 @@ function WordTypeToDictionaryKey(wordType: OpenArabDictWordType)
         case OpenArabDictWordType.Noun:
             return "noun";
         case OpenArabDictWordType.Preposition:
-            return "Preposition";
+            return "preposition";
         case OpenArabDictWordType.Adjective:
             return "adjective";
         case OpenArabDictWordType.Conjunction:
@@ -144,7 +146,7 @@ function WordTypeToDictionaryKey(wordType: OpenArabDictWordType)
         case OpenArabDictWordType.ForeignVerb:
             return "Foreign Verb";
         case OpenArabDictWordType.Adverb:
-            return "Adverb";
+            return "adverb";
         case OpenArabDictWordType.Pronoun:
             return "Pronoun";
         case OpenArabDictWordType.Phrase:

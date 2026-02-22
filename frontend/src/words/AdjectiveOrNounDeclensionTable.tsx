@@ -35,6 +35,7 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDi
     {
         super();
 
+        this.definite = null;
         this.feminine = null;
         this.plurals = null;
     }
@@ -56,6 +57,7 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDi
     }
 
     //State
+    private definite: OpenArabDictWord | null;
     private feminine: OpenArabDictWord | null;
     private plurals: OpenArabDictWord[] | null;
 
@@ -122,7 +124,7 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDi
         return this.input.word.type === OpenArabDictWordType.Adjective;
     }
 
-    private IsSingular()
+    private IsSingular() //TODO: migrate to some openarabdict logic
     {
         if(this.input.word.parent !== undefined)
         {
@@ -136,8 +138,24 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDi
     {
         const derived = await this.input.derivedWordIds.Values().Map(x => this.cachedAPIService.QueryWord(x)).PromiseAll();
 
+        this.definite = derived.find(x => (x.parent?.type === OpenArabDictWordParentType.NonVerbWord) && (x.parent.relationType === OpenArabDictNonVerbDerivationType.DefinitiveState)) ?? null;
         this.feminine = derived.find(x => (x.parent?.type === OpenArabDictWordParentType.NonVerbWord) && (x.parent.relationType === OpenArabDictNonVerbDerivationType.Feminine)) ?? null;
         this.plurals = derived.filter(x => (x.parent?.type === OpenArabDictWordParentType.NonVerbWord) && (x.parent.relationType === OpenArabDictNonVerbDerivationType.Plural));
+    }
+
+    private RenderCell(targetNumerus: Numerus, c: Case, targetGender: Gender, parsed: DisplayVocalized[], state: AdjectiveOrNounState)
+    {
+        const base = this.DeriveBase(targetGender, targetNumerus);
+
+        const declined = this.conjugationService.DeclineAdjectiveOrNoun(DialectType.ModernStandardArabic, {
+            gender: targetGender,
+            numerus: targetNumerus,
+            vocalized: base
+        }, {
+            state,
+            case: c,
+        });
+        return RenderWithDiffHighlights(declined, parsed);
     }
 
     private RenderHeader(numerus: Numerus)
@@ -226,21 +244,6 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDi
             {hasSecondGender ? <td>{this.RenderCell(numerus, c, Gender.Female, parsed, AdjectiveOrNounState.Indefinite)}</td> : null}
             {hasSecondGender ? <td>{this.RenderCell(numerus, c, Gender.Female, parsed, AdjectiveOrNounState.Definite)}</td> : null}
         </fragment>;
-    }
-
-    private RenderCell(targetNumerus: Numerus, c: Case, targetGender: Gender, parsed: DisplayVocalized[], state: AdjectiveOrNounState)
-    {
-        const base = this.DeriveBase(targetGender, targetNumerus);
-
-        const declined = this.conjugationService.DeclineAdjectiveOrNoun(DialectType.ModernStandardArabic, {
-            gender: targetGender,
-            numerus: targetNumerus,
-            vocalized: base
-        }, {
-            state,
-            case: c,
-        });
-        return RenderWithDiffHighlights(declined, parsed);
     }
     
     //Event handlers

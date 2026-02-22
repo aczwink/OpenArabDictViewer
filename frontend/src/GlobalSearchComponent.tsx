@@ -136,10 +136,14 @@ export class GlobalSearchComponent extends Component
                 {
                     case ImplicitWordDerivation.ConjugatedVerb:
                         return "conjugation";
+                    case ImplicitWordDerivation.DualOfNoun:
+                        return "dual";
                     case ImplicitWordDerivation.FeminineActiveParticiple:
                         return "feminine active participle";
                     case ImplicitWordDerivation.FemininePassiveParticiple:
                         return "feminine passive participle";
+                    case ImplicitWordDerivation.NounDeclension:
+                        return "declination";
                 }
             }
             return <tr>

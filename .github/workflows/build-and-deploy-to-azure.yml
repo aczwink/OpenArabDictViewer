@@ -38,14 +38,23 @@ jobs:
         with:
           submodules: true
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com/
+
       #OpenArabDictViewer
-      - name: Building OpenArabDictViewer Backend
+      - env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: Building OpenArabDictViewer Backend
         run: |
           npm ci
           npm run build
         working-directory: ./backend
         
-      - name: Building OpenArabDictViewer Frontend
+      - env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: Building OpenArabDictViewer Frontend
         run: |
           npm ci
           npm run generate-api

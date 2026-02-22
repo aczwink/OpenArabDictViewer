@@ -23,6 +23,7 @@ import { ArabicTextIndexService, ImplicitWordDerivation, SearchResultEntry } fro
 import { Of } from "@aczwink/acts-util-core";
 import { WordsIndexService } from "./WordsIndexService";
 import { ArabicText } from "@aczwink/openarabicconjugation";
+import { TranslationTextService } from "./TranslationTextService";
 
 export interface WordFilterCriteria
 {
@@ -33,7 +34,7 @@ export interface WordFilterCriteria
 @Injectable
 export class WordSearchService
 {
-    constructor(private dbController: DatabaseController, private arabicTextIndexService: ArabicTextIndexService, private wordsIndexService: WordsIndexService)
+    constructor(private dbController: DatabaseController, private arabicTextIndexService: ArabicTextIndexService, private wordsIndexService: WordsIndexService, private translationTextService: TranslationTextService)
     {
     }
 
@@ -41,22 +42,11 @@ export class WordSearchService
     public async FindWords(filterCriteria: WordFilterCriteria, translationLanguage: TranslationLanguage, offset: number, limit: number)
     {
         const document = await this.dbController.GetDocumentDB();
-        const translationDocument = await this.dbController.GetTranslationsDocumentDB(translationLanguage);
 
         filterCriteria.textFilter = filterCriteria.textFilter.trim();
         let filtered;
         if(filterCriteria.textFilter.length > 0)
-        {
-            const isArabic = ArabicText.IsArabicPhrase(filterCriteria.textFilter);
-            if(isArabic)
-                filtered = this.arabicTextIndexService.Find(filterCriteria.textFilter);
-            else
-            {
-                filterCriteria.textFilter = filterCriteria.textFilter.toLowerCase();
-                filtered = translationDocument.entries.Values()
-                    .Map(this.SearchByTranslation.bind(this, filterCriteria));
-            }
-        }
+            filtered = await this.FilterByText(filterCriteria, translationLanguage);
         else
             filtered = document.words.Values().Map(x => Of<SearchResultEntry>({ score: 1, word: x }));
 
@@ -72,33 +62,104 @@ export class WordSearchService
             });
         }
 
-        return filtered.Filter(x => x.score > 0.25).OrderByDescending(x => x.score).Skip(offset).Take(limit);
+        const ordered = filtered.Filter(x => x.score > 0.25).ToArray();
+        this.ScaleByMatchLength(filterCriteria.textFilter, ordered);
+
+        return ordered.Values().OrderByDescending(x => x.score).Skip(offset).Take(limit);
     }
 
     //Private methods
-    private DoesFilterMatchEntry(filterCriteria: WordFilterCriteria, entry: OpenArabDictTranslationEntry)
+    private ComputeMatchScore(filterCriteria: WordFilterCriteria, translationLanguage: TranslationLanguage, text: string): number
     {
-        const texts = entry.text.Values().Map(this.DoesFilterMatchText.bind(this, filterCriteria));
+        const test = this.translationTextService.ContainsCaseInsensitive(text, filterCriteria.textFilter, translationLanguage);
+        if(!test)
+            return 0;
+
+        const words = this.translationTextService.SplitIntoWords(text);
+        return words.Values().Map(this.ComputeMatchScoreForWord.bind(this, filterCriteria.textFilter, translationLanguage)).Max();
+    }
+
+    private ComputeMatchScoreForWord(textFilterLowerCase: string, translationLanguage: TranslationLanguage, word: string)
+    {
+        const test = this.translationTextService.ContainsCaseInsensitive(word, textFilterLowerCase, translationLanguage);
+        if(!test)
+            return 0;
+
+        return textFilterLowerCase.length / word.length;
+    }
+
+    private ComputeMatchScoreForEntry(filterCriteria: WordFilterCriteria, translationLanguage: TranslationLanguage, entry: OpenArabDictTranslationEntry)
+    {
+        const texts = entry.text.Values().Map(this.ComputeMatchScore.bind(this, filterCriteria, translationLanguage));
 
         if(entry.usage !== undefined)
-            return texts.Concat(entry.usage.Values().Map(x => this.DoesFilterMatchText(filterCriteria, x.translation)));
+            return texts.Concat(entry.usage.Values().Map(x => this.ComputeMatchScore(filterCriteria, translationLanguage, x.translation)));
 
         return texts;
     }
 
-    private DoesFilterMatchText(filterCriteria: WordFilterCriteria, text: string)
+    private ComputePhraseLength(entry: SearchResultEntry)
     {
-        return text.toLowerCase().includes(filterCriteria.textFilter);
+        const text = entry.derived?.text ?? entry.word.text;
+        const parsed = ArabicText.ParseVocalizedPhrase(text);
+        return parsed.Values().Map(x => x.length).Sum();
     }
 
-    private SearchByTranslation(filterCriteria: WordFilterCriteria, entry: { wordId: string; translations: OpenArabDictTranslationEntry[] }): SearchResultEntry
+    private async FilterByText(filterCriteria: WordFilterCriteria, translationLanguage: TranslationLanguage)
     {
-        const translationMatch = entry.translations.Values().Map(this.DoesFilterMatchEntry.bind(this, filterCriteria)).Flatten().AnyTrue();
+        const translationDocument = await this.dbController.GetTranslationsDocumentDB(translationLanguage);
+        
+        let filtered;
+
+        const isArabic = ArabicText.IsArabicPhrase(filterCriteria.textFilter);
+        if(isArabic)
+            filtered = this.arabicTextIndexService.Find(filterCriteria.textFilter);
+        else
+        {
+            filtered = translationDocument.entries.Values()
+                .Map(this.SearchByTranslation.bind(this, filterCriteria, translationLanguage));
+        }
+
+        return filtered;
+    }
+
+    private ScaleByMatchLength(textFilter: string, searchResultsArray: SearchResultEntry[])
+    {
+        if((textFilter.length > 0) && ArabicText.IsArabicPhrase(textFilter))
+        {
+            const lengths = searchResultsArray.map(x => this.ComputePhraseLength(x));
+            const min = Math.min(...lengths);
+            const max = Math.max(...lengths);
+
+            if(min === max)
+                return;
+
+            for(let i = 0; i < searchResultsArray.length; i++)
+            {
+                const entry = searchResultsArray[i];
+                const length = lengths[i];
+
+                const lengthScore = (length - min) / (max - min);
+                const lengthScoreInverted = 1 - lengthScore;
+                
+                entry.score *= lengthScoreInverted;
+            }
+        }
+    }
+
+    private SearchByTranslation(filterCriteria: WordFilterCriteria, translationLanguage: TranslationLanguage, entry: { wordId: string; translations: OpenArabDictTranslationEntry[] }): SearchResultEntry
+    {
         const word = this.wordsIndexService.GetWord(entry.wordId);
-        if(!translationMatch)
-            return { score: 0, word };
+        if(entry.translations.IsEmpty())
+        {
+            return {
+                word,
+                score: 0
+            }
+        }
+
         return {
-            score: 1,
+            score: entry.translations.Values().Map(this.ComputeMatchScoreForEntry.bind(this, filterCriteria, translationLanguage)).Flatten().Max(),
             word
         };
     }
