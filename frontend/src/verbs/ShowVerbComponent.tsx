@@ -31,13 +31,14 @@ import { Tense } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { DialectsService } from "../services/DialectsService";
 import { ConjugationSchemeToString } from "./ToStringStuff";
 import { VerbConjugationService } from "../services/VerbConjugationService";
-import { OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbForm, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbDerivationType, OpenArabDictVerbForm, OpenArabDictWordParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { WordIdReferenceComponent } from "../words/WordReferenceComponent";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
 import { WordTableComponent } from "../words/WordTableComponent";
 import { Verb } from "@aczwink/openarabicconjugation/dist/Verb";
 import { DialectType } from "@aczwink/openarabicconjugation/dist/Dialects";
 import { GlobalSettingsService } from "../services/GlobalSettingsService";
+import ENV from "../env";
 
 @Injectable
 export class ShowVerbComponent extends Component<{ verbId: string }>
@@ -327,11 +328,6 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         const dialect = this.dialectsService.FindDialect(verb.dialect)!;
         const past = this.conjugationService.ConjugateArgs(verb.dialect, this.rootRadicals, verb.stem, Tense.Perfect, Voice.Active, Gender.Male, Person.Third, Numerus.Singular, Mood.Indicative, verb.type, (verb.stem === 1) ? verb.stemParameterization : undefined);
 
-        const verbalNounRow = (verb.dialect !== DialectType.ModernStandardArabic) || (this.conjugationService.HasPotentiallyMultipleVerbalNounForms(verb)) ? null : <tr>
-            <th>Verbal noun الْمَصْدَر</th>
-            <td>{this.conjugationService.GenerateAllPossibleVerbalNouns(verb)[0]}</td>
-        </tr>;
-
         const type = verb.type;
         const passiveParticiple = (this.dialectsService.GetDialectMetaData(dialect.id).hasPassive) ? <tr>
             <th>Passive participle اِسْم الْمَفْعُول:</th>
@@ -362,7 +358,8 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
                     <td>{RenderWithDiffHighlights(this.conjugationService.ConjugateActiveParticiple(verb, data.form.stativeActiveParticiple === true), past)}</td>
                 </tr>
                 {passiveParticiple}
-                {verbalNounRow}
+                {this.RenderVerbalNouns(verb)}
+                {this.RenderVerbalNounPatterns(verb)}
                 <tr>
                     <th>Related:</th>
                     <td>{this.RenderRelations(this.fullWord!.related)}</td>
@@ -415,6 +412,45 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
                 variants: [variant]
             })}</a>
         </li>;
+    }
+
+    private RenderVerbalNouns(verb: Verb<string>)
+    {
+        if(verb.dialect !== DialectType.ModernStandardArabic)
+            return null;
+
+        const verbalNouns = this.derivedWords?.filter(x => (x.word.parent?.type === OpenArabDictWordParentType.Verb) && (x.word.parent.derivation === OpenArabDictVerbDerivationType.VerbalNoun)) ?? [];
+        let verbalNounRendering;
+        if(verbalNouns.length > 0)
+            verbalNounRendering = verbalNouns.map(x => <Anchor route={"/words/" + x.word.id}>{x.word.text}</Anchor>);
+        else
+        {
+            const patterns = this.conjugationService.GenerateAllPossibleVerbalNouns(verb);
+            if(patterns.length === 1)
+                verbalNounRendering = patterns;
+            else
+                verbalNounRendering = null;
+        }
+
+        if(verbalNounRendering === null)
+            return null;
+        
+        return <tr>
+            <th>Verbal noun الْمَصْدَر:</th>
+            <td>{verbalNounRendering.Interleave(", ")}</td>
+        </tr>;
+    }
+
+    private RenderVerbalNounPatterns(verb: Verb<string>)
+    {
+        if((!ENV.isDebugModeSwitchedOn) || (verb.dialect !== DialectType.ModernStandardArabic))
+            return null;
+
+        const patterns = this.conjugationService.GenerateAllPossibleVerbalNouns(verb);
+        return <tr>
+            <th>DEBUG: Verbal noun patterns:</th>
+            <td>{patterns.join(", ")}</td>
+        </tr>;
     }
 
     //Event handlers

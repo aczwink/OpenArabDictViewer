@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npx acts-util-apilib && npx webpack",
-    "run-dev-server": "nodemon --exec \"npm run build; nodemon --exec '(export $(cat .env | xargs) && cd dist && node bundle.js)' --watch '../../OpenArabDict/builder/dist/en.json'\""
+    "dev-server": "nodemon --exec \"npm run build && nodemon --exec \\\"dotenv -e .env -- node dist/bundle.js\\\" --watch \\\"../../OpenArabDict/builder/dist/en.json\\\"\""
   },
   "keywords": [],
   "author": "Amir Czwink",
@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.0.3",
+    "dotenv-cli": "^11.0.0",
     "nodemon": "^3.1.11",
     "source-map-loader": "^5.0.0",
     "ts-loader": "^9.5.4",
