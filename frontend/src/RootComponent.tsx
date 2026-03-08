@@ -43,8 +43,15 @@ export class RootComponent extends Component
         return <fragment>
             <Navigation>
                 <div className="row m-auto">
-                    <div className="col-auto p-1">
-                        <h4>OpenArabDict</h4>
+                    <div className="col-auto p-1" style="display: inline">
+                        <div className="row align-items-start">
+                            <div className="col-auto align-self-center pe-0">
+                                <img src="/openarabdict_logo.svg" style="height: 2.5rem; margin:auto;" />
+                            </div>
+                            <div className="col-auto ps-0">
+                                <h4>OpenArabDict</h4>
+                            </div>
+                        </div>
                     </div>
                     <div className="col">
                         <ul className="nav nav-pills">
