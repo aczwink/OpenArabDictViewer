@@ -119,6 +119,7 @@ export class StatisticsComponent extends Component
         const dialectType = this.dialectsService.MapIdToType(dialectId)!;
         const radicals = this.GetExampleRootRadicals(verbType);
         return this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(dialectType, radicals.join(""), {
+            hasPassive: false,
             stem: 1,
             variants: [
                 {

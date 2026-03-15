@@ -14,19 +14,19 @@
     "@aczwink/acts-util-apilib": "^1.0.0",
     "@aczwink/acts-util-core": "^1.0.0",
     "@aczwink/acts-util-node": "^1.0.0",
-    "@aczwink/openarabdict-domain": "^1.0.0",
+    "@aczwink/openarabdict-domain": "^1.1.0",
     "@aczwink/openarabdict-openarabicconjugation-bridge": "^1.0.0",
-    "@aczwink/openarabicconjugation": "^1.0.0",
+    "@aczwink/openarabicconjugation": "^1.1.0",
     "xml-js": "^1.6.11",
     "yaml": "^2.8.2"
   },
   "devDependencies": {
-    "@types/node": "^25.0.3",
+    "@types/node": "^25.4.0",
     "dotenv-cli": "^11.0.0",
-    "nodemon": "^3.1.11",
+    "nodemon": "^3.1.14",
     "source-map-loader": "^5.0.0",
     "ts-loader": "^9.5.4",
-    "webpack": "^5.104.1",
+    "webpack": "^5.105.4",
     "webpack-cli": "^6.0.1"
   }
 }

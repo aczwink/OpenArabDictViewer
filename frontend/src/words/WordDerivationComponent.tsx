@@ -46,7 +46,7 @@ function RelationshipToText(relationType: OpenArabDictNonVerbDerivationType, out
             return "positive degree";
         case OpenArabDictNonVerbDerivationType.Singulative:
             return "collective";
-        case OpenArabDictNonVerbDerivationType.DefinitiveState:
+        case OpenArabDictNonVerbDerivationType.DefiniteState:
             return "indefinitive state";
     }
 }

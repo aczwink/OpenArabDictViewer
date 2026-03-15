@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -17,12 +17,13 @@
  * */
 
 import { Injectable } from "@aczwink/acfrontend";
-import { OpenArabDictVerbForm } from "@aczwink/openarabdict-domain";
+import { OpenArabDictVerbForm, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { GlobalSettingsService } from "./GlobalSettingsService";
 import { DialectsService } from "./DialectsService";
 import { GetDialectMetadata } from "@aczwink/openarabicconjugation/dist/DialectsMetadata";
 import { CreateVerbFromOADVerbForm } from "@aczwink/openarabdict-openarabicconjugation-bridge";
 import { DialectType, GetAllConjugatableDialects } from "@aczwink/openarabicconjugation/dist/Dialects";
+import { WordWithConnections } from "./CachedAPIService";
 
 @Injectable
 export class VerbConjugationDialectResolver
@@ -32,6 +33,19 @@ export class VerbConjugationDialectResolver
     }
 
     //Public methods
+    public IsNativeConjugationPossible(dialectType: DialectType, word: WordWithConnections)
+    {
+        if(word.word.type !== OpenArabDictWordType.Verb)
+            return false;
+
+        const dialectIds = word.translations.map(x => x.dialectId);
+        if(word.word.form.variants !== undefined)
+            dialectIds.push(...word.word.form.variants.map(x => x.dialectId));
+        if(dialectIds.IsEmpty() && (dialectType === DialectType.ModernStandardArabic))
+            return true; //assume MSA
+        return dialectIds.find(x => this.dialectsService.MapIdToType(x) === dialectType) !== undefined;
+    }
+
     public SelectDialect(rootRadicals: string, verbForm: OpenArabDictVerbForm): DialectType | null
     {
         const dialects = this.FindConjugatableDialects(rootRadicals, verbForm);

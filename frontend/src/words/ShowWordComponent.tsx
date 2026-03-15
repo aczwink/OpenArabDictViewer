@@ -25,7 +25,7 @@ import { WordIdReferenceComponent } from "./WordReferenceComponent";
 import { AdjectiveOrNounDeclensionTable } from "./AdjectiveOrNounDeclensionTable";
 import { RenderDerivedTerm, WordDerivationComponent } from "./WordDerivationComponent";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
-import { OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictGender, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { ShowVerbComponent } from "../verbs/ShowVerbComponent";
 
 @Injectable
@@ -120,12 +120,17 @@ export class ShowWordComponent extends Component
         </tr>;
     }
 
-    private RenderGender(isMale: boolean | null)
+    private RenderGender(isMale: OpenArabDictGender | null)
     {
-        if(isMale)
-            return I18n("word.genders.male");
-        else if(isMale === false)
-            return I18n("word.genders.female");
+        switch(isMale)
+        {
+            case OpenArabDictGender.Female:
+                return I18n("word.genders.female");
+            case OpenArabDictGender.FemaleOrMale:
+                return "female or male";
+            case OpenArabDictGender.Male:
+                return I18n("word.genders.male");
+        }
         return "unknown";
     }
 
@@ -136,7 +141,7 @@ export class ShowWordComponent extends Component
 
         return <tr>
             <th>{I18n("word.gender")}:</th>
-            <td>{this.RenderGender(this.data!.word.isMale)}</td>
+            <td>{this.RenderGender(this.data!.word.gender)}</td>
         </tr>;
     }
 

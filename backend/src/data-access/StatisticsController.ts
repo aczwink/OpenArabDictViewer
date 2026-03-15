@@ -19,7 +19,7 @@
 import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController } from "./DatabaseController";
 import { Dictionary, ObjectExtensions } from "@aczwink/acts-util-core";
-import { Conjugator } from "@aczwink/openarabicconjugation/dist/Conjugator";
+import { Conjugator, TargetVerbBasedDerivationPatterns } from "@aczwink/openarabicconjugation/dist/Conjugator";
 import { DisplayVocalized, VocalizedToString } from "@aczwink/openarabicconjugation/dist/Vocalization";
 import { VerbType } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { DialectsService } from "../services/DialectsService";
@@ -225,7 +225,7 @@ export class StatisticsController
     {
         function ProcessVerbInstance(wordText: string, verbInstance: Verb<string>)
         {            
-            const generated = conjugator.GenerateAllPossibleVerbalNouns(verbInstance);
+            const generated = conjugator.DeriveFromVerb(verbInstance, TargetVerbBasedDerivationPatterns.VerbalNouns);
             const verbalNounPossibilities = generated.map(VocalizedArrayToString);
 
             const verbalNounIndex = verbalNounPossibilities.indexOf(wordText);

@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,6 +27,7 @@ import { VerbConjugationDialectResolver } from "./VerbConjugationDialectResolver
 import { CreateVerbFromOADVerbForm } from "@aczwink/openarabdict-openarabicconjugation-bridge";
 import { DialectType } from "@aczwink/openarabicconjugation/dist/Dialects";
 import { GetDialectMetadata } from "@aczwink/openarabicconjugation/dist/DialectsMetadata";
+import { WordWithConnections } from "./CachedAPIService";
 
 @Injectable
 export class VerbConjugationService
@@ -56,6 +57,11 @@ export class VerbConjugationService
         const diffed = c1.map( (x, i) => RenderWithDiffHighlights(x, c2[i]));
 
         return this.RenderContexts(diffed);
+    }
+
+    public IsNativeConjugationPossible(dialectType: DialectType, word: WordWithConnections)
+    {
+        return this.verbConjugationDialectResolver.IsNativeConjugationPossible(dialectType, word);
     }
 
     public RenderCheck(dialectType: DialectType, rootRadicals: string, verb: OpenArabDictVerb)

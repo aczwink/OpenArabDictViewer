@@ -57,7 +57,7 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Wo
                 {this.words.map(x => <tr>
                     <td>
                         <span style="white-space: pre">{this.Indent(x.level)}</span>
-                        <WordReferenceComponent word={x.word.word} />
+                        <WordReferenceComponent word={x.word} />
                     </td>
                     <td><WordFunctionComponent word={x.word} /></td>
                 </tr>)}

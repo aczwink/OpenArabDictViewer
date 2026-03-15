@@ -39,6 +39,7 @@ import { Verb } from "@aczwink/openarabicconjugation/dist/Verb";
 import { DialectType } from "@aczwink/openarabicconjugation/dist/Dialects";
 import { GlobalSettingsService } from "../services/GlobalSettingsService";
 import ENV from "../env";
+import { Dialects } from "@aczwink/openarabicconjugation";
 
 @Injectable
 export class ShowVerbComponent extends Component<{ verbId: string }>
@@ -120,6 +121,15 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         return undefined;
     }
 
+    private HasPassive(verb: Verb<string>)
+    {
+        if(!this.data?.form.hasPassive)
+            return false;
+
+        const dialectMetaData = Dialects.GetDialectMetadata(verb.dialect);
+        return dialectMetaData.hasPassive;
+    }
+
     private async LoadDerivedWords()
     {
         this.derivedWords = await this.fullWord!.derived.Values().Map(x => this.cachedAPIService.QueryWordWithConnections(x)).Async().NotUndefined().ToArray();
@@ -137,7 +147,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
 
         const past = this.conjugationService.ConjugateArgs(dialectType, this.rootRadicals, stem, Tense.Perfect, Voice.Active, Gender.Male, Person.Third, Numerus.Singular, Mood.Indicative, verbType, stem1Context);
 
-        const passive = dialectMetaData.hasPassive ? [
+        const passive = this.HasPassive(verb) ? [
             <h5>Passive voice الْفِعْل الْمَجْهُول</h5>,
             this.RenderConjugationTable("Past الْمَاضِي", verb, Tense.Perfect, Voice.Passive, Mood.Indicative, (g, p, n) => this.conjugationService.ConjugateArgs(dialectType, this.rootRadicals, stem, Tense.Perfect, Voice.Active, g, p, n, Mood.Indicative, verbType, stem1Context)),
             this.RenderConjugationTable("Present indicative الْمُضَارِع الْمَرْفُوع", verb, Tense.Present, Voice.Passive, Mood.Indicative, (g, p, n) => this.conjugationService.ConjugateArgs(dialectType, this.rootRadicals, stem, Tense.Present, Voice.Active, g, p, n, Mood.Indicative, verbType, stem1Context)),
@@ -313,12 +323,12 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         </div>;
     }
 
-    private RenderDialectHint(dialectType: DialectType)
+    private RenderDialectHint(dialect: DialectType)
     {
-        if(dialectType !== this.globalSettingsService.dialectType)
-        {
+        if(dialect !== this.globalSettingsService.dialectType)
             return <span className="badge rounded-pill text-bg-danger">This verb can not be conjugated in your favorite dialect.</span>;
-        }
+        if(!this.verbConjugationService.IsNativeConjugationPossible(this.globalSettingsService.dialectType, this.fullWord!))
+            return <span className="badge rounded-pill text-bg-warning">This verb is not native to your favorite dialect.</span>;
         return null;
     }
 
@@ -329,7 +339,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         const past = this.conjugationService.ConjugateArgs(verb.dialect, this.rootRadicals, verb.stem, Tense.Perfect, Voice.Active, Gender.Male, Person.Third, Numerus.Singular, Mood.Indicative, verb.type, (verb.stem === 1) ? verb.stemParameterization : undefined);
 
         const type = verb.type;
-        const passiveParticiple = (this.dialectsService.GetDialectMetaData(dialect.id).hasPassive) ? <tr>
+        const passiveParticiple = this.HasPassive(verb) ? <tr>
             <th>Passive participle اِسْم الْمَفْعُول:</th>
             <td>{RenderWithDiffHighlights(this.conjugationService.ConjugatePassiveParticiple(verb), past)}</td>
         </tr> : null;
@@ -355,7 +365,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
                 </tr>
                 <tr>
                     <th>Active participle اِسْم الْفَاعِل:</th>
-                    <td>{RenderWithDiffHighlights(this.conjugationService.ConjugateActiveParticiple(verb, data.form.stativeActiveParticiple === true), past)}</td>
+                    <td>{RenderWithDiffHighlights(this.conjugationService.ConjugateActiveParticiple(verb, data.form.stative === true), past)}</td>
                 </tr>
                 {passiveParticiple}
                 {this.RenderVerbalNouns(verb)}

@@ -17,14 +17,14 @@
  * */
 
 import { Injectable } from "@aczwink/acfrontend";
-import { Conjugator } from "@aczwink/openarabicconjugation/dist/Conjugator";
 import { VerbRoot } from "@aczwink/openarabicconjugation/dist/VerbRoot";
 import { DisplayVocalized, VocalizedToString } from "@aczwink/openarabicconjugation/dist/Vocalization";
-import { ConjugationParams, Person, Tense, Voice, Gender, Numerus, Mood, AdvancedStemNumber, VerbType } from "@aczwink/openarabicconjugation/dist/Definitions";
+import { ConjugationParams, Person, Tense, Voice, Gender, Numerus, Mood, AdvancedStemNumber, VerbType, AdjectiveOrNounInput } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { CreateVerb, Verb } from "@aczwink/openarabicconjugation/dist/Verb";
-import { AdjectiveOrNounInput, TargetAdjectiveNounDerivation } from "@aczwink/openarabicconjugation/dist/DialectConjugator";
+import { TargetAdjectiveNounDerivation } from "@aczwink/openarabicconjugation/dist/DialectConjugator";
 import { AdjectiveOrNounDeclensionParams } from "@aczwink/openarabicconjugation/dist/Definitions";
-import { DialectType } from "@aczwink/openarabicconjugation";
+import { Conjugator, DialectType, TargetVerbBasedDerivationPatterns } from "@aczwink/openarabicconjugation";
+
 
 @Injectable
 export class ConjugationService
@@ -58,14 +58,15 @@ export class ConjugationService
 
     public ConjugateActiveParticiple(verb: Verb<string>, isStative: boolean)
     {
+        const activeParticiples = this.conjugator.DeriveFromVerb(verb, TargetVerbBasedDerivationPatterns.ActiveParticiples);
         if(isStative)
-            return this.conjugator.DeclineStativeActiveParticiple(verb);
-        return this.conjugator.ConjugateParticiple(verb, Voice.Active);
+            return activeParticiples[1];
+        return activeParticiples[0];
     }
 
     public ConjugatePassiveParticiple(verb: Verb<string>)
     {
-        return this.conjugator.ConjugateParticiple(verb, Voice.Passive);
+        return this.conjugator.DeriveFromVerb(verb, TargetVerbBasedDerivationPatterns.PassiveParticiple)[0];
     }
 
     public DeclineAdjectiveOrNoun(dialect: DialectType, input: AdjectiveOrNounInput, params: AdjectiveOrNounDeclensionParams)
@@ -80,13 +81,8 @@ export class ConjugationService
 
     public GenerateAllPossibleVerbalNouns(verb: Verb<string>)
     {
-        const nouns = this.conjugator.GenerateAllPossibleVerbalNouns(verb);
+        const nouns = this.conjugator.DeriveFromVerb(verb, TargetVerbBasedDerivationPatterns.VerbalNouns);
         return nouns.map(this.VocalizedToString.bind(this));
-    }
-
-    public HasPotentiallyMultipleVerbalNounForms(verb: Verb<string>)
-    {
-        return this.conjugator.HasPotentiallyMultipleVerbalNounForms(verb);
     }
 
     public VocalizedToString(vocalized: DisplayVocalized[]): string

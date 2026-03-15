@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { OpenArabDictGenderedWord, OpenArabDictWordRelationshipType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictGender, OpenArabDictGenderedWord, OpenArabDictWordRelationshipType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { OpenArabDictNonVerbDerivationType, OpenArabDictWord } from "../../dist/api";
 import { I18n } from "@aczwink/acfrontend";
 
@@ -55,17 +55,22 @@ export function WordDerivationTypeFromWordToString(type: OpenArabDictNonVerbDeri
             return "elative degree";
         case OpenArabDictNonVerbDerivationType.Singulative:
             return "singulative";
-        case OpenArabDictNonVerbDerivationType.DefinitiveState:
+        case OpenArabDictNonVerbDerivationType.DefiniteState:
             return "definitive state";
     }
 }
 
-export function WordGenderToAbbreviation(isMale: boolean | null)
+export function WordGenderToAbbreviation(gender: OpenArabDictGender | null)
 {
-    if(isMale === true)
-        return "m";
-    else if(isMale === false)
-        return "f";
+    switch(gender)
+    {
+        case OpenArabDictGender.Female:
+            return "f";
+        case OpenArabDictGender.FemaleOrMale:
+            return "f/m";
+        case OpenArabDictGender.Male:
+            return "m";
+    }
     return "?";
 }
 

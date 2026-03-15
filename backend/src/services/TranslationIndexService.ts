@@ -31,7 +31,7 @@ export class TranslationIndexService
 
     public GetTranslationsOf(wordId: string, translationLanguage: TranslationLanguage)
     {
-        return this.translationsMap[translationLanguage]![wordId]!;
+        return this.translationsMap[translationLanguage]![wordId] ?? [];
     }
 
     public async RebuildIndex()

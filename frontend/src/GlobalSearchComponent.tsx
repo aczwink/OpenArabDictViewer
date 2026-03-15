@@ -20,7 +20,7 @@ import { Component, FormField, I18n, Injectable, JSX_CreateElement, LineEdit, Pr
 import { allWordTypes, WordTypeToText } from "./shared/words";
 import { APIService } from "./services/APIService";
 import { WordFunctionComponent } from "./words/WordFunctionComponent";
-import { OpenArabDictWord, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { ImplicitWordDerivation, SearchResultEntry } from "../dist/api";
 import { WordReferenceComponent } from "./words/WordReferenceComponent";
 import { GlobalSettingsService } from "./services/GlobalSettingsService";
@@ -123,7 +123,7 @@ export class GlobalSearchComponent extends Component
         if(entry.derived === undefined)
         {
             return <tr>
-                <td><WordReferenceComponent word={entry.word.word as OpenArabDictWord} /></td>
+                <td><WordReferenceComponent word={entry.word} /></td>
                 <td><WordFunctionComponent word={entry.word} /></td>
             </tr>;
         }
@@ -148,7 +148,7 @@ export class GlobalSearchComponent extends Component
             }
             return <tr>
                 <td>{entry.derived.text}</td>
-                <td><i>{Type2Text(entry.derived.parent.kind) + " of"}</i> <WordReferenceComponent word={entry.word.word as OpenArabDictWord} /></td>
+                <td><i>{Type2Text(entry.derived.parent.kind) + " of"}</i> <WordReferenceComponent word={entry.word} /></td>
             </tr>;
         }
 

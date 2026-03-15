@@ -18,8 +18,8 @@
 
 import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController } from "../data-access/DatabaseController";
-import { OpenArabDictGenderedWord, OpenArabDictNonVerbDerivationType, OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbDerivationType, OpenArabDictWord, OpenArabDictWordParent, OpenArabDictWordParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
-import { Conjugator } from "@aczwink/openarabicconjugation/dist/Conjugator";
+import { OpenArabDictGender, OpenArabDictGenderedWord, OpenArabDictNonVerbDerivationType, OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbDerivationType, OpenArabDictWord, OpenArabDictWordParent, OpenArabDictWordParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { Conjugator, TargetVerbBasedDerivationPatterns } from "@aczwink/openarabicconjugation/dist/Conjugator";
 import { RootsIndexService } from "./RootsIndexService";
 import { AdjectiveOrNounState, Case, Gender, Mood, Numerus, Person, Tashkil, Tense, Voice } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { DialectsService } from "./DialectsService";
@@ -113,7 +113,7 @@ export class ArabicTextIndexService
             word,
         }, trie);
 
-        if(word.isMale === false)
+        if(word.gender === OpenArabDictGender.Female)
             return;
         if(this.DoesChildExist(word.id, OpenArabDictNonVerbDerivationType.Feminine))
             return;
@@ -145,9 +145,12 @@ export class ArabicTextIndexService
         }, trie);
 
         const isSingular = this.IsSingular(word);
-        const gender = word.isMale ? Gender.Male : Gender.Female;
+        const gender = (word.gender === OpenArabDictGender.Male) ? Gender.Male : Gender.Female;
         const numerus = isSingular ? Numerus.Singular : Numerus.Plural;
         const isInNominative = this.IsNounInNominative(word);
+        const hasDefiniteChild = this.DoesChildExist(word.id, OpenArabDictNonVerbDerivationType.DefiniteState);
+        const isDefinite = (word.parent?.type === OpenArabDictWordParentType.NonVerbWord) && (word.parent.relationType === OpenArabDictNonVerbDerivationType.DefiniteState);
+        const targetState = isDefinite ? AdjectiveOrNounState.Definite : AdjectiveOrNounState.Indefinite;
 
         const conjugator = new Conjugator();
 
@@ -156,26 +159,31 @@ export class ArabicTextIndexService
             const nominative = conjugator.DeclineAdjectiveOrNoun({
                 gender,
                 numerus,
-                vocalized: vocalized[0]
+                vocalized: vocalized[0],
+                isDefinite
             },
             {
                 case: Case.Informal,
-                state: AdjectiveOrNounState.Indefinite
+                state: targetState
             }, DialectType.ModernStandardArabic);
 
             this.AddDerivedWordToIndex(trie, nominative, ImplicitWordDerivation.NounDeclension, word);
         }
-        
-        const definite = conjugator.DeclineAdjectiveOrNoun({
-            gender,
-            numerus,
-            vocalized: vocalized[0]
-        },
+
+        if(!isDefinite && !hasDefiniteChild)
         {
-            case: Case.Informal,
-            state: AdjectiveOrNounState.Definite
-        }, DialectType.ModernStandardArabic);
-        this.AddToIndex({ vocalized: [definite], word }, trie);
+            const definite = conjugator.DeclineAdjectiveOrNoun({
+                gender,
+                numerus,
+                vocalized: vocalized[0],
+                isDefinite
+            },
+            {
+                case: Case.Informal,
+                state: AdjectiveOrNounState.Definite
+            }, DialectType.ModernStandardArabic);
+            this.AddToIndex({ vocalized: [definite], word }, trie);
+        }
 
         if(isSingular && this.DoesChildExist(word.id, OpenArabDictNonVerbDerivationType.Plural))
         {
@@ -184,11 +192,12 @@ export class ArabicTextIndexService
             const nominative = conjugator.DeclineAdjectiveOrNoun({
                 gender,
                 numerus: Numerus.Dual,
-                vocalized: dual
+                vocalized: dual,
+                isDefinite
             },
             {
                 case: Case.Nominative,
-                state: AdjectiveOrNounState.Indefinite
+                state: targetState
             }, DialectType.ModernStandardArabic);
 
             this.AddDerivedWordToIndex(trie, nominative, ImplicitWordDerivation.DualOfNoun, word);
@@ -199,9 +208,10 @@ export class ArabicTextIndexService
     {
         const conjugator = new Conjugator();
 
-        const participle = ((voice === Voice.Active) && (verb.form.stativeActiveParticiple === true))
-            ? conjugator.DeclineStativeActiveParticiple(verbInstance)
-            : conjugator.ConjugateParticiple(verbInstance, voice);
+        const participles = conjugator.DeriveFromVerb(verbInstance, (voice === Voice.Active) ? TargetVerbBasedDerivationPatterns.ActiveParticiples : TargetVerbBasedDerivationPatterns.PassiveParticiple);
+        const participle = ((voice === Voice.Active) && (verb.form.stative === true))
+            ? participles[1]
+            : participles[0];
         this.AddDerivedWordToIndex(trie, participle, { type: OpenArabDictWordParentType.Verb, derivation: (voice === Voice.Active) ? OpenArabDictVerbDerivationType.ActiveParticiple : OpenArabDictVerbDerivationType.PassiveParticiple, verbId: verb.id }, verb);
 
         if(verbInstance.dialect === DialectType.ModernStandardArabic)
@@ -223,10 +233,10 @@ export class ArabicTextIndexService
             return;
 
         const conjugator = new Conjugator();
-
-        if(!conjugator.HasPotentiallyMultipleVerbalNounForms(verbInstance))
+        
+        const result = conjugator.DeriveFromVerb(verbInstance, TargetVerbBasedDerivationPatterns.VerbalNouns);
+        if(result.length === 1)
         {
-            const result = conjugator.GenerateAllPossibleVerbalNouns(verbInstance);
             const verbalNoun = result[0];
             this.AddDerivedWordToIndex(trie, verbalNoun, { type: OpenArabDictWordParentType.Verb, derivation: OpenArabDictVerbDerivationType.VerbalNoun, verbId: verb.id }, verb);
         }
@@ -274,6 +284,7 @@ export class ArabicTextIndexService
         const verbInstance = CreateVerbFromOADVerb(dialectType, root, verb);
         if(!dialectMeta.IsConjugatable(verbInstance))
             return;
+        const hasPassive = verb.form.hasPassive && dialectMeta.hasPassive;
 
         const numeruses: Numerus[] = dialectMeta.hasDual ? [Numerus.Singular, Numerus.Dual, Numerus.Plural] : [Numerus.Singular, Numerus.Plural];
         const genders: Gender[] = [Gender.Male, Gender.Female];
@@ -286,7 +297,7 @@ export class ArabicTextIndexService
             const moods = (tense === Tense.Perfect) ? [undefined] : presentMoods;
             for (const mood of moods)
             {
-                const voices = ((mood === Mood.Imperative) || !dialectMeta.hasPassive) ? [Voice.Active] : [Voice.Active, Voice.Passive];
+                const voices = ((mood === Mood.Imperative) || !hasPassive) ? [Voice.Active] : [Voice.Active, Voice.Passive];
                 const persons = (mood === Mood.Imperative) ? [Person.Second] : [Person.First, Person.Second, Person.Third];
 
                 for (const voice of voices)

@@ -19,7 +19,7 @@
 import { Anchor, Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "@aczwink/acfrontend";
 import { WordGenderToAbbreviation, WordMayHaveGender, WordTypeToAbbreviationText } from "../shared/words";
 import { OpenArabDictRoot, OpenArabDictVerbDerivationType, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
-import { CachedAPIService } from "../services/CachedAPIService";
+import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
 import { DialectsService } from "../services/DialectsService";
 import { VerbConjugationService } from "../services/VerbConjugationService";
 import { ModernStandardArabicStem1ParametersType } from "@aczwink/openarabicconjugation/dist/dialects/msa/conjugation/r2tashkil";
@@ -29,7 +29,7 @@ import { Verb } from "@aczwink/openarabicconjugation/dist/Verb";
 import { DialectType } from "@aczwink/openarabicconjugation";
 
 @Injectable
-export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; }>
+export class WordReferenceComponent extends Component<{ word: WordWithConnections; }>
 {
     constructor(private dialectsService: DialectsService, private verbConjugationService: VerbConjugationService, private cachedAPIService: CachedAPIService, private globalSettingsService: GlobalSettingsService
     )
@@ -42,7 +42,7 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
     protected Render(): RenderValue
     {
         return <fragment>
-            <Anchor route={"/words/" + this.input.word.id}>{this.RenderText()}</Anchor>
+            <Anchor route={"/words/" + this.input.word.word.id}>{this.RenderText()}</Anchor>
             {" "}
             {this.TypeToString()}
             {this.RenderGender()}
@@ -80,23 +80,23 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
     private RenderDialectHint(dialectType: DialectType)
     {
         if(dialectType !== this.globalSettingsService.dialectType)
-        {
             return <span className="badge rounded-pill text-bg-danger">!</span>;
-        }
+        if(!this.verbConjugationService.IsNativeConjugationPossible(dialectType, this.input.word))
+            return <span className="badge rounded-pill text-bg-warning">!</span>;
         return null;
     }
 
     private RenderGender()
     {
-        if(!WordMayHaveGender(this.input.word))
+        if(!WordMayHaveGender(this.input.word.word))
             return "";
         
-        return <i>{WordGenderToAbbreviation(this.input.word.isMale)}</i>;
+        return <i>{WordGenderToAbbreviation(this.input.word.word.gender)}</i>;
     }
 
     private RenderText()
     {
-        const word = this.input.word;
+        const word = this.input.word.word;
         if((word.type === OpenArabDictWordType.Verb) && (this.root !== null))
         {
             const dialectType = this.verbConjugationService.SelectDialect(this.root.radicals, word.form);
@@ -106,7 +106,7 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
             const verb = this.verbConjugationService.ConstructVerb(dialectType, this.root.radicals, word.form);
             const dialect = this.dialectsService.FindDialect(verb.dialect)!;
 
-            const verbPresentation = this.verbConjugationService.CreateDefaultDisplayVersionOfVerbWithDiff(dialectType, this.root.radicals, word.form, { ...word, stem: 1, variants: [{ stemParameters: this.GetComparisonStemParameters(verb), dialectId: dialect.id }] });
+            const verbPresentation = this.verbConjugationService.CreateDefaultDisplayVersionOfVerbWithDiff(dialectType, this.root.radicals, word.form, { ...word.form, stem: 1, variants: [{ stemParameters: this.GetComparisonStemParameters(verb), dialectId: dialect.id }] });
 
             return <>
                 {this.verbConjugationService.RenderCheck(dialectType, this.root.radicals, word)}
@@ -120,7 +120,7 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
 
     private TypeToString()
     {
-        const word = this.input.word;
+        const word = this.input.word.word;
         if( (word.parent !== undefined) && (word.parent.type === OpenArabDictWordParentType.Verb) )
         {
             switch(word.parent.derivation)
@@ -139,8 +139,8 @@ export class WordReferenceComponent extends Component<{ word: OpenArabDictWord; 
     //Event handlers
     override async OnInitiated(): Promise<void>
     {
-        if(this.input.word.type === OpenArabDictWordType.Verb)
-            this.root = await this.cachedAPIService.QueryRootData(this.input.word.rootId);
+        if(this.input.word.word.type === OpenArabDictWordType.Verb)
+            this.root = await this.cachedAPIService.QueryRootData(this.input.word.word.rootId);
     }
 
     //State
@@ -166,12 +166,12 @@ export class WordIdReferenceComponent extends Component<{ wordId: string }>
     }
 
     //Private state
-    private word: OpenArabDictWord | null;
+    private word: WordWithConnections | null;
 
     //Event handlers
     override async OnInitiated(): Promise<void>
     {
-        const word = await this.cachedAPIService.QueryWord(this.input.wordId);
-        this.word = word;
+        const word = await this.cachedAPIService.QueryWordWithConnections(this.input.wordId);
+        this.word = word!;
     }
 }
