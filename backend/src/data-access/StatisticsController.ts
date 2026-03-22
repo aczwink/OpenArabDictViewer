@@ -23,7 +23,7 @@ import { Conjugator, TargetVerbBasedDerivationPatterns } from "@aczwink/openarab
 import { DisplayVocalized, VocalizedToString } from "@aczwink/openarabicconjugation/dist/Vocalization";
 import { VerbType } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { DialectsService } from "../services/DialectsService";
-import { OpenArabDictVerbDerivationType, OpenArabDictWordParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { RootsIndexService } from "../services/RootsIndexService";
 import { DialectType } from "@aczwink/openarabicconjugation/dist/Dialects";
 import { CreateVerbFromOADVerb, FindHighestConjugatableDialectOf } from "@aczwink/openarabdict-openarabicconjugation-bridge";
@@ -259,33 +259,35 @@ export class StatisticsController
         {
             if(word.type === OpenArabDictWordType.Verb)
                 continue;
-            if(word.parent?.type !== OpenArabDictWordParentType.Verb)
-                continue;
-            if(word.parent.derivation !== OpenArabDictVerbDerivationType.VerbalNoun)
-                continue;
 
-            const verbId = word.parent.verbId;
-            const verb = this.wordsIndexService.GetWord(verbId);
-            if(verb.type !== OpenArabDictWordType.Verb)
-                throw new Error("Should never happen");
-
-            const rootData = this.rootsIndexService.GetRoot(verb.rootId)!;
-
-            if(verb.form.variants === undefined)
+            for (const parent of word.parent)
             {
-                const verbInstance = CreateVerbFromOADVerb(DialectType.ModernStandardArabic, rootData, verb);
-                ProcessVerbInstance(word.text, verbInstance);
-            }
-            else
-            {
-                for (const variant of verb.form.variants)
+                if(parent.type !== OpenArabDictParentType.VerbalNoun)
+                    continue;
+
+                const verbId = parent.id;
+                const verb = this.wordsIndexService.GetWord(verbId);
+                if(verb.type !== OpenArabDictWordType.Verb)
+                    throw new Error("Should never happen");
+
+                const rootData = this.rootsIndexService.GetRoot(verb.rootId)!;
+
+                if(verb.form.variants === undefined)
                 {
-                    const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
-                    if(dialectType !== DialectType.ModernStandardArabic)
-                        continue;
-
-                    const verbInstance = CreateVerbFromOADVerb(dialectType, rootData, verb);
+                    const verbInstance = CreateVerbFromOADVerb(DialectType.ModernStandardArabic, rootData, verb);
                     ProcessVerbInstance(word.text, verbInstance);
+                }
+                else
+                {
+                    for (const variant of verb.form.variants)
+                    {
+                        const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
+                        if(dialectType !== DialectType.ModernStandardArabic)
+                            continue;
+
+                        const verbInstance = CreateVerbFromOADVerb(dialectType, rootData, verb);
+                        ProcessVerbInstance(word.text, verbInstance);
+                    }
                 }
             }
         }

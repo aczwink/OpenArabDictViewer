@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2025-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Dictionary, Enumerable, EnumeratorBuilder } from "@aczwink/acts-util-core";
+import { Dictionary, Enumerable, EnumeratorBuilder, EqualsAny } from "@aczwink/acts-util-core";
 
 class TrieNode<T>
 {
@@ -29,7 +29,10 @@ class TrieNode<T>
     public Add(key: string[], value: T)
     {
         if(key.length === 0)
-            this.values.push(value);
+        {
+            if(!this.Contains(value))
+                this.values.push(value);
+        }
         else
         {
             const next = key[0];
@@ -60,6 +63,17 @@ class TrieNode<T>
     }
 
     //Private methods
+    private Contains(item: T)
+    {
+        for (const value of this.values)
+        {
+            if(EqualsAny(value, item))
+                return true;
+        }
+
+        return false;
+    }
+
     private GetChild(nextKey: string)
     {
         const child = this.children[nextKey];

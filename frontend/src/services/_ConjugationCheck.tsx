@@ -62,7 +62,7 @@ function IsSpecial(root: VerbRoot, verb: Verb<ModernStandardArabicStem1Parameter
     }
 }
 
-export function _TODO_CheckConjugation(dialectType: DialectType, root: VerbRoot, verb: Verb<string>)
+export function _RemoveASAP_CheckConjugation(dialectType: DialectType, root: VerbRoot, verb: Verb<string>)
 {
     if(dialectType !== DialectType.ModernStandardArabic)
         return null;

@@ -138,6 +138,8 @@ export class GlobalSearchComponent extends Component
                         return "conjugation";
                     case ImplicitWordDerivation.DualOfNoun:
                         return "dual";
+                    case ImplicitWordDerivation.ExampleOrMeaningInContext:
+                        return "example or meaning in context";
                     case ImplicitWordDerivation.FeminineActiveParticiple:
                         return "feminine active participle";
                     case ImplicitWordDerivation.FemininePassiveParticiple:
@@ -154,7 +156,7 @@ export class GlobalSearchComponent extends Component
 
         return <tr>
             <td>{entry.derived.text}</td>
-            <td><WordDerivationComponent parent={entry.derived.parent} /></td>
+            <td><WordDerivationComponent parent={[entry.derived.parent]} /></td>
         </tr>;
     }
 

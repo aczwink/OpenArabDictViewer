@@ -18,7 +18,7 @@
 
 import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController, TranslationLanguage } from "./DatabaseController";
-import { OpenArabDictTranslationEntry, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordRelationshipType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictParentType, OpenArabDictTranslationEntry, OpenArabDictWord, OpenArabDictWordRelationshipType } from "@aczwink/openarabdict-domain";
 import { WordsIndexService } from "../services/WordsIndexService";
 import { TranslationIndexService } from "../services/TranslationIndexService";
 
@@ -58,7 +58,7 @@ export class WordsController
     {
         function filterFunc(x: OpenArabDictWord)
         {
-            return (x.parent?.type === OpenArabDictWordParentType.Root) && (x.parent.rootId === rootId);
+            return x.parent.find(x => (x.type === OpenArabDictParentType.Root) && (x.id === rootId)) !== undefined;
         }
 
         const document = await this.dbController.GetDocumentDB();

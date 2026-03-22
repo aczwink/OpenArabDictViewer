@@ -21,7 +21,7 @@ import { Gender, Person, Numerus, Tense, Voice, ConjugationParams } from "@aczwi
 import { VerbRoot } from "@aczwink/openarabicconjugation/dist/VerbRoot";
 import { ConjugationService } from "./ConjugationService";
 import { OpenArabDictVerb, OpenArabDictVerbForm } from "@aczwink/openarabdict-domain";
-import { _TODO_CheckConjugation } from "./_ConjugationCheck";
+import { _RemoveASAP_CheckConjugation } from "./_ConjugationCheck";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { VerbConjugationDialectResolver } from "./VerbConjugationDialectResolver";
 import { CreateVerbFromOADVerbForm } from "@aczwink/openarabdict-openarabicconjugation-bridge";
@@ -66,7 +66,7 @@ export class VerbConjugationService
 
     public RenderCheck(dialectType: DialectType, rootRadicals: string, verb: OpenArabDictVerb)
     {
-        const check = _TODO_CheckConjugation(dialectType, new VerbRoot(rootRadicals), this.ConstructVerb(dialectType, rootRadicals, verb.form));
+        const check = _RemoveASAP_CheckConjugation(dialectType, new VerbRoot(rootRadicals), this.ConstructVerb(dialectType, rootRadicals, verb.form));
         return check;
     }
 

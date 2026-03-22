@@ -17,83 +17,62 @@
  * */
 
 import { JSX_CreateElement, JSX_Fragment } from "@aczwink/acfrontend";
-import { OpenArabDictNonVerbDerivationType, OpenArabDictVerbDerivationType } from "../../dist/api";
 import { WordIdReferenceComponent } from "./WordReferenceComponent";
 import { WordDerivationTypeFromWordToString } from "../shared/words";
-import { OpenArabDictOtherWordParent, OpenArabDictWordParent, OpenArabDictWordParentType, OpenArabDictWordVerbParent } from "@aczwink/openarabdict-domain";
+import { OpenArabDictParentType, OpenArabDictWordParent } from "@aczwink/openarabdict-domain";
 import { RootIdReferenceComponent } from "../roots/RootReferenceComponent";
 
-function RelationshipToText(relationType: OpenArabDictNonVerbDerivationType, outgoing: boolean): string
+function DerivationToText(relationType: OpenArabDictParentType, outgoing: boolean): string
 {
     if(outgoing)
         return WordDerivationTypeFromWordToString(relationType);
 
     switch(relationType)
     {
-        case OpenArabDictNonVerbDerivationType.Feminine:
+        case OpenArabDictParentType.Feminine:
             return "male version";
-        case OpenArabDictNonVerbDerivationType.Plural:
+        case OpenArabDictParentType.Plural:
             return "singular";
-        case OpenArabDictNonVerbDerivationType.Nisba:
+        case OpenArabDictParentType.Nisba:
             return "noun version";
-        case OpenArabDictNonVerbDerivationType.Colloquial:
+        case OpenArabDictParentType.Colloquial:
             return "فصحى version";
-        case OpenArabDictNonVerbDerivationType.AdverbialAccusative:
-        case OpenArabDictNonVerbDerivationType.Extension:
-        case OpenArabDictNonVerbDerivationType.InstanceNoun:
+        case OpenArabDictParentType.AdverbialAccusative:
+        case OpenArabDictParentType.ComposedOf:
+        case OpenArabDictParentType.Extension:
+        case OpenArabDictParentType.InstanceNoun:
             return "base";
-        case OpenArabDictNonVerbDerivationType.ElativeDegree:
+        case OpenArabDictParentType.ElativeDegree:
             return "positive degree";
-        case OpenArabDictNonVerbDerivationType.Singulative:
+        case OpenArabDictParentType.Singulative:
             return "collective";
-        case OpenArabDictNonVerbDerivationType.DefiniteState:
+        case OpenArabDictParentType.DefiniteState:
             return "indefinitive state";
+        default:
+            throw new Error("Unknown type: " + relationType + "_" + outgoing);
     }
 }
 
-export function RenderDerivedTerm(outgoing: boolean, relation: OpenArabDictOtherWordParent)
+export function RenderDerivedTerm(outgoing: boolean, relation: OpenArabDictWordParent)
 {
-    return <fragment>{RelationshipToText(relation.relationType, outgoing)} of <WordIdReferenceComponent wordId={relation.wordId} /></fragment>;
-}
-
-function RenderVerbDerivationData(verbData: OpenArabDictWordVerbParent)
-{
-    function DerivationText()
-    {
-        switch(verbData.derivation)
-        {
-            case OpenArabDictVerbDerivationType.ActiveParticiple:
-                return "active participle of ";
-            case OpenArabDictVerbDerivationType.PassiveParticiple:
-                return "passive participle of ";
-            case OpenArabDictVerbDerivationType.Colloquial:
-                return "colloquial version of ";
-            case OpenArabDictVerbDerivationType.MeaningRelated:
-                return "related in meaning of ";
-            case OpenArabDictVerbDerivationType.NounOfPlace:
-                return "noun of place of ";
-            case OpenArabDictVerbDerivationType.VerbalNoun:
-                return "verbal noun of ";
-        }
-    }
-
     return <>
-        {DerivationText()} <WordIdReferenceComponent wordId={verbData.verbId} />
+        {DerivationToText(relation.type, outgoing)} of <WordIdReferenceComponent wordId={relation.id} />
     </>;
 }
 
-export function WordDerivationComponent(input: { parent?: OpenArabDictWordParent; })
+export function WordDerivationComponent(input: { parent: OpenArabDictWordParent[]; })
 {
-    if(input.parent === undefined)
-        return null;
-
-    switch(input.parent.type)
+    function RenderEntry(x: OpenArabDictWordParent)
     {
-        case OpenArabDictWordParentType.NonVerbWord:
-            return RenderDerivedTerm(true, input.parent);
-        case OpenArabDictWordParentType.Root:
-            return <RootIdReferenceComponent rootId={input.parent.rootId} />;
-        case OpenArabDictWordParentType.Verb:
-            return RenderVerbDerivationData(input.parent);
+        if(x.type === OpenArabDictParentType.Root)
+            return <RootIdReferenceComponent rootId={x.id} />;
+        return RenderDerivedTerm(true, x);
     }
+    
+    if(input.parent.length === 1)
+        return RenderEntry(input.parent[0]);
+    
+    return <ul>
+        {input.parent.map(x => <li>{RenderEntry(x)}</li>)}
+    </ul>;
 }

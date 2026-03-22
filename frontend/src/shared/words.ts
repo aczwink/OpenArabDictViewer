@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { OpenArabDictGender, OpenArabDictGenderedWord, OpenArabDictWordRelationshipType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
-import { OpenArabDictNonVerbDerivationType, OpenArabDictWord } from "../../dist/api";
+import { OpenArabDictGender, OpenArabDictGenderedWord, OpenArabDictParentType, OpenArabDictWordRelationshipType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictWord } from "../../dist/api";
 import { I18n } from "@aczwink/acfrontend";
 
 export const allWordTypes = [
@@ -33,30 +33,46 @@ export const allWordTypes = [
     OpenArabDictWordType.Particle,
 ];
 
-export function WordDerivationTypeFromWordToString(type: OpenArabDictNonVerbDerivationType): string
+export function WordDerivationTypeFromWordToString(type: OpenArabDictParentType): string
 {
     switch(type)
     {
-        case OpenArabDictNonVerbDerivationType.AdverbialAccusative:
-            return "adverbial accusative";
-        case OpenArabDictNonVerbDerivationType.Feminine:
-            return "feminine version";
-        case OpenArabDictNonVerbDerivationType.Plural:
-            return "plural";
-        case OpenArabDictNonVerbDerivationType.InstanceNoun:
-            return "instance noun";
-        case OpenArabDictNonVerbDerivationType.Nisba:
-            return "relative adjective (nisbah اَلنِّسْبَة)";
-        case OpenArabDictNonVerbDerivationType.Colloquial:
+        case OpenArabDictParentType.ActiveParticiple:
+            return "active participle";
+        case OpenArabDictParentType.PassiveParticiple:
+            return "passive participle";
+        case OpenArabDictParentType.Colloquial:
             return "colloquial version";
-        case OpenArabDictNonVerbDerivationType.Extension:
+        case OpenArabDictParentType.MeaningRelated:
+            return "related in meaning";
+        case OpenArabDictParentType.NounOfPlace:
+            return "noun of place";
+        case OpenArabDictParentType.VerbalNoun:
+            return "verbal noun";
+        case OpenArabDictParentType.AdverbialAccusative:
+            return "adverbial accusative";
+        case OpenArabDictParentType.Feminine:
+            return "feminine version";
+        case OpenArabDictParentType.Plural:
+            return "plural";
+        case OpenArabDictParentType.InstanceNoun:
+            return "instance noun";
+        case OpenArabDictParentType.Nisba:
+            return "relative adjective (nisbah اَلنِّسْبَة)";
+        case OpenArabDictParentType.Colloquial:
+            return "colloquial version";
+        case OpenArabDictParentType.Extension:
             return "extension";
-        case OpenArabDictNonVerbDerivationType.ElativeDegree:
+        case OpenArabDictParentType.ElativeDegree:
             return "elative degree";
-        case OpenArabDictNonVerbDerivationType.Singulative:
+        case OpenArabDictParentType.Singulative:
             return "singulative";
-        case OpenArabDictNonVerbDerivationType.DefiniteState:
+        case OpenArabDictParentType.DefiniteState:
             return "definitive state";
+        case OpenArabDictParentType.ComposedOf:
+            return "composed";
+        default:
+            throw new Error("Unknown type: " + type);
     }
 }
 
@@ -147,7 +163,7 @@ function WordTypeToDictionaryKey(wordType: OpenArabDictWordType)
         case OpenArabDictWordType.Adjective:
             return "adjective";
         case OpenArabDictWordType.Conjunction:
-            return "Conjunction";
+            return "conjunction";
         case OpenArabDictWordType.ForeignVerb:
             return "Foreign Verb";
         case OpenArabDictWordType.Adverb:

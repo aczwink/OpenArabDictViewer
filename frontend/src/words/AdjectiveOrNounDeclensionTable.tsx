@@ -19,14 +19,14 @@
 import { Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "@aczwink/acfrontend";
 import { CachedAPIService } from "../services/CachedAPIService";
 import { AdjectiveOrNounInput, Case, Gender, Numerus } from "@aczwink/openarabicconjugation/dist/Definitions";
-import { OpenArabDictNonVerbDerivationType } from "../../dist/api";
 import { DisplayVocalized, ParseVocalizedText } from "@aczwink/openarabicconjugation/dist/Vocalization";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { ConjugationService } from "../services/ConjugationService";
-import { OpenArabDictGender, OpenArabDictGenderedWord, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictGender, OpenArabDictGenderedWord, OpenArabDictParentType, OpenArabDictWord, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { TargetAdjectiveNounDerivation } from "@aczwink/openarabicconjugation/dist/DialectConjugator";
 import { AdjectiveOrNounState } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { DialectType } from "@aczwink/openarabicconjugation";
+import { WordLogic } from "@aczwink/openarabdict-openarabicconjugation-bridge";
 
 @Injectable
 export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDictGenderedWord; derivedWordIds: string[]; }>
@@ -69,9 +69,9 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDi
         if(sourceState.gender !== targetGender)
         {
             if(sourceState.gender === Gender.Female)
-                throw new Error("TODO1");
+                throw new Error("this should likely be implemented :) 1");
             if(sourceState.numerus !== Numerus.Singular)
-                throw new Error("TODO2");
+                throw new Error("this should likely be implemented :) 2");
 
             const feminine = (this.feminine === null)
                 ? this.conjugationService.DeriveSoundAdjectiveOrNoun(DialectType.ModernStandardArabic, sourceState.vocalized, sourceState.gender, TargetAdjectiveNounDerivation.DeriveFeminineSingular)
@@ -111,6 +111,16 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDi
         }
     }
 
+    private DoesParentExist(type: OpenArabDictParentType, word: OpenArabDictWord)
+    {
+        return word.parent.find(x => x.type === type) !== undefined;
+    }
+
+    private FindDerivedWord(type: OpenArabDictParentType, derived: OpenArabDictWord[])
+    {
+        return derived.find(x => this.DoesParentExist(type, x));
+    }
+
     private GetSourceState(): AdjectiveOrNounInput
     {
         const w = this.input.word;
@@ -137,23 +147,22 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDi
         return this.input.word.type === OpenArabDictWordType.Adjective;
     }
 
-    private IsSingular() //TODO: migrate to some openarabdict logic
+    /*private IsSingular()
     {
-        if(this.input.word.parent !== undefined)
-        {
-            if(this.input.word.parent.type === OpenArabDictWordParentType.NonVerbWord)
-                return this.input.word.parent.relationType !== OpenArabDictNonVerbDerivationType.Plural;
-        }
-        return true;
+        return WordLogic.IsSingular(this.input.word);
+    }*/
+   private IsSingular() //TODO: USE WordLogic.IsSingular
+    {
+        return this.input.word.parent.find(x => x.type === OpenArabDictParentType.Plural) === undefined;
     }
 
     private async LoadRelatedWords()
     {
         const derived = await this.input.derivedWordIds.Values().Map(x => this.cachedAPIService.QueryWord(x)).PromiseAll();
 
-        this.definite = derived.find(x => (x.parent?.type === OpenArabDictWordParentType.NonVerbWord) && (x.parent.relationType === OpenArabDictNonVerbDerivationType.DefiniteState)) ?? null;
-        this.feminine = derived.find(x => (x.parent?.type === OpenArabDictWordParentType.NonVerbWord) && (x.parent.relationType === OpenArabDictNonVerbDerivationType.Feminine)) ?? null;
-        this.plurals = derived.filter(x => (x.parent?.type === OpenArabDictWordParentType.NonVerbWord) && (x.parent.relationType === OpenArabDictNonVerbDerivationType.Plural));
+        this.definite = this.FindDerivedWord(OpenArabDictParentType.DefiniteState, derived) ?? null;
+        this.feminine = this.FindDerivedWord(OpenArabDictParentType.Feminine, derived) ?? null;
+        this.plurals = derived.filter(x => this.DoesParentExist(OpenArabDictParentType.Plural, x));
     }
 
     private RenderCell(targetNumerus: Numerus, c: Case, targetGender: Gender, parsed: DisplayVocalized[], targetState: AdjectiveOrNounState)

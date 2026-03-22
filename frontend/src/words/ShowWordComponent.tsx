@@ -25,8 +25,10 @@ import { WordIdReferenceComponent } from "./WordReferenceComponent";
 import { AdjectiveOrNounDeclensionTable } from "./AdjectiveOrNounDeclensionTable";
 import { RenderDerivedTerm, WordDerivationComponent } from "./WordDerivationComponent";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
-import { OpenArabDictGender, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictGender, OpenArabDictParentType, OpenArabDictWord, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { ShowVerbComponent } from "../verbs/ShowVerbComponent";
+import { Letter } from "@aczwink/openarabicconjugation";
+import { Tashkil } from "@aczwink/openarabicconjugation/dist/Definitions";
 
 @Injectable
 export class ShowWordComponent extends Component
@@ -77,36 +79,44 @@ export class ShowWordComponent extends Component
     }
 
     //Private methods
-    private RenderDerivationData()
+    private IsExpectedGender(gender: OpenArabDictGender)
     {
-        const derivation = this.data!.word.parent;
-        if(derivation === undefined)
-            return null;
+        const hasSoundFemaleEnding = this.IsSingular() ? this.data!.word.text.endsWith(Letter.TaMarbuta) : this.data!.word.text.endsWith(Tashkil.Fatha + Letter.Alef + Letter.Ta);
 
-        return <tr>
-            <th>{I18n("word.derivedFrom")} {this.RenderDerivationSource()}:</th>
-            <td><WordDerivationComponent parent={this.data?.word.parent} /></td>
-        </tr>;
-    }
-
-    private RenderDerivationSource()
-    {
-        const parent = this.data!.word.parent;
-        if(parent === undefined)
-            return null;
-
-        switch(parent.type)
+        switch(gender)
         {
-            case OpenArabDictWordParentType.NonVerbWord:
-                return "word";
-            case OpenArabDictWordParentType.Root:
-                return "root";
-            case OpenArabDictWordParentType.Verb:
-                return "verb";
+            case OpenArabDictGender.Female:
+                return hasSoundFemaleEnding;
+            case OpenArabDictGender.FemaleOrMale:
+                return true;
+            case OpenArabDictGender.Male:
+                return !hasSoundFemaleEnding;
         }
     }
 
+    /*private IsSingular()
+    {
+        return WordLogic.IsSingular(this.input.word);
+    }*/
+   private IsSingular() //TODO: USE WordLogic.IsSingular
+    {
+        return this.data?.word.parent.find(x => x.type === OpenArabDictParentType.Plural) === undefined;
+    }
 
+    private RenderDerivationData()
+    {
+        return <tr>
+            <th>{I18n("word.derivedFrom")}:</th>
+            <td><WordDerivationComponent parent={this.data!.word.parent} /></td>
+        </tr>;
+    }
+
+    private RenderDerivedTerm(derived: OpenArabDictWord)
+    {
+        const link = derived.parent.find(x => (x.type !== OpenArabDictParentType.Root) && (x.id === this.data!.word.id))!;
+        return RenderDerivedTerm(false, { id: derived.id, type: link.type });
+    }
+    
     private RenderDerivedTerms()
     {
         if(this.data!.derived.length === 0)
@@ -115,7 +125,7 @@ export class ShowWordComponent extends Component
         return <tr>
             <th>Derived words/terms:</th>
             <td>
-                <ul>{this.derived.map(x => <li>{RenderDerivedTerm(false, { relationType: (x.parent as any).relationType, type: OpenArabDictWordParentType.NonVerbWord, wordId: x.id })}</li>)}</ul>
+                <ul>{this.derived.map(x => <li>{this.RenderDerivedTerm(x)}</li>)}</ul>
             </td>
         </tr>;
     }
@@ -139,9 +149,12 @@ export class ShowWordComponent extends Component
         if(!WordMayHaveGender(this.data!.word))
             return null;
 
+        const genderText = this.RenderGender(this.data!.word.gender);
+        const gender = this.IsExpectedGender(this.data!.word.gender) ? genderText : <span className="text-danger fw-bold">{genderText}</span>;
+
         return <tr>
             <th>{I18n("word.gender")}:</th>
-            <td>{this.RenderGender(this.data!.word.gender)}</td>
+            <td>{gender}</td>
         </tr>;
     }
 

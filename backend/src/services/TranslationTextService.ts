@@ -24,7 +24,7 @@ export class TranslationTextService
     //Public methods
     public ContainsCaseInsensitive(superstring: string, substring: string, translationLanguage: TranslationLanguage)
     {
-        //TODO use localeCompare
+        //use localeCompare
         return superstring.toLowerCase().includes(substring.toLowerCase());
     }
 

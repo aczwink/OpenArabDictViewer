@@ -50,6 +50,7 @@ word:
   types:
     adjective: Adjektiv
     adverb: Adverb
+    conjunction: Konjunktion
     noun: Substantiv
     particle: Partikel
     preposition: Präposition

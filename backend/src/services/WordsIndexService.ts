@@ -19,7 +19,7 @@
 import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController } from "../data-access/DatabaseController";
 import { Dictionary } from "@aczwink/acts-util-core";
-import { OpenArabDictWord, OpenArabDictWordParent, OpenArabDictWordParentType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictParentType, OpenArabDictWord, OpenArabDictWordParent } from "@aczwink/openarabdict-domain";
 
 type ChildLink = OpenArabDictWordParent & { childWordId: string; }
 
@@ -51,17 +51,19 @@ export class WordsIndexService
         {
             this.wordMap[word.id] = word;
 
-            if(word.parent?.type === OpenArabDictWordParentType.NonVerbWord)
-                this.AddDerivationLink(word.id, word.parent.wordId, word.parent);
-            else if(word.parent?.type === OpenArabDictWordParentType.Verb)
-                this.AddDerivationLink(word.id, word.parent.verbId, word.parent);
+            for (const parent of word.parent)
+            {
+                if(parent.type !== OpenArabDictParentType.Root)
+                    this.AddDerivationLink(word.id, parent);
+            }
         }
     }
 
     //Private methods
-    private AddDerivationLink(wordId: string, parentWordId: string, parent: OpenArabDictWordParent)
+    private AddDerivationLink(wordId: string, parent: OpenArabDictWordParent)
     {
         const link = {...parent, childWordId: wordId};
+        const parentWordId = parent.id;
 
         const children = this.childrenMap[parentWordId];
         if(children === undefined)

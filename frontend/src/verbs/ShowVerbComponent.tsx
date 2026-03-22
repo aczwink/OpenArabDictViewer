@@ -31,7 +31,7 @@ import { Tense } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { DialectsService } from "../services/DialectsService";
 import { ConjugationSchemeToString } from "./ToStringStuff";
 import { VerbConjugationService } from "../services/VerbConjugationService";
-import { OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbDerivationType, OpenArabDictVerbForm, OpenArabDictWordParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictParentType, OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbForm, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { WordIdReferenceComponent } from "../words/WordReferenceComponent";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
 import { WordTableComponent } from "../words/WordTableComponent";
@@ -429,7 +429,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         if(verb.dialect !== DialectType.ModernStandardArabic)
             return null;
 
-        const verbalNouns = this.derivedWords?.filter(x => (x.word.parent?.type === OpenArabDictWordParentType.Verb) && (x.word.parent.derivation === OpenArabDictVerbDerivationType.VerbalNoun)) ?? [];
+        const verbalNouns = this.derivedWords?.filter(x => (x.word.parent.find(y => y.type === OpenArabDictParentType.VerbalNoun) !== undefined)) ?? [];
         let verbalNounRendering;
         if(verbalNouns.length > 0)
             verbalNounRendering = verbalNouns.map(x => <Anchor route={"/words/" + x.word.id}>{x.word.text}</Anchor>);
@@ -474,7 +474,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
     {
         const full = await this.cachedAPIService.QueryWordWithConnections(this.input.verbId);
         if(full?.word.type !== OpenArabDictWordType.Verb)
-            throw new Error("TODO implement me");
+            throw new Error("Programming error!");
 
         const root = await this.cachedAPIService.QueryRootData(full.word.rootId);
 

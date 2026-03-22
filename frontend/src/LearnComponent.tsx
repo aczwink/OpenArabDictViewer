@@ -83,7 +83,7 @@ export class LearnComponent extends Component
         this.showTashkil = false;
         this.resolve = false;
 
-        const response = await this.apiService.randomword.get({ translationLanguage: this.globalSettingsService.activeLanguage });
+        const response = await this.apiService.words_random.get({ translationLanguage: this.globalSettingsService.activeLanguage });
         const wordId = response.data;
 
         const word = await this.cachedAPIService.QueryFullWord(wordId);

@@ -72,8 +72,7 @@ class _api_
     }
 }
 
-//TODO: redesign this. should be a child of words
-@APIController("randomword")
+@APIController("words_random")
 class _api3_
 {
     constructor(private wordsController: WordsController)

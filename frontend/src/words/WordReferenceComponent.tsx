@@ -18,7 +18,7 @@
 
 import { Anchor, Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "@aczwink/acfrontend";
 import { WordGenderToAbbreviation, WordMayHaveGender, WordTypeToAbbreviationText } from "../shared/words";
-import { OpenArabDictRoot, OpenArabDictVerbDerivationType, OpenArabDictWord, OpenArabDictWordParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictParentType, OpenArabDictRoot, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
 import { DialectsService } from "../services/DialectsService";
 import { VerbConjugationService } from "../services/VerbConjugationService";
@@ -121,15 +121,15 @@ export class WordReferenceComponent extends Component<{ word: WordWithConnection
     private TypeToString()
     {
         const word = this.input.word.word;
-        if( (word.parent !== undefined) && (word.parent.type === OpenArabDictWordParentType.Verb) )
+        for (const parent of word.parent)
         {
-            switch(word.parent.derivation)
+            switch(parent.type)
             {
-                case OpenArabDictVerbDerivationType.ActiveParticiple:
+                case OpenArabDictParentType.ActiveParticiple:
                     return "(active participle)";
-                case OpenArabDictVerbDerivationType.PassiveParticiple:
+                case OpenArabDictParentType.PassiveParticiple:
                     return "(passive participle)";
-                case OpenArabDictVerbDerivationType.VerbalNoun:
+                case OpenArabDictParentType.VerbalNoun:
                     return "(verbal noun)";
             }
         }
