@@ -169,7 +169,7 @@ function WordTypeToDictionaryKey(wordType: OpenArabDictWordType)
         case OpenArabDictWordType.Adverb:
             return "adverb";
         case OpenArabDictWordType.Pronoun:
-            return "Pronoun";
+            return "pronoun";
         case OpenArabDictWordType.Phrase:
             return "Phrase";
         case OpenArabDictWordType.Particle:

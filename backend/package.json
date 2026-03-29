@@ -16,9 +16,9 @@
     "@aczwink/acts-util-node": "^1.0.0",
     "@aczwink/openarabdict-domain": "^1.2.0",
     "@aczwink/openarabdict-openarabicconjugation-bridge": "^1.0.1",
-    "@aczwink/openarabicconjugation": "^1.2.0",
+    "@aczwink/openarabicconjugation": "^1.2.1",
     "xml-js": "^1.6.11",
-    "yaml": "^2.8.2"
+    "yaml": "^2.8.3"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
@@ -27,6 +27,6 @@
     "source-map-loader": "^5.0.0",
     "ts-loader": "^9.5.4",
     "webpack": "^5.105.4",
-    "webpack-cli": "^7.0.0"
+    "webpack-cli": "^7.0.2"
   }
 }
