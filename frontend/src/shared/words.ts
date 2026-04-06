@@ -71,6 +71,10 @@ export function WordDerivationTypeFromWordToString(type: OpenArabDictParentType)
             return "definitive state";
         case OpenArabDictParentType.ComposedOf:
             return "composed";
+        case OpenArabDictParentType.ToolNoun:
+            return "tool noun";
+        case OpenArabDictParentType.CharacteristicNoun:
+            return "characteristic noun";
         default:
             throw new Error("Unknown type: " + type);
     }

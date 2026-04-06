@@ -109,7 +109,6 @@ export class WordReferenceComponent extends Component<{ word: WordWithConnection
             const verbPresentation = this.verbConjugationService.CreateDefaultDisplayVersionOfVerbWithDiff(dialectType, this.root.radicals, word.form, { ...word.form, stem: 1, variants: [{ stemParameters: this.GetComparisonStemParameters(verb), dialectId: dialect.id }] });
 
             return <>
-                {this.verbConjugationService.RenderCheck(dialectType, this.root.radicals, word)}
                 {this.dialectsService.FindDialect(verb.dialect)?.emojiCodes}
                 {this.RenderDialectHint(dialectType)}
                 {verbPresentation}

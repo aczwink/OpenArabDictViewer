@@ -29,6 +29,7 @@ import { OpenArabDictGender, OpenArabDictParentType, OpenArabDictWord, OpenArabD
 import { ShowVerbComponent } from "../verbs/ShowVerbComponent";
 import { Letter } from "@aczwink/openarabicconjugation";
 import { Tashkil } from "@aczwink/openarabicconjugation/dist/Definitions";
+import { WordLogic } from "@aczwink/openarabdict-openarabicconjugation-bridge";
 
 @Injectable
 export class ShowWordComponent extends Component
@@ -93,14 +94,10 @@ export class ShowWordComponent extends Component
                 return !hasSoundFemaleEnding;
         }
     }
-
-    /*private IsSingular()
+    
+    private IsSingular()
     {
-        return WordLogic.IsSingular(this.input.word);
-    }*/
-   private IsSingular() //TODO: USE WordLogic.IsSingular
-    {
-        return this.data?.word.parent.find(x => x.type === OpenArabDictParentType.Plural) === undefined;
+        return WordLogic.IsSingular(this.data!.word);
     }
 
     private RenderDerivationData()

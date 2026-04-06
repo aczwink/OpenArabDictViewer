@@ -24,8 +24,8 @@
   "dependencies": {
     "@aczwink/acfrontend": "^1.0.0",
     "@aczwink/acts-util-core": "^1.0.0",
-    "@aczwink/openarabdict-domain": "^1.2.0",
-    "@aczwink/openarabdict-openarabicconjugation-bridge": "^1.0.1",
-    "@aczwink/openarabicconjugation": "^1.2.2"
+    "@aczwink/openarabdict-domain": "^1.3.0",
+    "@aczwink/openarabdict-openarabicconjugation-bridge": "^1.0.2",
+    "@aczwink/openarabicconjugation": "^1.2.3"
   }
 }

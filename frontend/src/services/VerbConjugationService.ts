@@ -20,8 +20,7 @@ import { Injectable } from "@aczwink/acfrontend";
 import { Gender, Person, Numerus, Tense, Voice, ConjugationParams } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { VerbRoot } from "@aczwink/openarabicconjugation/dist/VerbRoot";
 import { ConjugationService } from "./ConjugationService";
-import { OpenArabDictVerb, OpenArabDictVerbForm } from "@aczwink/openarabdict-domain";
-import { _RemoveASAP_CheckConjugation } from "./_ConjugationCheck";
+import { OpenArabDictVerbForm } from "@aczwink/openarabdict-domain";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { VerbConjugationDialectResolver } from "./VerbConjugationDialectResolver";
 import { CreateVerbFromOADVerbForm } from "@aczwink/openarabdict-openarabicconjugation-bridge";
@@ -62,12 +61,6 @@ export class VerbConjugationService
     public IsNativeConjugationPossible(dialectType: DialectType, word: WordWithConnections)
     {
         return this.verbConjugationDialectResolver.IsNativeConjugationPossible(dialectType, word);
-    }
-
-    public RenderCheck(dialectType: DialectType, rootRadicals: string, verb: OpenArabDictVerb)
-    {
-        const check = _RemoveASAP_CheckConjugation(dialectType, new VerbRoot(rootRadicals), this.ConstructVerb(dialectType, rootRadicals, verb.form));
-        return check;
     }
 
     public SelectDialect(rootRadicals: string, verbForm: OpenArabDictVerbForm)

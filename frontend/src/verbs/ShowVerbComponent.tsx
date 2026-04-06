@@ -69,7 +69,6 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         const verb = this.verbConjugationService.ConstructVerb(dialectType, this.rootRadicals, this.GetForm(dialectType));
 
         return <fragment>
-            {this.verbConjugationService.RenderCheck(dialectType, this.rootRadicals, this.data)}
             <div className="row">
                 <h2>{this.data.text}</h2>
             </div>

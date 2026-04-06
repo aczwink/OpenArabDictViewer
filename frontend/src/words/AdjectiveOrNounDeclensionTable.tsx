@@ -147,13 +147,9 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDi
         return this.input.word.type === OpenArabDictWordType.Adjective;
     }
 
-    /*private IsSingular()
+    private IsSingular()
     {
         return WordLogic.IsSingular(this.input.word);
-    }*/
-   private IsSingular() //TODO: USE WordLogic.IsSingular
-    {
-        return this.input.word.parent.find(x => x.type === OpenArabDictParentType.Plural) === undefined;
     }
 
     private async LoadRelatedWords()

@@ -117,12 +117,12 @@ export class ArabicTextIndexService
 
         const conjugator = new Conjugator();
 
-        const isInNominative = WordLogic.IsNounInNominative(word);
+        const isInNominative = WordLogic.IsAdjectiveOrNounInNominative(word);
 
         if(isInNominative)
         {
             const gender = (word.gender === OpenArabDictGender.Male) ? Gender.Male : Gender.Female;
-            const isSingular = this._TODO_IsSingular(word);
+            const isSingular = WordLogic.IsSingular(word);
             const numerus = isSingular ? Numerus.Singular : Numerus.Plural;
             const isDefinite = (word.parent.find(x => x.type === OpenArabDictParentType.DefiniteState) !== undefined);
             const targetState = isDefinite ? AdjectiveOrNounState.Definite : AdjectiveOrNounState.Indefinite;
@@ -160,11 +160,6 @@ export class ArabicTextIndexService
         }, trie);
     }
 
-    private _TODO_IsSingular(word: OpenArabDictWord) //TODO: USE WordLogic.IsSingular
-    {
-        return word.parent.find(x => x.type === OpenArabDictParentType.Plural) === undefined;
-    }
-
     private AddNounToIndex(word: OpenArabDictGenderedWord, trie: PrefixTree<IndexEntry>)
     {
         const vocalized = ParseVocalizedPhrase(word.text);
@@ -173,10 +168,10 @@ export class ArabicTextIndexService
             word,
         }, trie);
 
-        const isSingular = this._TODO_IsSingular(word);
+        const isSingular = WordLogic.IsSingular(word);
         const gender = (word.gender === OpenArabDictGender.Male) ? Gender.Male : Gender.Female;
         const numerus = isSingular ? Numerus.Singular : Numerus.Plural;
-        const isInNominative = WordLogic.IsNounInNominative(word);
+        const isInNominative = WordLogic.IsAdjectiveOrNounInNominative(word);
         const hasDefiniteChild = this.DoesChildExist(word.id, OpenArabDictParentType.DefiniteState);
         const isDefinite = (word.parent.find(x => x.type === OpenArabDictParentType.DefiniteState) !== undefined);
         const targetState = isDefinite ? AdjectiveOrNounState.Definite : AdjectiveOrNounState.Indefinite;
