@@ -150,13 +150,19 @@ export class GlobalSearchComponent extends Component
             }
             return <tr>
                 <td>{entry.derived.text}</td>
-                <td><i>{Type2Text(entry.derived.parent.kind) + " of"}</i> <WordReferenceComponent word={entry.word} /></td>
+                <td>
+                    <i>{Type2Text(entry.derived.parent.kind) + " of"}</i> <WordReferenceComponent word={entry.word} />
+                    <WordFunctionComponent word={entry.word} />
+                </td>
             </tr>;
         }
 
         return <tr>
             <td>{entry.derived.text}</td>
-            <td><WordDerivationComponent parent={[entry.derived.parent]} /></td>
+            <td>
+                <WordDerivationComponent parent={[entry.derived.parent]} />
+                <WordFunctionComponent word={entry.word} />
+            </td>
         </tr>;
     }
 
