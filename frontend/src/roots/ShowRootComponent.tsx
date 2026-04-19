@@ -24,6 +24,7 @@ import { RootType, VerbRoot } from "@aczwink/openarabicconjugation/dist/VerbRoot
 import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
 import { OpenArabDictRoot } from "@aczwink/openarabdict-domain";
 import { WordTableComponent } from "../words/WordTableComponent";
+import env from "../env";
 
 interface ShowRootData
 {
@@ -50,7 +51,7 @@ export class ShowRootComponent extends Component
         const root = new VerbRoot(this.data.root.radicals);
         return <fragment>
             <div className="row">
-                <h2>Root: {RootToString(this.data.root)}</h2>
+                <h2>Root: {this.RenderRoot()}</h2>
             </div>
             <table>
                 <tbody>
@@ -75,6 +76,14 @@ export class ShowRootComponent extends Component
     private data: ShowRootData | null;
 
     //Private methods
+    private RenderRoot()
+    {
+        const text = RootToString(this.data!.root);
+        if(env.isDebugModeSwitchedOn)
+            return <span onclick={() => navigator.clipboard.writeText(text)}>{text}</span>;
+        return text;
+    }
+
     private ToEjtaalQuery()
     {
         const root = new VerbRoot(this.data!.root.radicals);
