@@ -46,6 +46,12 @@ export class RootsController
             if(root.radicals.startsWith(prefixWithWaw))
                 return true;
         }
+        if((prefix[2] === Letter.Ya) && (root.radicals[2] === Letter.Waw) && (root.ya === true))
+        {
+            const prefixWithWaw = prefix[0] + prefix[1] + Letter.Waw + prefix.substring(3);
+            if(root.radicals.startsWith(prefixWithWaw))
+                return true;
+        }
 
         return root.radicals.startsWith(prefix);
     }

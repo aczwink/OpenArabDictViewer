@@ -183,7 +183,7 @@ function WordTypeToDictionaryKey(wordType: OpenArabDictWordType)
         case OpenArabDictWordType.Verb:
             return "Verb";
         case OpenArabDictWordType.Numeral:
-            return "Numeral";
+            return "numeral";
     }
 }
 

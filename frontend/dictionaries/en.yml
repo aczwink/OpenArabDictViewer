@@ -52,6 +52,7 @@ word:
     adverb: Adverb
     conjunction: Conjunction
     noun: Noun
+    numeral: Numeral
     particle: Particle
     preposition: Preposition
     pronoun: Pronoun
