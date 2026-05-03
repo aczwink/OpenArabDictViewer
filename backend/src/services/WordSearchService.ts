@@ -17,24 +17,24 @@
  * */
 
 import { Injectable } from "@aczwink/acts-util-node";
-import { OpenArabDictTranslationEntry, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictPOSType, OpenArabDictTranslationEntry } from "@aczwink/openarabdict-domain";
 import { DatabaseController, TranslationLanguage } from "../data-access/DatabaseController";
 import { ArabicTextIndexService, ImplicitWordDerivation, SearchResultEntry } from "./ArabicTextIndexService";
 import { Of } from "@aczwink/acts-util-core";
-import { WordsIndexService } from "./WordsIndexService";
+import { LexemesIndexService } from "./LexemesIndexService";
 import { ArabicText } from "@aczwink/openarabicconjugation";
 import { TranslationTextService } from "./TranslationTextService";
 
 export interface WordFilterCriteria
 {
-    wordType: OpenArabDictWordType | null;
+    wordType: OpenArabDictPOSType | null;
     textFilter: string;
 }
 
 @Injectable
 export class WordSearchService
 {
-    constructor(private dbController: DatabaseController, private arabicTextIndexService: ArabicTextIndexService, private wordsIndexService: WordsIndexService, private translationTextService: TranslationTextService)
+    constructor(private dbController: DatabaseController, private arabicTextIndexService: ArabicTextIndexService, private wordsIndexService: LexemesIndexService, private translationTextService: TranslationTextService)
     {
     }
 
@@ -48,10 +48,10 @@ export class WordSearchService
         if(filterCriteria.textFilter.length > 0)
             filtered = await this.FilterByText(filterCriteria, translationLanguage);
         else
-            filtered = document.words.Values().Map(x => Of<SearchResultEntry>({ score: 1, word: x }));
+            filtered = document.lexemes.Values().Map(x => Of<SearchResultEntry>({ score: 1, word: x }));
 
         if(filterCriteria.wordType !== null)
-            filtered = filtered.Filter(x => x.word.type === filterCriteria.wordType);
+            filtered = filtered.Filter(x => x.word.senses.Values().Map(x => x.units.Values()).Flatten().Map(x => x.pos.type === filterCriteria.wordType).AnyTrue());
         else
         {
             //make search slightly prefer non-verbs such that verbal nouns and so actually do appear
@@ -93,7 +93,12 @@ export class WordSearchService
         const texts = entry.text.Values().Map(this.ComputeMatchScore.bind(this, filterCriteria, translationLanguage));
 
         if(entry.usage !== undefined)
-            return texts.Concat(entry.usage.Values().Map(x => this.ComputeMatchScore(filterCriteria, translationLanguage, x.translation)));
+        {
+            return texts.Concat(
+                entry.usage.Values().Map(x => x.translation.Values()).Flatten()
+                    .Map(x => this.ComputeMatchScore(filterCriteria, translationLanguage, x)
+            ));
+        }
 
         return texts;
     }
@@ -147,9 +152,9 @@ export class WordSearchService
         }
     }
 
-    private SearchByTranslation(filterCriteria: WordFilterCriteria, translationLanguage: TranslationLanguage, entry: { wordId: string; translations: OpenArabDictTranslationEntry[] }): SearchResultEntry
+    private SearchByTranslation(filterCriteria: WordFilterCriteria, translationLanguage: TranslationLanguage, entry: { lexicalUnitId: string; translations: OpenArabDictTranslationEntry[] }): SearchResultEntry
     {
-        const word = this.wordsIndexService.GetWord(entry.wordId);
+        const word = this.wordsIndexService.GetLexeme(entry.lexicalUnitId);
         if(entry.translations.IsEmpty())
         {
             return {

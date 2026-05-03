@@ -21,7 +21,7 @@ import { RootToString, RootTypeToPattern, RootTypeToString } from "./general";
 import { Buckwalter } from "@aczwink/openarabicconjugation/dist/Transliteration";
 import { Letter } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { RootType, VerbRoot } from "@aczwink/openarabicconjugation/dist/VerbRoot";
-import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
+import { CachedAPIService, LexemeAPIData } from "../services/CachedAPIService";
 import { OpenArabDictRoot } from "@aczwink/openarabdict-domain";
 import { WordTableComponent } from "../words/WordTableComponent";
 import env from "../env";
@@ -29,7 +29,7 @@ import env from "../env";
 interface ShowRootData
 {
     root: OpenArabDictRoot;
-    words: WordWithConnections[];
+    words: LexemeAPIData[];
 }
 
 @Injectable

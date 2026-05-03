@@ -18,18 +18,18 @@
 
 import { BootstrapIcon, Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "@aczwink/acfrontend";
 import { WordFunctionComponent } from "./WordFunctionComponent";
-import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
+import { CachedAPIService, LexemeAPIData } from "../services/CachedAPIService";
 import { WordReferenceComponent } from "./WordReferenceComponent";
-import { FullWordData } from "../../dist/api";
+import { LexemeData } from "../../dist/api";
 
 interface WordWithLevel
 {
     level: number;
-    word: FullWordData;
+    word: LexemeData;
 }
 
 @Injectable
-export class WordTableComponent extends Component<{ collapse: boolean; words: WordWithConnections[] }>
+export class WordTableComponent extends Component<{ collapse: boolean; words: LexemeAPIData[] }>
 {
     constructor(private cachedAPIService: CachedAPIService)
     {
@@ -45,7 +45,7 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Wo
             return <ProgressSpinner />;
         if(this.words.length === 0)
             return <i>none</i>;
-        
+
         return <table className="table table-striped table-hover table-sm">
             <thead>
                 <tr>
@@ -84,11 +84,11 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Wo
         return s;
     }
 
-    private async LoadChildren(level: number, wordIds: string[], destination: WordWithLevel[])
+    private async LoadChildren(level: number, lexemeIds: string[], destination: WordWithLevel[])
     {
-        for (const wordId of wordIds)
+        for (const lexemeId of lexemeIds)
         {
-            const result = await this.cachedAPIService.QueryWordWithConnections(wordId);
+            const result = await this.cachedAPIService.QueryLexeme(lexemeId);
             const word = result!;
 
             destination.push({
@@ -96,7 +96,7 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Wo
                 level
             });
 
-            await this.LoadChildren(level + 1, word.derived, destination);
+            await this.LoadChildren(level + 1, word.derivedLexemeIds, destination);
         }
     }
 
@@ -121,7 +121,7 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Wo
                 word: rootWord
             });
 
-            await this.LoadChildren(1, rootWord.derived, words);
+            await this.LoadChildren(1, rootWord.derivedLexemeIds, words);
         }
 
         this.words = words;

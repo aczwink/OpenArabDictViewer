@@ -17,13 +17,13 @@
  * */
 
 import { Injectable } from "@aczwink/acfrontend";
-import { OpenArabDictVerbForm, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictPOSType, OpenArabDictVerbForm } from "@aczwink/openarabdict-domain";
 import { GlobalSettingsService } from "./GlobalSettingsService";
 import { DialectsService } from "./DialectsService";
 import { GetDialectMetadata } from "@aczwink/openarabicconjugation/dist/DialectsMetadata";
 import { CreateVerbFromOADVerbForm } from "@aczwink/openarabdict-openarabicconjugation-bridge";
 import { DialectType, GetAllConjugatableDialects } from "@aczwink/openarabicconjugation/dist/Dialects";
-import { WordWithConnections } from "./CachedAPIService";
+import { LexemeAPIData } from "./CachedAPIService";
 
 @Injectable
 export class VerbConjugationDialectResolver
@@ -33,14 +33,16 @@ export class VerbConjugationDialectResolver
     }
 
     //Public methods
-    public IsNativeConjugationPossible(dialectType: DialectType, word: WordWithConnections)
+    public IsNativeConjugationPossible(dialectType: DialectType, word: LexemeAPIData)
     {
-        if(word.word.type !== OpenArabDictWordType.Verb)
+        const unit = word.senses[0].units[0];
+        const pos = unit.pos;
+        if(pos.type !== OpenArabDictPOSType.Verb)
             return false;
 
-        const dialectIds = word.translations.map(x => x.dialectId);
-        if(word.word.form.variants !== undefined)
-            dialectIds.push(...word.word.form.variants.map(x => x.dialectId));
+        const dialectIds = unit.translations.map(x => x.dialectId);
+        if(pos.form.variants !== undefined)
+            dialectIds.push(...pos.form.variants.map(x => x.dialectId));
         if(dialectIds.IsEmpty() && (dialectType === DialectType.ModernStandardArabic))
             return true; //assume MSA
         return dialectIds.find(x => this.dialectsService.MapIdToType(x) === dialectType) !== undefined;

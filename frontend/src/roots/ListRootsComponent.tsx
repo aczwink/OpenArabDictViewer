@@ -139,7 +139,7 @@ export class ListRootsComponent extends Component
         if(this.searchText !== null)
         {
             const response = await this.apiService.roots.get({ prefix: this.searchText });
-            this.data = response.data;
+            this.data = response.data as OpenArabDictRoot[];
         }
         else
             this.data = [];
@@ -153,7 +153,7 @@ export class ListRootsComponent extends Component
             this.searchText = newValue;
 
             const response = await this.apiService.roots.get({ prefix: newValue });
-            this.data = response.data;
+            this.data = response.data as OpenArabDictRoot[];
         }
     }
 }

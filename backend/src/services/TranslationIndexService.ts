@@ -29,9 +29,9 @@ export class TranslationIndexService
         this.translationsMap = {};
     }
 
-    public GetTranslationsOf(wordId: string, translationLanguage: TranslationLanguage)
+    public GetTranslationsOf(lexicalUnitId: string, translationLanguage: TranslationLanguage)
     {
-        return this.translationsMap[translationLanguage]![wordId] ?? [];
+        return this.translationsMap[translationLanguage]![lexicalUnitId] ?? [];
     }
 
     public async RebuildIndex()
@@ -43,7 +43,7 @@ export class TranslationIndexService
 
             const map: Dictionary<OpenArabDictTranslationEntry[]> = {};
             for (const entry of document.entries)
-                map[entry.wordId] = entry.translations;
+                map[entry.lexicalUnitId] = entry.translations;
             this.translationsMap[lang] = map;
         }
     }

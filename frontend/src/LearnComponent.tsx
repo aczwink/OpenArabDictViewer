@@ -20,10 +20,10 @@ import { CheckBox, Component, FormField, I18n, Injectable, JSX_CreateElement, Pr
 import { APIService } from "./services/APIService";
 import { RenderTranslations } from "./shared/translations";
 import { WordTypeToText } from "./shared/words";
-import { CachedAPIService } from "./services/CachedAPIService";
+import { CachedAPIService, LexemeAPIData } from "./services/CachedAPIService";
 import { RemoveTashkilButKeepShadda } from "@aczwink/openarabicconjugation/dist/Util";
 import { GlobalSettingsService } from "./services/GlobalSettingsService";
-import { FullWordData } from "../dist/api";
+import { LexemeData } from "../dist/api";
 
 @Injectable
 export class LearnComponent extends Component
@@ -42,7 +42,8 @@ export class LearnComponent extends Component
         if(this.data === null)
             return <ProgressSpinner />;
 
-        const title = this.data.word.text;
+        const title = this.data.text;
+        const unit = this.data.senses[0].units[0];
         if(this.resolve)
         {
             return <div className="row justify-content-center text-center">
@@ -50,7 +51,7 @@ export class LearnComponent extends Component
                     <h1>{title}</h1>
                     <div className="row">
                         <div className="col">
-                            { (this.data.translations.length > 0) ? RenderTranslations(this.data.translations) : this.RenderFunction(this.data)}
+                            { (unit.translations.length > 0) ? RenderTranslations(unit.translations) : this.RenderFunction(this.data)}
                         </div>
                     </div>
                     <button type="button" className="btn btn-primary" onclick={this.LoadNextWord.bind(this)}>{I18n("learn.next")}</button>
@@ -72,7 +73,7 @@ export class LearnComponent extends Component
     }
 
     //Private state
-    private data: FullWordData | null;
+    private data: LexemeAPIData | null;
     private showTashkil: boolean;
     private resolve: boolean;
 
@@ -86,15 +87,16 @@ export class LearnComponent extends Component
         const response = await this.apiService.words_random.get({ translationLanguage: this.globalSettingsService.activeLanguage });
         const wordId = response.data;
 
-        const word = await this.cachedAPIService.QueryFullWord(wordId);
-        this.data = word;
+        const word = await this.cachedAPIService.QueryLexeme(wordId);
+        this.data = word!;
     }
 
-    private RenderFunction(func: FullWordData)
+    private RenderFunction(func: LexemeData)
     {
+        const unit = func.senses[0].units[0];
         return <fragment>
-            <h4>{WordTypeToText(func.word.type)}</h4>
-            {RenderTranslations(func.translations)}
+            <h4>{WordTypeToText(unit.pos.type)}</h4>
+            {RenderTranslations(unit.translations)}
         </fragment>;
     }
 

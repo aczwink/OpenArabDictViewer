@@ -31,9 +31,9 @@ import { Tense } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { DialectsService } from "../services/DialectsService";
 import { ConjugationSchemeToString } from "./ToStringStuff";
 import { VerbConjugationService } from "../services/VerbConjugationService";
-import { OpenArabDictParentType, OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbForm, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
-import { WordIdReferenceComponent } from "../words/WordReferenceComponent";
-import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
+import { OpenArabDictParentType, OpenArabDictPOSType, OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbForm } from "@aczwink/openarabdict-domain";
+import { LexemeIdReferenceComponent } from "../words/WordReferenceComponent";
+import { CachedAPIService, LexemeAPIData } from "../services/CachedAPIService";
 import { WordTableComponent } from "../words/WordTableComponent";
 import { Verb } from "@aczwink/openarabicconjugation/dist/Verb";
 import { DialectType } from "@aczwink/openarabicconjugation/dist/Dialects";
@@ -70,12 +70,12 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
 
         return <fragment>
             <div className="row">
-                <h2>{this.data.text}</h2>
+                <h2>{this.fullWord!.text}</h2>
             </div>
 
             {this.RenderProperties(verb)}
             <br />
-            <a href={"https://en.wiktionary.org/wiki/" + RemoveTashkil(this.data.text)} target="_blank">See on Wiktionary</a>
+            <a href={"https://en.wiktionary.org/wiki/" + RemoveTashkil(this.fullWord!.text)} target="_blank">See on Wiktionary</a>
             <br />
             {this.RenderDerivedWords()}
             {this.RenderConjugation(verb)}
@@ -84,9 +84,9 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
 
     //Private state
     private data: OpenArabDictVerb | null;
-    private fullWord: WordWithConnections | null;
+    private fullWord: LexemeAPIData | null;
     private root: OpenArabDictRoot;
-    private derivedWords: WordWithConnections[] | null;
+    private derivedWords: LexemeAPIData[] | null;
     private activeStemParameters: string | null;
 
     //Private properties
@@ -131,7 +131,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
 
     private async LoadDerivedWords()
     {
-        this.derivedWords = await this.fullWord!.derived.Values().Map(x => this.cachedAPIService.QueryWordWithConnections(x)).Async().NotUndefined().ToArray();
+        this.derivedWords = await this.fullWord!.derivedLexemeIds.Values().Map(x => this.cachedAPIService.QueryLexeme(x)).Async().NotUndefined().ToArray();
     }
 
     private RenderConjugation(verb: Verb<string>)
@@ -375,7 +375,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
                 </tr>
                 <tr>
                     <th>Translation:</th>
-                    <td>{RenderTranslations(this.fullWord!.translations)}</td>
+                    <td>{RenderTranslations(this.fullWord!.senses[0].units[0].translations)}</td>
                 </tr>
             </tbody>
         </table>;
@@ -384,7 +384,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
     private RenderRelation(related: WordRelation)
     {
         return <li>
-            {WordRelationshipTypeToString(related.relationType)} of <WordIdReferenceComponent wordId={related.relatedWordId} />
+            {WordRelationshipTypeToString(related.relationType)} of <LexemeIdReferenceComponent lexemeId={related.relatedWordId} />
         </li>;
     }
 
@@ -428,10 +428,10 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         if(verb.dialect !== DialectType.ModernStandardArabic)
             return null;
 
-        const verbalNouns = this.derivedWords?.filter(x => (x.word.parent.find(y => y.type === OpenArabDictParentType.VerbalNoun) !== undefined)) ?? [];
+        const verbalNouns = this.derivedWords?.filter(x => (x.parent.find(y => y.type === OpenArabDictParentType.VerbalNoun) !== undefined)) ?? [];
         let verbalNounRendering;
         if(verbalNouns.length > 0)
-            verbalNounRendering = verbalNouns.map(x => <Anchor route={"/words/" + x.word.id}>{x.word.text}</Anchor>);
+            verbalNounRendering = verbalNouns.map(x => <Anchor route={"/words/" + x.id}>{x.text}</Anchor>);
         else
         {
             const patterns = this.conjugationService.GenerateAllPossibleVerbalNouns(verb);
@@ -471,15 +471,16 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
 
     override async OnInitiated(): Promise<void>
     {
-        const full = await this.cachedAPIService.QueryWordWithConnections(this.input.verbId);
-        if(full?.word.type !== OpenArabDictWordType.Verb)
+        const full = await this.cachedAPIService.QueryLexeme(this.input.verbId);
+        const pos = full?.senses[0].units[0].pos;
+        if((full === undefined) || pos?.type !== OpenArabDictPOSType.Verb)
             throw new Error("Programming error!");
 
-        const root = await this.cachedAPIService.QueryRootData(full.word.rootId);
+        const root = await this.cachedAPIService.QueryRootData(pos.rootId);
 
         this.fullWord = full;
         this.root = root;
-        this.data = full.word;
+        this.data = pos;
 
         if(this.data.form.variants !== undefined)
             this.activeStemParameters = this.data.form.variants[0].stemParameters;

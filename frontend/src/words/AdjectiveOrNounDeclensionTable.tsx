@@ -17,19 +17,19 @@
  * */
 
 import { Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "@aczwink/acfrontend";
-import { CachedAPIService } from "../services/CachedAPIService";
+import { CachedAPIService, LexemeAPIData } from "../services/CachedAPIService";
 import { AdjectiveOrNounInput, Case, Gender, Numerus } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { DisplayVocalized, ParseVocalizedText } from "@aczwink/openarabicconjugation/dist/Vocalization";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { ConjugationService } from "../services/ConjugationService";
-import { OpenArabDictGender, OpenArabDictGenderedWord, OpenArabDictParentType, OpenArabDictWord, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictGender, OpenArabDictGendered, OpenArabDictLexeme, OpenArabDictParentType, OpenArabDictPOSType } from "@aczwink/openarabdict-domain";
 import { TargetAdjectiveNounDerivation } from "@aczwink/openarabicconjugation/dist/DialectConjugator";
 import { AdjectiveOrNounState } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { DialectType } from "@aczwink/openarabicconjugation";
 import { WordLogic } from "@aczwink/openarabdict-openarabicconjugation-bridge";
 
 @Injectable
-export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDictGenderedWord; derivedWordIds: string[]; }>
+export class AdjectiveOrNounDeclensionTable extends Component<{ word: LexemeAPIData; pos: OpenArabDictGendered; derivedWordIds: string[]; }>
 {
     constructor(private cachedAPIService: CachedAPIService, private conjugationService: ConjugationService)
     {
@@ -57,9 +57,9 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDi
     }
 
     //State
-    private definite: OpenArabDictWord | null;
-    private feminine: OpenArabDictWord | null;
-    private plurals: OpenArabDictWord[] | null;
+    private definite: LexemeAPIData | null;
+    private feminine: LexemeAPIData | null;
+    private plurals: LexemeAPIData[] | null;
 
     //Private methods
     private DeriveBase(targetGender: Gender, targetState: AdjectiveOrNounState)
@@ -111,23 +111,22 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDi
         }
     }
 
-    private DoesParentExist(type: OpenArabDictParentType, word: OpenArabDictWord)
+    private DoesParentExist(type: OpenArabDictParentType, word: LexemeAPIData)
     {
         return word.parent.find(x => x.type === type) !== undefined;
     }
 
-    private FindDerivedWord(type: OpenArabDictParentType, derived: OpenArabDictWord[])
+    private FindDerivedWord(type: OpenArabDictParentType, derived: LexemeAPIData[])
     {
         return derived.find(x => this.DoesParentExist(type, x));
     }
 
     private GetSourceState(): AdjectiveOrNounInput
     {
-        const w = this.input.word;
         return {
-            gender: (w.gender === OpenArabDictGender.Male) ? Gender.Male : Gender.Female,
+            gender: (this.input.pos.gender === OpenArabDictGender.Male) ? Gender.Male : Gender.Female,
             numerus: this.IsSingular() ? Numerus.Singular : Numerus.Plural,
-            vocalized: ParseVocalizedText(w.text),
+            vocalized: ParseVocalizedText(this.input.word.text),
             isDefinite: false
         };
     }
@@ -139,22 +138,22 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDi
 
     private HasTwoGenders()
     {
-        return this.IsAdjective() && this.IsSingular() && (this.input.word.gender === OpenArabDictGender.Male);
+        return this.IsAdjective() && this.IsSingular() && (this.input.pos.gender === OpenArabDictGender.Male);
     }
 
     private IsAdjective()
     {
-        return this.input.word.type === OpenArabDictWordType.Adjective;
+        return this.input.pos.type === OpenArabDictPOSType.Adjective;
     }
 
     private IsSingular()
     {
-        return WordLogic.IsSingular(this.input.word);
+        return WordLogic.IsSingular(this.input.word as unknown as OpenArabDictLexeme);
     }
 
     private async LoadRelatedWords()
     {
-        const derived = await this.input.derivedWordIds.Values().Map(x => this.cachedAPIService.QueryWord(x)).PromiseAll();
+        const derived = await this.input.derivedWordIds.Values().Map(x => this.cachedAPIService.QueryLexeme(x)).Async().NotUndefined().ToArray();
 
         this.definite = this.FindDerivedWord(OpenArabDictParentType.DefiniteState, derived) ?? null;
         this.feminine = this.FindDerivedWord(OpenArabDictParentType.Feminine, derived) ?? null;
@@ -210,7 +209,7 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDi
             <th>{headline()}</th>
             <th>Indefinite</th>
             <th>Definite</th>
-            {this.input.word.type === OpenArabDictWordType.Noun ? <th>Construct</th> : null}
+            {this.input.pos.type === OpenArabDictPOSType.Noun ? <th>Construct</th> : null}
         </tr>;
     }
     
@@ -255,7 +254,7 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: OpenArabDi
         return <fragment>
             <td>{this.RenderCell(numerus, c, gender, parsed, AdjectiveOrNounState.Indefinite)}</td>
             <td>{this.RenderCell(numerus, c, gender, parsed, AdjectiveOrNounState.Definite)}</td>
-            {(this.input.word.type === OpenArabDictWordType.Noun) ? <td>{this.RenderCell(numerus, c, gender, parsed, AdjectiveOrNounState.Construct)}</td> : null}
+            {(this.input.pos.type === OpenArabDictPOSType.Noun) ? <td>{this.RenderCell(numerus, c, gender, parsed, AdjectiveOrNounState.Construct)}</td> : null}
             {hasSecondGender ? <td>{this.RenderCell(numerus, c, Gender.Female, parsed, AdjectiveOrNounState.Indefinite)}</td> : null}
             {hasSecondGender ? <td>{this.RenderCell(numerus, c, Gender.Female, parsed, AdjectiveOrNounState.Definite)}</td> : null}
         </fragment>;

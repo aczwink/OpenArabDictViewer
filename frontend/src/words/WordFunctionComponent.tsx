@@ -19,16 +19,16 @@
 import { Component, Injectable, JSX_CreateElement } from "@aczwink/acfrontend";
 import { RenderTranslations } from "../shared/translations";
 import { WordDerivationComponent } from "./WordDerivationComponent";
-import { FullWordData } from "../../dist/api";
+import { LexemeAPIData } from "../services/CachedAPIService";
 
 @Injectable
-export class WordFunctionComponent extends Component<{ word: FullWordData; }>
+export class WordFunctionComponent extends Component<{ word: LexemeAPIData; }>
 {
     protected Render(): RenderValue
     {
-        const func = this.input.word;
+        const func = this.input.word.senses[0].units[0];
         if(func.translations.length === 0)
-            return <WordDerivationComponent parent={this.input.word.word.parent} />;
+            return <WordDerivationComponent parent={this.input.word.parent} />;
         return RenderTranslations(func.translations);
     }
 }

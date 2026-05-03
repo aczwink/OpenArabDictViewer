@@ -17,23 +17,23 @@
  * */
 
 import { APIController, Get, NotFound, Path, Query } from "@aczwink/acts-util-apilib";
-import { FullWordData, WordsController } from "../data-access/WordsController";
-import { OpenArabDictWordParent, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { LexemeData, WordsController } from "../data-access/WordsController";
 import { WordFilterCriteria, WordSearchService } from "../services/WordSearchService";
 import { Of } from "@aczwink/acts-util-core";
 import { ImplicitWordParent } from "../services/ArabicTextIndexService";
 import { TranslationLanguage } from "../data-access/DatabaseController";
+import { OpenArabDictParent, OpenArabDictPOSType } from "@aczwink/openarabdict-domain";
 
-type OptionalWordType = OpenArabDictWordType | null;
+type OptionalWordType = OpenArabDictPOSType | null;
 
 interface SearchResultEntry
 {
     derived?: {
         text: string;
-        parent: OpenArabDictWordParent | ImplicitWordParent;
+        parent: OpenArabDictParent | ImplicitWordParent;
     };
     score: number;
-    word: FullWordData;
+    word: LexemeData;
 }
 
 @APIController("words")
@@ -60,7 +60,7 @@ class _api_
         const searchResultsArray = searchResults.ToArray();
 
         const words = searchResultsArray.Values().Map(async sq => {
-            const word = await this.wordsController.QueryWord(sq.word.id, translationLanguage);
+            const word = await this.wordsController.QueryLexeme(sq.word.id, translationLanguage);
             return Of<SearchResultEntry>({
                 derived: sq.derived,
                 score: sq.score,
@@ -86,7 +86,7 @@ class _api3_
     }
 }
 
-@APIController("words/{wordId}")
+@APIController("lexemes/{lexemeId}")
 class _api2_
 {
     constructor(private wordsController: WordsController)
@@ -94,12 +94,12 @@ class _api2_
     }
 
     @Get()
-    public async QueryWord(
-        @Path wordId: string,
+    public async QueryLexeme(
+        @Path lexemeId: string,
         @Query translationLanguage: TranslationLanguage
     )
     {
-        const word = await this.wordsController.QueryWord(wordId, translationLanguage);
+        const word = await this.wordsController.QueryLexeme(lexemeId, translationLanguage);
         if(word === undefined)
             return NotFound("word not found");
         return word;

@@ -21,11 +21,11 @@ import { WordRelation } from "../../dist/api";
 import { RenderTranslations } from "../shared/translations";
 import { WordMayHaveGender, WordRelationshipTypeToString, WordTypeToText } from "../shared/words";
 import { RemoveTashkil } from "@aczwink/openarabicconjugation/dist/Util";
-import { WordIdReferenceComponent } from "./WordReferenceComponent";
+import { LexemeIdReferenceComponent } from "./WordReferenceComponent";
 import { AdjectiveOrNounDeclensionTable } from "./AdjectiveOrNounDeclensionTable";
 import { RenderDerivedTerm, WordDerivationComponent } from "./WordDerivationComponent";
-import { CachedAPIService, WordWithConnections } from "../services/CachedAPIService";
-import { OpenArabDictGender, OpenArabDictParentType, OpenArabDictWord, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { CachedAPIService, LexemeAPIData } from "../services/CachedAPIService";
+import { OpenArabDictGender, OpenArabDictLexeme, OpenArabDictParentType, OpenArabDictPOSType } from "@aczwink/openarabdict-domain";
 import { ShowVerbComponent } from "../verbs/ShowVerbComponent";
 import { Letter } from "@aczwink/openarabicconjugation";
 import { Tashkil } from "@aczwink/openarabicconjugation/dist/Definitions";
@@ -51,12 +51,12 @@ export class ShowWordComponent extends Component
         if(this.data === null)
             return <ProgressSpinner />;
 
-        if(this.data.word.type === OpenArabDictWordType.Verb)
-            return <ShowVerbComponent verbId={this.data.word.id} />;
+        if(this.data.senses[0].units[0].pos.type === OpenArabDictPOSType.Verb)
+            return <ShowVerbComponent verbId={this.data.id} />;
 
         return <fragment>
             <div className="row">
-                <h1>{I18n("word.word")}: {this.data.word.text}</h1>
+                <h1>{I18n("word.word")}: {this.data.text}</h1>
             </div>
             <table>
                 <tbody>
@@ -66,23 +66,23 @@ export class ShowWordComponent extends Component
                     {this.RenderDerivedTerms()}
                     <tr>
                         <th>{I18n("search.wordType")}:</th>
-                        <td>{WordTypeToText(this.data.word.type)}</td>
+                        <td>{WordTypeToText(this.data.senses[0].units[0].pos.type)}</td>
                     </tr>
                     <tr>
                         <th>{I18n("word.translation")}:</th>
-                        <td>{RenderTranslations(this.data.translations)}</td>
+                        <td>{RenderTranslations(this.data.senses[0].units[0].translations)}</td>
                     </tr>
                     {this.RenderWordDeclensionTables()}
                 </tbody>
             </table>
-            <a href={"https://en.wiktionary.org/wiki/" + RemoveTashkil(this.data.word.text)} target="_blank">{I18n("word.seeOnWiktionary")}</a>
+            <a href={"https://en.wiktionary.org/wiki/" + RemoveTashkil(this.data.text)} target="_blank">{I18n("word.seeOnWiktionary")}</a>
         </fragment>;
     }
 
     //Private methods
     private IsExpectedGender(gender: OpenArabDictGender)
     {
-        const hasSoundFemaleEnding = this.IsSingular() ? this.data!.word.text.endsWith(Letter.TaMarbuta) : this.data!.word.text.endsWith(Tashkil.Fatha + Letter.Alef + Letter.Ta);
+        const hasSoundFemaleEnding = this.IsSingular() ? this.data!.text.endsWith(Letter.TaMarbuta) : this.data!.text.endsWith(Tashkil.Fatha + Letter.Alef + Letter.Ta);
 
         switch(gender)
         {
@@ -97,26 +97,26 @@ export class ShowWordComponent extends Component
     
     private IsSingular()
     {
-        return WordLogic.IsSingular(this.data!.word);
+        return WordLogic.IsSingular(this.data! as unknown as OpenArabDictLexeme);
     }
 
     private RenderDerivationData()
     {
         return <tr>
             <th>{I18n("word.derivedFrom")}:</th>
-            <td><WordDerivationComponent parent={this.data!.word.parent} /></td>
+            <td><WordDerivationComponent parent={this.data!.parent} /></td>
         </tr>;
     }
 
-    private RenderDerivedTerm(derived: OpenArabDictWord)
+    private RenderDerivedTerm(derived: LexemeAPIData)
     {
-        const link = derived.parent.find(x => (x.type !== OpenArabDictParentType.Root) && (x.id === this.data!.word.id))!;
+        const link = derived.parent.find(x => (x.type !== OpenArabDictParentType.Root) && (x.id === this.data!.id))!;
         return RenderDerivedTerm(false, { id: derived.id, type: link.type });
     }
     
     private RenderDerivedTerms()
     {
-        if(this.data!.derived.length === 0)
+        if(this.data!.derivedLexemeIds.length === 0)
             return null;
 
         return <tr>
@@ -143,11 +143,12 @@ export class ShowWordComponent extends Component
 
     private RenderGenderLine()
     {
-        if(!WordMayHaveGender(this.data!.word))
+        const pos = this.data!.senses[0].units[0].pos;
+        if(!WordMayHaveGender(pos))
             return null;
 
-        const genderText = this.RenderGender(this.data!.word.gender);
-        const gender = this.IsExpectedGender(this.data!.word.gender) ? genderText : <span className="text-danger fw-bold">{genderText}</span>;
+        const genderText = this.RenderGender(pos.gender);
+        const gender = this.IsExpectedGender(pos.gender) ? genderText : <span className="text-danger fw-bold">{genderText}</span>;
 
         return <tr>
             <th>{I18n("word.gender")}:</th>
@@ -169,7 +170,7 @@ export class ShowWordComponent extends Component
     private RenderRelation(related: WordRelation)
     {
         return <li>
-            {WordRelationshipTypeToString(related.relationType as any)} of <WordIdReferenceComponent wordId={related.relatedWordId} />
+            {WordRelationshipTypeToString(related.relationType as any)} of <LexemeIdReferenceComponent lexemeId={related.relatedWordId} />
         </li>;
     }
 
@@ -182,13 +183,14 @@ export class ShowWordComponent extends Component
 
     private RenderWordDeclensionTables()
     {
-        switch(this.data!.word.type)
+        const pos = this.data!.senses[0].units[0].pos;
+        switch(pos.type)
         {
-            case OpenArabDictWordType.Adjective:
-            case OpenArabDictWordType.Noun:
+            case OpenArabDictPOSType.Adjective:
+            case OpenArabDictPOSType.Noun:
                 return <tr>
                     <th>{I18n("word.declension")}:</th>
-                    <td><AdjectiveOrNounDeclensionTable word={this.data!.word} derivedWordIds={this.data!.derived} /></td>
+                    <td><AdjectiveOrNounDeclensionTable word={this.data!} pos={pos} derivedWordIds={this.data!.derivedLexemeIds} /></td>
                 </tr>;
         }
         return null;
@@ -197,22 +199,22 @@ export class ShowWordComponent extends Component
     //Event handlers
     override async OnInitiated(): Promise<void>
     {
-        const word = await this.cachedAPIService.QueryWordWithConnections(this.wordId);
+        const word = await this.cachedAPIService.QueryLexeme(this.wordId);
         if(word === undefined)
         {
             this.notFound = true;
             return;
         }
 
-        this.derived = await word.derived.Values().Map(x => this.cachedAPIService.QueryWord(x)).PromiseAll();
+        this.derived = await word.derivedLexemeIds.Values().Map(x => this.cachedAPIService.QueryLexeme(x)).Async().NotUndefined().ToArray();
 
         this.data = word;
-        this.titleService.title = this.data.word.text;
+        this.titleService.title = this.data.text;
     }
 
     //Private state
     private wordId: string;
     private notFound: boolean;
-    private data: WordWithConnections | null;
-    private derived: OpenArabDictWord[];
+    private data: LexemeAPIData | null;
+    private derived: LexemeAPIData[];
 }

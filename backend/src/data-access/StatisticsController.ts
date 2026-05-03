@@ -23,12 +23,12 @@ import { Conjugator, TargetVerbBasedDerivationPatterns } from "@aczwink/openarab
 import { DisplayVocalized, VocalizedToString } from "@aczwink/openarabicconjugation/dist/Vocalization";
 import { VerbType } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { DialectsService } from "../services/DialectsService";
-import { OpenArabDictParentType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictParentType, OpenArabDictPOSType } from "@aczwink/openarabdict-domain";
 import { RootsIndexService } from "../services/RootsIndexService";
 import { DialectType } from "@aczwink/openarabicconjugation/dist/Dialects";
 import { CreateVerbFromOADVerb, FindHighestConjugatableDialectOf } from "@aczwink/openarabdict-openarabicconjugation-bridge";
 import { Verb } from "@aczwink/openarabicconjugation/dist/Verb";
-import { WordsIndexService } from "../services/WordsIndexService";
+import { LexemesIndexService } from "../services/LexemesIndexService";
 import { TranslationIndexService } from "../services/TranslationIndexService";
 
 interface DialectStatistics
@@ -81,7 +81,7 @@ interface DictionaryStatistics
 @Injectable
 export class StatisticsController
 {
-    constructor(private dbController: DatabaseController, private dialectsService: DialectsService, private rootsIndexService: RootsIndexService, private wordsIndexService: WordsIndexService,
+    constructor(private dbController: DatabaseController, private dialectsService: DialectsService, private rootsIndexService: RootsIndexService, private wordsIndexService: LexemesIndexService,
         private translationIndexService: TranslationIndexService)
     {
     }
@@ -92,7 +92,7 @@ export class StatisticsController
 
         return {
             rootsCount: document.roots.length,
-            wordsCount: document.words.length,
+            wordsCount: document.lexemes.length,
             dialectCounts: await this.QueryDialectCounts(),
             verbTypeCounts: await this.QueryVerbTypeCounts(),
             stemCounts: await this.QueryStemCounts(),
@@ -128,33 +128,39 @@ export class StatisticsController
         const document = await this.dbController.GetDocumentDB();
 
         const counts: Dictionary<number> = {};
-        for (const word of document.words)
+        for (const word of document.lexemes)
         {
-            if(word.type !== OpenArabDictWordType.Verb)
-                continue;
-
-            const root = this.rootsIndexService.GetRoot(word.rootId)!;
-
-            const types = new Set<VerbType>();
-
-            if(word.form.variants === undefined)
+            for (const sense of word.senses)
             {
-                const verb = CreateVerbFromOADVerb(FindHighestConjugatableDialectOf(root.radicals, word.form, this.translationIndexService.GetTranslationsOf(word.id, "en")), root, word);
-                types.add(verb.type);
-            }
-            else
-            {
-                for (const variant of word.form.variants)
+                for (const unit of sense.units)
                 {
-                    const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
+                    if(unit.pos.type !== OpenArabDictPOSType.Verb)
+                        continue;
 
-                    const verb = CreateVerbFromOADVerb(dialectType, root, word);
-                    types.add(verb.type);
+                    const root = this.rootsIndexService.GetRoot(unit.pos.rootId)!;
+
+                    const types = new Set<VerbType>();
+
+                    if(unit.pos.form.variants === undefined)
+                    {
+                        const verb = CreateVerbFromOADVerb(FindHighestConjugatableDialectOf(root.radicals, unit.pos.form, this.translationIndexService.GetTranslationsOf(word.id, "en")), root, unit.pos);
+                        types.add(verb.type);
+                    }
+                    else
+                    {
+                        for (const variant of unit.pos.form.variants)
+                        {
+                            const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
+
+                            const verb = CreateVerbFromOADVerb(dialectType, root, unit.pos);
+                            types.add(verb.type);
+                        }
+                    }
+
+                    for (const type of types)
+                        counts[type] = (counts[type] ?? 0) + 1;
                 }
             }
-
-            for (const type of types)
-                counts[type] = (counts[type] ?? 0) + 1;   
         }
 
         return ObjectExtensions.Entries(counts).Map<VerbTypeStatistics>(kv => ({
@@ -168,12 +174,18 @@ export class StatisticsController
         const document = await this.dbController.GetDocumentDB();
 
         const counts: Dictionary<number> = {};
-        for (const word of document.words)
+        for (const word of document.lexemes)
         {
-            if(word.type !== OpenArabDictWordType.Verb)
-                continue;
-            
-            counts[word.form.stem] = (counts[word.form.stem] ?? 0) + 1;
+            for (const sense of word.senses)
+            {
+                for (const unit of sense.units)
+                {
+                    if(unit.pos.type !== OpenArabDictPOSType.Verb)
+                        continue;
+
+                    counts[unit.pos.form.stem] = (counts[unit.pos.form.stem] ?? 0) + 1;
+                }
+            }
         }
         return ObjectExtensions.Entries(counts).Map<VerbStemStatistics>(kv => ({
             count: kv.value!,
@@ -186,35 +198,42 @@ export class StatisticsController
         const document = await this.dbController.GetDocumentDB();
 
         const dict: Dictionary<VerbStem1Frequencies> = {};
-        for (const word of document.words)
+        for (const word of document.lexemes)
         {
-            if(word.type !== OpenArabDictWordType.Verb)
-                continue;
-            if(word.form.stem !== 1)
-                continue;
-
-            const root = this.rootsIndexService.GetRoot(word.rootId)!;
-
-            for (const variant of word.form.variants!)
+            for (const sense of word.senses)
             {
-                const params = variant.stemParameters!;
-
-                const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
-                const verb = CreateVerbFromOADVerb(dialectType, root, word);
-
-                const key = [variant.dialectId, verb.type, params].join("_");
-                const obj = dict[key];
-                if(obj === undefined)
+                for (const unit of sense.units)
                 {
-                    dict[key] = {
-                        dialectId: variant.dialectId,
-                        count: 1,
-                        scheme: verb.type,
-                        stemParameters: params
-                    };
+                    if(unit.pos.type !== OpenArabDictPOSType.Verb)
+                        continue;
+
+                    if(unit.pos.form.stem !== 1)
+                        continue;
+
+                    const root = this.rootsIndexService.GetRoot(unit.pos.rootId)!;
+
+                    for (const variant of unit.pos.form.variants!)
+                    {
+                        const params = variant.stemParameters!;
+
+                        const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
+                        const verb = CreateVerbFromOADVerb(dialectType, root, unit.pos);
+
+                        const key = [variant.dialectId, verb.type, params].join("_");
+                        const obj = dict[key];
+                        if(obj === undefined)
+                        {
+                            dict[key] = {
+                                dialectId: variant.dialectId,
+                                count: 1,
+                                scheme: verb.type,
+                                stemParameters: params
+                            };
+                        }
+                        else
+                            obj.count++;
+                    }
                 }
-                else
-                    obj.count++;
             }
         }
 
@@ -255,38 +274,45 @@ export class StatisticsController
         const conjugator = new Conjugator();
 
         const dict: Dictionary<VerbalNounFrequencies> = {};
-        for (const word of document.words)
+        for (const word of document.lexemes)
         {
-            if(word.type === OpenArabDictWordType.Verb)
-                continue;
-
-            for (const parent of word.parent)
+            for (const sense of word.senses)
             {
-                if(parent.type !== OpenArabDictParentType.VerbalNoun)
-                    continue;
-
-                const verbId = parent.id;
-                const verb = this.wordsIndexService.GetWord(verbId);
-                if(verb.type !== OpenArabDictWordType.Verb)
-                    throw new Error("Should never happen");
-
-                const rootData = this.rootsIndexService.GetRoot(verb.rootId)!;
-
-                if(verb.form.variants === undefined)
+                for (const unit of sense.units)
                 {
-                    const verbInstance = CreateVerbFromOADVerb(DialectType.ModernStandardArabic, rootData, verb);
-                    ProcessVerbInstance(word.text, verbInstance);
-                }
-                else
-                {
-                    for (const variant of verb.form.variants)
+                    if(unit.pos.type !== OpenArabDictPOSType.Verb)
+                        continue;
+
+                    for (const parent of word.parent)
                     {
-                        const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
-                        if(dialectType !== DialectType.ModernStandardArabic)
+                        if(parent.type !== OpenArabDictParentType.VerbalNoun)
                             continue;
 
-                        const verbInstance = CreateVerbFromOADVerb(dialectType, rootData, verb);
-                        ProcessVerbInstance(word.text, verbInstance);
+                        const verbId = parent.id;
+                        const verb = this.wordsIndexService.GetLexeme(verbId);
+                        const vUnit = verb.senses[0].units[0].pos;
+                        if(vUnit.type !== OpenArabDictPOSType.Verb)
+                            throw new Error("Should never happen");
+
+                        const rootData = this.rootsIndexService.GetRoot(vUnit.rootId)!;
+
+                        if(vUnit.form.variants === undefined)
+                        {
+                            const verbInstance = CreateVerbFromOADVerb(DialectType.ModernStandardArabic, rootData, vUnit);
+                            ProcessVerbInstance(word.text, verbInstance);
+                        }
+                        else
+                        {
+                            for (const variant of vUnit.form.variants)
+                            {
+                                const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
+                                if(dialectType !== DialectType.ModernStandardArabic)
+                                    continue;
+
+                                const verbInstance = CreateVerbFromOADVerb(dialectType, rootData, vUnit);
+                                ProcessVerbInstance(word.text, verbInstance);
+                            }
+                        }
                     }
                 }
             }

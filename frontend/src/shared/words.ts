@@ -16,21 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { OpenArabDictGender, OpenArabDictGenderedWord, OpenArabDictParentType, OpenArabDictWordRelationshipType, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
-import { OpenArabDictWord } from "../../dist/api";
+import { OpenArabDictGender, OpenArabDictGendered, OpenArabDictLexeme, OpenArabDictParentType, OpenArabDictPartOfSpeech, OpenArabDictPOSType, OpenArabDictWordRelationshipType } from "@aczwink/openarabdict-domain";
 import { I18n } from "@aczwink/acfrontend";
 
 export const allWordTypes = [
-    OpenArabDictWordType.Adjective,
-    OpenArabDictWordType.Conjunction,
-    OpenArabDictWordType.ForeignVerb,
-    OpenArabDictWordType.Interjection,
-    OpenArabDictWordType.Noun,
-    OpenArabDictWordType.Preposition,
-    OpenArabDictWordType.Adverb,
-    OpenArabDictWordType.Pronoun,
-    OpenArabDictWordType.Phrase,
-    OpenArabDictWordType.Particle,
+    OpenArabDictPOSType.Adjective,
+    OpenArabDictPOSType.Conjunction,
+    OpenArabDictPOSType.ForeignVerb,
+    OpenArabDictPOSType.Interjection,
+    OpenArabDictPOSType.Noun,
+    OpenArabDictPOSType.Preposition,
+    OpenArabDictPOSType.Adverb,
+    OpenArabDictPOSType.Pronoun,
+    OpenArabDictPOSType.Phrase,
+    OpenArabDictPOSType.Particle,
 ];
 
 export function WordDerivationTypeFromWordToString(type: OpenArabDictParentType): string
@@ -94,20 +93,20 @@ export function WordGenderToAbbreviation(gender: OpenArabDictGender | null)
     return "?";
 }
 
-function WordTypeMayHaveGender(wordType: OpenArabDictWordType)
+function WordTypeMayHaveGender(wordType: OpenArabDictPOSType)
 {
     switch(wordType)
     {
-        case OpenArabDictWordType.Adjective:
-        case OpenArabDictWordType.Noun:
-        case OpenArabDictWordType.Pronoun:
+        case OpenArabDictPOSType.Adjective:
+        case OpenArabDictPOSType.Noun:
+        case OpenArabDictPOSType.Pronoun:
             return true;
     }
 
     return false;
 }
 
-export function WordMayHaveGender(word: OpenArabDictWord): word is OpenArabDictGenderedWord
+export function WordMayHaveGender(word: OpenArabDictPartOfSpeech): word is OpenArabDictGendered
 {
     return WordTypeMayHaveGender(word.type);
 }
@@ -125,69 +124,69 @@ export function WordRelationshipTypeToString(type: OpenArabDictWordRelationshipT
     }
 }
 
-export function WordTypeToAbbreviationText(wordType: OpenArabDictWordType)
+export function WordTypeToAbbreviationText(wordType: OpenArabDictPOSType)
 {
     switch(wordType)
     {
-        case OpenArabDictWordType.Noun:
+        case OpenArabDictPOSType.Noun:
             return "";
-        case OpenArabDictWordType.Preposition:
+        case OpenArabDictPOSType.Preposition:
             return "(prep.)";
-        case OpenArabDictWordType.Adjective:
+        case OpenArabDictPOSType.Adjective:
             return "(adj.)";
-        case OpenArabDictWordType.Conjunction:
+        case OpenArabDictPOSType.Conjunction:
             return "(conj.)";
-        case OpenArabDictWordType.ForeignVerb:
+        case OpenArabDictPOSType.ForeignVerb:
             return "(foreign verb)";
-        case OpenArabDictWordType.Adverb:
+        case OpenArabDictPOSType.Adverb:
             return "(adv.)";
-        case OpenArabDictWordType.Pronoun:
+        case OpenArabDictPOSType.Pronoun:
             return "(pronoun)";
-        case OpenArabDictWordType.Phrase:
+        case OpenArabDictPOSType.Phrase:
             return "(phrase)";
-        case OpenArabDictWordType.Particle:
+        case OpenArabDictPOSType.Particle:
             return "(particle)";
-        case OpenArabDictWordType.Interjection:
+        case OpenArabDictPOSType.Interjection:
             return "(interj.)";
-        case OpenArabDictWordType.Numeral:
+        case OpenArabDictPOSType.Numeral:
             return "(numeral)";
-        case OpenArabDictWordType.Verb:
+        case OpenArabDictPOSType.Verb:
             return "(verb)";
     }
 }
 
-function WordTypeToDictionaryKey(wordType: OpenArabDictWordType)
+function WordTypeToDictionaryKey(wordType: OpenArabDictPOSType)
 {
     switch(wordType)
     {
-        case OpenArabDictWordType.Noun:
+        case OpenArabDictPOSType.Noun:
             return "noun";
-        case OpenArabDictWordType.Preposition:
+        case OpenArabDictPOSType.Preposition:
             return "preposition";
-        case OpenArabDictWordType.Adjective:
+        case OpenArabDictPOSType.Adjective:
             return "adjective";
-        case OpenArabDictWordType.Conjunction:
+        case OpenArabDictPOSType.Conjunction:
             return "conjunction";
-        case OpenArabDictWordType.ForeignVerb:
+        case OpenArabDictPOSType.ForeignVerb:
             return "Foreign Verb";
-        case OpenArabDictWordType.Adverb:
+        case OpenArabDictPOSType.Adverb:
             return "adverb";
-        case OpenArabDictWordType.Pronoun:
+        case OpenArabDictPOSType.Pronoun:
             return "pronoun";
-        case OpenArabDictWordType.Phrase:
+        case OpenArabDictPOSType.Phrase:
             return "Phrase";
-        case OpenArabDictWordType.Particle:
+        case OpenArabDictPOSType.Particle:
             return "particle";
-        case OpenArabDictWordType.Interjection:
+        case OpenArabDictPOSType.Interjection:
             return "Interjection";
-        case OpenArabDictWordType.Verb:
+        case OpenArabDictPOSType.Verb:
             return "Verb";
-        case OpenArabDictWordType.Numeral:
+        case OpenArabDictPOSType.Numeral:
             return "numeral";
     }
 }
 
-export function WordTypeToText(wordType: OpenArabDictWordType)
+export function WordTypeToText(wordType: OpenArabDictPOSType)
 {
     return I18n("word.types." + WordTypeToDictionaryKey(wordType));
 }

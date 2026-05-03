@@ -17,9 +17,9 @@
  * */
 
 import { JSX_CreateElement, JSX_Fragment } from "@aczwink/acfrontend";
-import { WordIdReferenceComponent } from "./WordReferenceComponent";
+import { LexemeIdReferenceComponent } from "./WordReferenceComponent";
 import { WordDerivationTypeFromWordToString } from "../shared/words";
-import { OpenArabDictParentType, OpenArabDictWordParent } from "@aczwink/openarabdict-domain";
+import { OpenArabDictParent, OpenArabDictParentType } from "@aczwink/openarabdict-domain";
 import { RootIdReferenceComponent } from "../roots/RootReferenceComponent";
 
 function DerivationToText(relationType: OpenArabDictParentType, outgoing: boolean): string
@@ -53,16 +53,16 @@ function DerivationToText(relationType: OpenArabDictParentType, outgoing: boolea
     }
 }
 
-export function RenderDerivedTerm(outgoing: boolean, relation: OpenArabDictWordParent)
+export function RenderDerivedTerm(outgoing: boolean, relation: OpenArabDictParent)
 {
     return <>
-        {DerivationToText(relation.type, outgoing)} of <WordIdReferenceComponent wordId={relation.id} />
+        {DerivationToText(relation.type, outgoing)} of <LexemeIdReferenceComponent lexemeId={relation.id} />
     </>;
 }
 
-export function WordDerivationComponent(input: { parent: OpenArabDictWordParent[]; })
+export function WordDerivationComponent(input: { parent: OpenArabDictParent[]; })
 {
-    function RenderEntry(x: OpenArabDictWordParent)
+    function RenderEntry(x: OpenArabDictParent)
     {
         if(x.type === OpenArabDictParentType.Root)
             return <RootIdReferenceComponent rootId={x.id} />;

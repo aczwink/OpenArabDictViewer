@@ -18,8 +18,8 @@
 
 import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController, TranslationLanguage } from "./DatabaseController";
-import { OpenArabDictParentType, OpenArabDictTranslationEntry, OpenArabDictWord, OpenArabDictWordRelationshipType } from "@aczwink/openarabdict-domain";
-import { WordsIndexService } from "../services/WordsIndexService";
+import { OpenArabDictLexeme, OpenArabDictLexicalUnit, OpenArabDictParent, OpenArabDictParentType, OpenArabDictPartOfSpeech, OpenArabDictSense, OpenArabDictTranslationEntry, OpenArabDictWordRelationshipType } from "@aczwink/openarabdict-domain";
+import { LexemesIndexService } from "../services/LexemesIndexService";
 import { TranslationIndexService } from "../services/TranslationIndexService";
 
 interface WordRelation
@@ -28,63 +28,102 @@ interface WordRelation
     relationType: OpenArabDictWordRelationshipType;
 }
 
-export interface FullWordData
+interface LexemeParent extends OpenArabDictParent
 {
-    word: OpenArabDictWord;
+    /**
+     * Either the parent root id or the parent lexeme id.
+     */
+    id: string;
+}
+
+interface LexicalUnit
+{
+    pos: OpenArabDictPartOfSpeech;
     translations: OpenArabDictTranslationEntry[];
-    derived: string[];
+}
+
+interface LexemeSense
+{
+    units: LexicalUnit[];
+}
+
+export interface LexemeData
+{
+    id: string;
+    parent: LexemeParent[];
+    senses: LexemeSense[];
+    text: string;
+    derivedLexemeIds: string[];
     related: WordRelation[];
 }
 
 @Injectable
 export class WordsController
 {
-    constructor(private dbController: DatabaseController, private wordsIndexService: WordsIndexService, private translationIndexService: TranslationIndexService)
+    constructor(private dbController: DatabaseController, private wordsIndexService: LexemesIndexService, private translationIndexService: TranslationIndexService)
     {
     }
 
     //Public methods
+    public async QueryLexeme(wordId: string, translationLanguage: TranslationLanguage)
+    {
+        const word = this.wordsIndexService.GetLexeme(wordId);
+        if(word !== undefined)
+            return await this.QueryFullWordData(word, translationLanguage);
+
+        return undefined;
+    }
+    
     public async QueryRandomWordId()
     {
         const document = await this.dbController.GetDocumentDB();
 
-        const count = document.words.length;
+        const count = document.lexemes.length;
         const index = Math.floor(count * Math.random());
 
-        return document.words[index].id;
+        return document.lexemes[index].id;
     }
 
     public async QueryRootDerivedWords(rootId: string, translationLanguage: TranslationLanguage)
     {
-        function filterFunc(x: OpenArabDictWord)
+        function filterFunc(x: OpenArabDictLexeme)
         {
             return x.parent.find(x => (x.type === OpenArabDictParentType.Root) && (x.id === rootId)) !== undefined;
         }
 
         const document = await this.dbController.GetDocumentDB();
 
-        const words = document.words.Values().Filter(filterFunc);
+        const words = document.lexemes.Values().Filter(filterFunc);
 
         return words.Map(x => this.QueryFullWordData(x, translationLanguage));
     }
 
-    public async QueryWord(wordId: string, translationLanguage: TranslationLanguage)
+    //Private methods
+    private MapSenses(senses: OpenArabDictSense[], translationLanguage: TranslationLanguage): LexemeSense[]
     {
-        const word = this.wordsIndexService.GetWord(wordId);
-        if(word !== undefined)
-            return await this.QueryFullWordData(word, translationLanguage);
+        const ctx = this;
+        function MapUnit(unit: OpenArabDictLexicalUnit): LexicalUnit
+        {
+            return {
+                pos: unit.pos,
+                translations: ctx.translationIndexService.GetTranslationsOf(unit.id, translationLanguage),
+            };
+        }
 
-        return undefined;
+        return senses.map(x => ({
+            units: x.units.map(MapUnit)
+        }));
     }
 
-    //Private methods
-    private async QueryFullWordData(word: OpenArabDictWord, translationLanguage: TranslationLanguage)
+    private async QueryFullWordData(lexeme: OpenArabDictLexeme, translationLanguage: TranslationLanguage)
     {
-        const result: FullWordData = {
-            word,
-            translations: this.translationIndexService.GetTranslationsOf(word.id, translationLanguage),
-            derived: this.wordsIndexService.GetChildrenOf(word.id).map(x => x.childWordId),
-            related: await this.QueryRelatedWords(word.id),
+        const result: LexemeData = {
+            id: lexeme.id,
+            parent: lexeme.parent.map(x => ({ type: x.type, id: (x.type === OpenArabDictParentType.Root ? x.id : this.wordsIndexService.GetLexemeFromLexicalUnitId(x.id)!.id) })),
+            senses: this.MapSenses(lexeme.senses, translationLanguage),
+            text: lexeme.text,
+            derivedLexemeIds: this.wordsIndexService.GetChildLexemes(lexeme.id).ToArray(),
+            related: await this.QueryRelatedWords(lexeme.id),
         };
 
         return result;

@@ -1,6 +1,6 @@
 /**
  * OpenArabDictViewer
- * Copyright (C) 2023-2025 Amir Czwink (amir130@hotmail.de)
+ * Copyright (C) 2023-2026 Amir Czwink (amir130@hotmail.de)
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -18,14 +18,15 @@
 
 import { BootstrapIcon, JSX_CreateElement, JSX_Fragment, RootInjector } from "@aczwink/acfrontend";
 import { DialectsService } from "../services/DialectsService";
-import { OpenArabDictTranslationEntry, UsageType } from "../../dist/api";
+import { OpenArabDictTranslationEntry } from "../../dist/api";
+import { OpenArabDictTranslationUsageType } from "@aczwink/openarabdict-domain";
 
-function RenderExample(example: { text: string; translation: string; }): RenderValue
+function RenderExample(example: { text: string; translation: string[]; }): RenderValue
 {
-    return <p>{example.text} - {example.translation}</p>;
+    return <p>{example.text} - {example.translation.join(";")}</p>;
 }
 
-function RenderExamples(examples?: { text: string; translation: string; }[])
+function RenderExamples(examples?: { text: string; translation: string[]; }[])
 {
     if((examples === undefined) || (examples.length === 0))
         return null;
@@ -44,7 +45,7 @@ function RenderExamples(examples?: { text: string; translation: string; }[])
     </>;
 }
 
-function RenderContextDependentMeanings(contextual?: { text: string; translation: string; }[])
+function RenderContextDependentMeanings(contextual?: { text: string; translation: string[]; }[])
 {
     if((contextual === undefined) || (contextual.length === 0))
         return null;
@@ -96,8 +97,8 @@ function RenderTranslationEntry(translationEntry: OpenArabDictTranslationEntry)
 {
     const d = RootInjector.Resolve(DialectsService).GetDialect(translationEntry.dialectId);
 
-    const examples = translationEntry.usage?.filter(x => x.type === UsageType.Example);
-    const contextual = translationEntry.usage?.filter(x => x.type === UsageType.MeaningInContext);
+    const examples = translationEntry.usage?.filter(x => x.type === OpenArabDictTranslationUsageType.Example);
+    const contextual = translationEntry.usage?.filter(x => x.type === OpenArabDictTranslationUsageType.MeaningInContext);
 
     return <div className="row">
         <div className="col-auto">

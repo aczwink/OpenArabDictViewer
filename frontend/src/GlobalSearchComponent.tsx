@@ -20,11 +20,11 @@ import { Component, FormField, I18n, Injectable, JSX_CreateElement, LineEdit, Pr
 import { allWordTypes, WordTypeToText } from "./shared/words";
 import { APIService } from "./services/APIService";
 import { WordFunctionComponent } from "./words/WordFunctionComponent";
-import { OpenArabDictWordType } from "@aczwink/openarabdict-domain";
 import { ImplicitWordDerivation, SearchResultEntry } from "../dist/api";
 import { WordReferenceComponent } from "./words/WordReferenceComponent";
 import { GlobalSettingsService } from "./services/GlobalSettingsService";
 import { WordDerivationComponent } from "./words/WordDerivationComponent";
+import { OpenArabDictPOSType } from "@aczwink/openarabdict-domain";
 
 @Injectable
 export class GlobalSearchComponent extends Component
@@ -57,7 +57,7 @@ export class GlobalSearchComponent extends Component
     private filter: string;
 
     private extendedSearch: boolean;
-    private wordType: OpenArabDictWordType | null;
+    private wordType: OpenArabDictPOSType | null;
 
     private isSearching: boolean;
     private offset: number;

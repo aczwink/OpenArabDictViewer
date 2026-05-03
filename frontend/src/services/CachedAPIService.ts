@@ -18,21 +18,34 @@
 
 import { Injectable } from "@aczwink/acfrontend";
 import { APIService } from "./APIService";
-import { FullWordData } from "../../dist/api";
 import { Dictionary } from "@aczwink/acts-util-core";
-import { OpenArabDictRoot, OpenArabDictVerb, OpenArabDictWord, OpenArabDictWordType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictPartOfSpeech, OpenArabDictRoot, OpenArabDictTranslationEntry, OpenArabDictVerb } from "@aczwink/openarabdict-domain";
 import { GlobalSettingsService } from "./GlobalSettingsService";
-
-export interface WordWithConnections extends FullWordData
-{
-    word: OpenArabDictWord;
-}
+import { LexemeData, LexemeSense } from "../../dist/api";
 
 export interface FullVerbData
 {
     rootData: OpenArabDictRoot;
     verbData: OpenArabDictVerb;
 }
+
+//TODO: acts util api :(
+export interface LexicalUnitAPIData
+{
+    pos: OpenArabDictPartOfSpeech;
+    translations: OpenArabDictTranslationEntry[];
+}
+
+export interface LexemeSenseAPIData
+{
+    units: LexicalUnitAPIData[];
+}
+
+export interface LexemeAPIData extends LexemeData
+{
+    senses: LexemeSenseAPIData[];
+}
+//end of TODO: acts util api :(
 
 @Injectable
 export class CachedAPIService
@@ -47,8 +60,8 @@ export class CachedAPIService
     //Public methods
     public async QueryFullVerbData(verbId: string): Promise<FullVerbData>
     {
-        const verbData = await this.QueryVerb(verbId);
-        return await this.QueryFullVerbDataForVerbData(verbData);
+        const verbData = await this.QueryLexeme(verbId);
+        return await this.QueryFullVerbDataForVerbData(verbData!.senses[0].units[0].pos as OpenArabDictVerb);
     }
 
     public async QueryFullVerbDataForVerbData(verbData: OpenArabDictVerb): Promise<FullVerbData>
@@ -59,78 +72,15 @@ export class CachedAPIService
         };
     }
 
-    public async QueryFullWord(wordId: string)
-    {
-        const fwd = await this.QueryFullWordData(wordId);
-
-        return fwd!;
-    }
-
-    public async QueryRootData(rootId: string)
-    {
-        const cached = this.rootsCache[rootId];
-        if(cached !== undefined)
-            return cached;
-
-        const response = await this.apiService.roots._any_.get(rootId);
-        if(response.statusCode !== 200)
-            throw new Error("HERE");
-        this.rootsCache[rootId] = response.data;
-        return response.data;
-    }
-
-    public async QueryRootWords(rootId: string)
+    public async QueryLexeme(lexemeId: string): Promise<LexemeAPIData | undefined>
     {
         const translationLanguage = this.pageLanguageService.activeLanguage;
 
-        const response = await this.apiService.roots._any_.words.get(rootId, { translationLanguage });
-        const words = response.data as WordWithConnections[];
-
-        this.rootWordsCache[rootId] = words;
-        for (const word of words)
-            this.CacheWord(word);
-
-        return words as WordWithConnections[];
-    }
-
-    public async QueryVerb(verbId: string)
-    {
-        const word = await this.QueryWord(verbId);
-        if(word.type !== OpenArabDictWordType.Verb)
-            throw new Error("HERE");
-        return word;
-    }
-
-    public async QueryWord(wordId: string)
-    {
-        const fwd = await this.QueryFullWordData(wordId);
-
-        return fwd!.word as OpenArabDictWord;
-    }
-
-    public async QueryWordWithConnections(wordId: string)
-    {
-        const fwd = await this.QueryFullWordData(wordId);
-
-        return fwd as WordWithConnections | undefined;
-    }
-
-    //Private methods
-    private CacheWord(data: FullWordData)
-    {
-        const targetLanguage = this.pageLanguageService.activeLanguage;
-        this.wordsCache[data.word.id + "-" + targetLanguage] = data;
-    }
-
-    private async QueryFullWordData(wordId: string)
-    {
-        const translationLanguage = this.pageLanguageService.activeLanguage;
-
-        const cached = this.wordsCache[wordId + "-" + translationLanguage];
+        const cached = this.wordsCache[lexemeId + "-" + translationLanguage];
         if(cached !== undefined)
-            return cached;
+            return cached as LexemeAPIData;
 
-        const response = await this.apiService.words._any_.get(wordId, { translationLanguage });
+        const response = await this.apiService.lexemes._any_.get(lexemeId, { translationLanguage });
         switch(response.statusCode)
         {
             case 200:
@@ -142,11 +92,45 @@ export class CachedAPIService
         }
         this.CacheWord(response.data);
 
-        return response.data;
+        return response.data as LexemeAPIData;
+    }
+
+    public async QueryRootData(rootId: string)
+    {
+        const cached = this.rootsCache[rootId];
+        if(cached !== undefined)
+            return cached;
+
+        const response = await this.apiService.roots._any_.get(rootId);
+        if(response.statusCode !== 200)
+            throw new Error("HERE");
+        this.rootsCache[rootId] = response.data as OpenArabDictRoot;
+        return response.data as OpenArabDictRoot;
+    }
+
+    public async QueryRootWords(rootId: string)
+    {
+        const translationLanguage = this.pageLanguageService.activeLanguage;
+
+        const response = await this.apiService.roots._any_.words.get(rootId, { translationLanguage });
+        const words = response.data;
+
+        this.rootWordsCache[rootId] = words;
+        for (const word of words)
+            this.CacheWord(word);
+
+        return words;
+    }
+
+    //Private methods
+    private CacheWord(data: LexemeData)
+    {
+        const targetLanguage = this.pageLanguageService.activeLanguage;
+        this.wordsCache[data.id + "-" + targetLanguage] = data;
     }
 
     //State
     private rootsCache: Dictionary<OpenArabDictRoot>;
-    private rootWordsCache: Dictionary<WordWithConnections[]>;
-    private wordsCache: Dictionary<FullWordData>;
+    private rootWordsCache: Dictionary<LexemeData[]>;
+    private wordsCache: Dictionary<LexemeData>;
 }
