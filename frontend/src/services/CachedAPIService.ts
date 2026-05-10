@@ -21,7 +21,7 @@ import { APIService } from "./APIService";
 import { Dictionary } from "@aczwink/acts-util-core";
 import { OpenArabDictPartOfSpeech, OpenArabDictRoot, OpenArabDictTranslationEntry, OpenArabDictVerb } from "@aczwink/openarabdict-domain";
 import { GlobalSettingsService } from "./GlobalSettingsService";
-import { LexemeData, LexemeSense } from "../../dist/api";
+import { LexemeData } from "../../dist/api";
 
 export interface FullVerbData
 {
@@ -29,7 +29,7 @@ export interface FullVerbData
     verbData: OpenArabDictVerb;
 }
 
-//TODO: acts util api :(
+//TODO: acts util api :( //TODO: this is just because of the boolean complete-.-
 export interface LexicalUnitAPIData
 {
     pos: OpenArabDictPartOfSpeech;
@@ -119,7 +119,7 @@ export class CachedAPIService
         for (const word of words)
             this.CacheWord(word);
 
-        return words;
+        return words as LexemeAPIData[];
     }
 
     //Private methods

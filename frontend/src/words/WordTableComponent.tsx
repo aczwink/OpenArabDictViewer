@@ -20,12 +20,11 @@ import { BootstrapIcon, Component, Injectable, JSX_CreateElement, JSX_Fragment, 
 import { WordFunctionComponent } from "./WordFunctionComponent";
 import { CachedAPIService, LexemeAPIData } from "../services/CachedAPIService";
 import { WordReferenceComponent } from "./WordReferenceComponent";
-import { LexemeData } from "../../dist/api";
 
 interface WordWithLevel
 {
     level: number;
-    word: LexemeData;
+    word: LexemeAPIData;
 }
 
 @Injectable

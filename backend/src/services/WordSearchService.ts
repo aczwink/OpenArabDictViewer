@@ -34,7 +34,7 @@ export interface WordFilterCriteria
 @Injectable
 export class WordSearchService
 {
-    constructor(private dbController: DatabaseController, private arabicTextIndexService: ArabicTextIndexService, private wordsIndexService: LexemesIndexService, private translationTextService: TranslationTextService)
+    constructor(private dbController: DatabaseController, private arabicTextIndexService: ArabicTextIndexService, private translationTextService: TranslationTextService, private lexemesIndexService: LexemesIndexService)
     {
     }
 
@@ -154,7 +154,7 @@ export class WordSearchService
 
     private SearchByTranslation(filterCriteria: WordFilterCriteria, translationLanguage: TranslationLanguage, entry: { lexicalUnitId: string; translations: OpenArabDictTranslationEntry[] }): SearchResultEntry
     {
-        const word = this.wordsIndexService.GetLexeme(entry.lexicalUnitId);
+        const word = this.lexemesIndexService.GetLexemeFromLexicalUnitId(entry.lexicalUnitId)!;
         if(entry.translations.IsEmpty())
         {
             return {

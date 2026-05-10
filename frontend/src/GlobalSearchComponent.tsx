@@ -20,11 +20,22 @@ import { Component, FormField, I18n, Injectable, JSX_CreateElement, LineEdit, Pr
 import { allWordTypes, WordTypeToText } from "./shared/words";
 import { APIService } from "./services/APIService";
 import { WordFunctionComponent } from "./words/WordFunctionComponent";
-import { ImplicitWordDerivation, SearchResultEntry } from "../dist/api";
+import { ImplicitWordDerivation, ImplicitWordParent } from "../dist/api";
 import { WordReferenceComponent } from "./words/WordReferenceComponent";
 import { GlobalSettingsService } from "./services/GlobalSettingsService";
 import { WordDerivationComponent } from "./words/WordDerivationComponent";
-import { OpenArabDictPOSType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictParent, OpenArabDictPOSType } from "@aczwink/openarabdict-domain";
+import { LexemeAPIData } from "./services/CachedAPIService";
+
+interface APISearchResultEntry //TODO: this is just because of the boolean complete-.-
+{
+    derived?: {
+        text: string;
+        parent: OpenArabDictParent | ImplicitWordParent;
+    };
+    score: number;
+    word: LexemeAPIData;
+}
 
 @Injectable
 export class GlobalSearchComponent extends Component
@@ -62,7 +73,7 @@ export class GlobalSearchComponent extends Component
     private isSearching: boolean;
     private offset: number;
     private limit: number;
-    private data: SearchResultEntry[];
+    private data: APISearchResultEntry[];
 
     //Private methods
     private async PerformSearch()
@@ -77,7 +88,7 @@ export class GlobalSearchComponent extends Component
             limit: this.limit,
             translationLanguage: this.pageLanguageService.activeLanguage
         });
-        this.data = response.data;
+        this.data = response.data as APISearchResultEntry[];
         this.data.SortByDescending(x => x.score);
 
         this.isSearching = false;
@@ -118,7 +129,7 @@ export class GlobalSearchComponent extends Component
         </form>;
     }
 
-    private RenderResultEntry(entry: SearchResultEntry)
+    private RenderResultEntry(entry: APISearchResultEntry)
     {
         if(entry.derived === undefined)
         {

@@ -23,7 +23,6 @@ import { WordTypeToText } from "./shared/words";
 import { CachedAPIService, LexemeAPIData } from "./services/CachedAPIService";
 import { RemoveTashkilButKeepShadda } from "@aczwink/openarabicconjugation/dist/Util";
 import { GlobalSettingsService } from "./services/GlobalSettingsService";
-import { LexemeData } from "../dist/api";
 
 @Injectable
 export class LearnComponent extends Component
@@ -91,7 +90,7 @@ export class LearnComponent extends Component
         this.data = word!;
     }
 
-    private RenderFunction(func: LexemeData)
+    private RenderFunction(func: LexemeAPIData)
     {
         const unit = func.senses[0].units[0];
         return <fragment>
