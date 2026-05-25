@@ -19,13 +19,13 @@
     "ts-loader": "^9.5.7",
     "webpack": "^5.106.2",
     "webpack-cli": "^7.0.2",
-    "webpack-dev-server": "^5.2.3"
+    "webpack-dev-server": "^5.2.4"
   },
   "dependencies": {
     "@aczwink/acfrontend": "^1.0.0",
     "@aczwink/acts-util-core": "^1.0.0",
     "@aczwink/openarabdict-domain": "^2.0.0",
     "@aczwink/openarabdict-openarabicconjugation-bridge": "^1.1.0",
-    "@aczwink/openarabicconjugation": "^1.2.7"
+    "@aczwink/openarabicconjugation": "^1.2.10"
   }
 }

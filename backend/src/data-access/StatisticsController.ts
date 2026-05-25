@@ -276,43 +276,34 @@ export class StatisticsController
         const dict: Dictionary<VerbalNounFrequencies> = {};
         for (const word of document.lexemes)
         {
-            for (const sense of word.senses)
+            for (const parent of word.parent)
             {
-                for (const unit of sense.units)
-                {
-                    if(unit.pos.type !== OpenArabDictPOSType.Verb)
-                        continue;
+                if(parent.type !== OpenArabDictParentType.VerbalNoun)
+                    continue;
 
-                    for (const parent of word.parent)
+                const lexicalUnitId = parent.id;
+                const verb = this.wordsIndexService.GetLexemeFromLexicalUnitId(lexicalUnitId)!;
+                const vUnit = verb.senses[0].units[0].pos;
+                if(vUnit.type !== OpenArabDictPOSType.Verb)
+                    throw new Error("Should never happen");
+
+                const rootData = this.rootsIndexService.GetRoot(vUnit.rootId)!;
+
+                if(vUnit.form.variants === undefined)
+                {
+                    const verbInstance = CreateVerbFromOADVerb(DialectType.ModernStandardArabic, rootData, vUnit);
+                    ProcessVerbInstance(word.text, verbInstance);
+                }
+                else
+                {
+                    for (const variant of vUnit.form.variants)
                     {
-                        if(parent.type !== OpenArabDictParentType.VerbalNoun)
+                        const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
+                        if(dialectType !== DialectType.ModernStandardArabic)
                             continue;
 
-                        const verbId = parent.id;
-                        const verb = this.wordsIndexService.GetLexeme(verbId);
-                        const vUnit = verb.senses[0].units[0].pos;
-                        if(vUnit.type !== OpenArabDictPOSType.Verb)
-                            throw new Error("Should never happen");
-
-                        const rootData = this.rootsIndexService.GetRoot(vUnit.rootId)!;
-
-                        if(vUnit.form.variants === undefined)
-                        {
-                            const verbInstance = CreateVerbFromOADVerb(DialectType.ModernStandardArabic, rootData, vUnit);
-                            ProcessVerbInstance(word.text, verbInstance);
-                        }
-                        else
-                        {
-                            for (const variant of vUnit.form.variants)
-                            {
-                                const dialectType = this.dialectsService.MapDialectId(variant.dialectId)!;
-                                if(dialectType !== DialectType.ModernStandardArabic)
-                                    continue;
-
-                                const verbInstance = CreateVerbFromOADVerb(dialectType, rootData, vUnit);
-                                ProcessVerbInstance(word.text, verbInstance);
-                            }
-                        }
+                        const verbInstance = CreateVerbFromOADVerb(dialectType, rootData, vUnit);
+                        ProcessVerbInstance(word.text, verbInstance);
                     }
                 }
             }

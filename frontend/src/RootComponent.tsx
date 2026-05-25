@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { BootstrapIcon, Component, I18n, Injectable, JSX_CreateElement, Navigation, NavItem, ProgressSpinner, RouterComponent } from "@aczwink/acfrontend";
+import { BootstrapIcon, Component, I18n, Injectable, JSX_CreateElement, Navigation, NavItem, ProgressSpinner, RouterComponent, ThemingService } from "@aczwink/acfrontend";
 import { DialectsService } from "./services/DialectsService";
 import { GlobalSettingsService } from "./services/GlobalSettingsService";
 import { PageLanguageSelectionComponent } from "./PageLanguageSelectionComponent";
@@ -25,7 +25,7 @@ import { DialectSelectionComponent } from "./DialectSelectionComponent";
 @Injectable
 export class RootComponent extends Component
 {
-    constructor(private dialectsService: DialectsService, private pageLanguageService: GlobalSettingsService)
+    constructor(private dialectsService: DialectsService, private pageLanguageService: GlobalSettingsService, private themingService: ThemingService)
     {
         super();
 
@@ -40,13 +40,15 @@ export class RootComponent extends Component
         if(this.loading)
             return <ProgressSpinner />;
 
+        const logo = this.themingService.IsDarkModeEnabled() ? "/openarabdict_logo_dark.svg" : "/openarabdict_logo.svg";
+
         return <fragment>
             <Navigation>
                 <div className="row m-auto">
                     <div className="col-auto p-1" style="display: inline">
                         <div className="row align-items-start">
                             <div className="col-auto align-self-center pe-0">
-                                <img src="/openarabdict_logo.svg" style="height: 2.5rem; margin:auto;" />
+                                <img src={logo} style="height: 2.5rem; margin:auto;" />
                             </div>
                             <div className="col-auto ps-0">
                                 <h4>OpenArabDict</h4>
