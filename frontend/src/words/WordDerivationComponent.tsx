@@ -29,6 +29,10 @@ function DerivationToText(relationType: OpenArabDictParentType, outgoing: boolea
 
     switch(relationType)
     {
+        case OpenArabDictParentType.ActiveParticiple:
+        case OpenArabDictParentType.PassiveParticiple:
+        case OpenArabDictParentType.VerbalNoun:
+            return "base verb";
         case OpenArabDictParentType.Feminine:
             return "male version";
         case OpenArabDictParentType.Plural:

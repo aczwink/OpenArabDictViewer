@@ -19,12 +19,10 @@
 import { Anchor, Component, Injectable, JSX_CreateElement, ProgressSpinner } from "@aczwink/acfrontend";
 import { VerbVariant, WordRelation } from "../../dist/api";
 import { StemNumberComponent } from "../shared/RomanNumberComponent";
-import { RemoveTashkil } from "@aczwink/openarabicconjugation/dist/Util";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { ConjugationService } from "../services/ConjugationService";
 import { RenderTranslations } from "../shared/translations";
 import { WordRelationshipTypeToString } from "../shared/words";
-import { RootToString } from "../roots/general";
 import { Person, Numerus, Gender, Mood, Voice } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { DisplayVocalized } from "@aczwink/openarabicconjugation/dist/Vocalization";
 import { Tense } from "@aczwink/openarabicconjugation/dist/Definitions";
@@ -34,7 +32,6 @@ import { VerbConjugationService } from "../services/VerbConjugationService";
 import { OpenArabDictParentType, OpenArabDictPOSType, OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbForm } from "@aczwink/openarabdict-domain";
 import { LexemeIdReferenceComponent } from "../words/WordReferenceComponent";
 import { CachedAPIService, LexemeAPIData } from "../services/CachedAPIService";
-import { WordTableComponent } from "../words/WordTableComponent";
 import { Verb } from "@aczwink/openarabicconjugation/dist/Verb";
 import { DialectType } from "@aczwink/openarabicconjugation/dist/Dialects";
 import { GlobalSettingsService } from "../services/GlobalSettingsService";
@@ -69,15 +66,7 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         const verb = this.verbConjugationService.ConstructVerb(dialectType, this.rootRadicals, this.GetForm(dialectType));
 
         return <fragment>
-            <div className="row">
-                <h2>{this.fullWord!.text}</h2>
-            </div>
-
             {this.RenderProperties(verb)}
-            <br />
-            <a href={"https://en.wiktionary.org/wiki/" + RemoveTashkil(this.fullWord!.text)} target="_blank">See on Wiktionary</a>
-            <br />
-            {this.RenderDerivedWords()}
             {this.RenderConjugation(verb)}
         </fragment>;
     }
@@ -311,17 +300,6 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         </fragment>;
     }
 
-    private RenderDerivedWords()
-    {
-        if(this.derivedWords === null)
-            return <ProgressSpinner />;
-
-        return <div className="mt-2">
-            <h5>Derived words</h5>
-            <WordTableComponent collapse={false} words={this.derivedWords} />
-        </div>;
-    }
-
     private RenderDialectHint(dialect: DialectType)
     {
         if(dialect !== this.globalSettingsService.dialectType)
@@ -344,10 +322,6 @@ export class ShowVerbComponent extends Component<{ verbId: string }>
         </tr> : null;
         return <table>
             <tbody>
-                <tr>
-                    <th>Root:</th>
-                    <td><Anchor route={"/roots/" + data.rootId}>{RootToString(this.root)}</Anchor></td>
-                </tr>
                 <tr>
                     <th>Dialect:</th>
                     <td>{dialect.emojiCodes} {dialect.name} {this.RenderDialectHint(verb.dialect)}</td>

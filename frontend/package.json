@@ -14,11 +14,11 @@
   "devDependencies": {
     "@aczwink/acts-util-apilib": "^1.0.0",
     "dotenv-webpack": "^9.0.0",
-    "js-yaml": "^4.1.1",
+    "js-yaml": "^4.2.0",
     "source-map-loader": "^5.0.0",
-    "ts-loader": "^9.5.7",
-    "webpack": "^5.106.2",
-    "webpack-cli": "^7.0.2",
+    "ts-loader": "^9.6.0",
+    "webpack": "^5.107.2",
+    "webpack-cli": "^7.0.3",
     "webpack-dev-server": "^5.2.4"
   },
   "dependencies": {
@@ -26,6 +26,6 @@
     "@aczwink/acts-util-core": "^1.0.0",
     "@aczwink/openarabdict-domain": "^2.0.0",
     "@aczwink/openarabdict-openarabicconjugation-bridge": "^1.1.0",
-    "@aczwink/openarabicconjugation": "^1.2.10"
+    "@aczwink/openarabicconjugation": "^1.2.12"
   }
 }
