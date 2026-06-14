@@ -26,6 +26,6 @@
     "@aczwink/acts-util-core": "^1.0.0",
     "@aczwink/openarabdict-domain": "^2.0.0",
     "@aczwink/openarabdict-openarabicconjugation-bridge": "^1.1.0",
-    "@aczwink/openarabicconjugation": "^1.2.12"
+    "@aczwink/openarabicconjugation": "^1.2.13"
   }
 }

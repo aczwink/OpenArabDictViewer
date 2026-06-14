@@ -33,6 +33,8 @@ function DerivationToText(relationType: OpenArabDictParentType, outgoing: boolea
         case OpenArabDictParentType.PassiveParticiple:
         case OpenArabDictParentType.VerbalNoun:
             return "base verb";
+        case OpenArabDictParentType.MeaningRelated:
+            return "related in meaning";
         case OpenArabDictParentType.Feminine:
             return "male version";
         case OpenArabDictParentType.Plural:

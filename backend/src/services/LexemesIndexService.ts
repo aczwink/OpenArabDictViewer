@@ -34,9 +34,9 @@ export class LexemesIndexService
     }
 
     //Public methods
-    public GetChildLexemes(lexemeId: string)
+    public GetChildLexemes(lexicalUnitId: string)
     {
-        return this.GetChildLinksOf(lexemeId).Map(x => x.childLexemeId).Distinct(x => x);
+        return this.childLexemesOfLexicalUnitsMap[lexicalUnitId]?.map(x => x.childLexemeId) ?? [];
     }
 
     public GetChildLinksOf(lexemeId: string)

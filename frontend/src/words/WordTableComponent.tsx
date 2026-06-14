@@ -70,7 +70,7 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Le
         let s = "";
 
         while(level--)
-            s += "    ";
+            s += "  ";
 
         if(s.length > 0)
         {
@@ -81,6 +81,13 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Le
         }
 
         return s;
+    }
+
+    private async LoadAllChildren(level: number, lexeme: LexemeAPIData, container: WordWithLevel[])
+    {
+        const derivedLexemeIds = lexeme.senses.Values().Map(x => x.units.Values()).Flatten().Map(x => x.derivedLexemeIds.Values()).Flatten().Distinct(x => x).ToArray();
+
+        await this.LoadChildren(level + 1, derivedLexemeIds, container);
     }
 
     private async LoadChildren(level: number, lexemeIds: string[], destination: WordWithLevel[])
@@ -95,13 +102,15 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Le
                 level
             });
 
-            await this.LoadChildren(level + 1, word.derivedLexemeIds, destination);
+            await this.LoadAllChildren(level + 1, word, destination);
         }
     }
 
-    //Event handlers
-    override async OnInitiated(): Promise<void>
+    private async LoadData()
     {
+        this.loading = true;
+        this.words = [];
+
         if(!this.input.collapse)
         {
             this.words = this.input.words.map(x => ({
@@ -120,11 +129,22 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Le
                 word: rootWord
             });
 
-            await this.LoadChildren(1, rootWord.derivedLexemeIds, words);
+            await this.LoadAllChildren(1, rootWord, words);
         }
 
         this.words = words;
         this.loading = false;
+    }
+
+    //Event handlers
+    override OnInitiated(): void
+    {
+        this.LoadData();
+    }
+
+    override OnInputChanged(): void
+    {
+        this.LoadData();
     }
 
     //State

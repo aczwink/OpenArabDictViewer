@@ -38,6 +38,7 @@ interface LexemeParent extends OpenArabDictParent
 
 interface LexicalUnit
 {
+    derivedLexemeIds: string[];
     pos: OpenArabDictPartOfSpeech;
     translations: OpenArabDictTranslationEntry[];
 }
@@ -53,7 +54,6 @@ export interface LexemeData
     parent: LexemeParent[];
     senses: LexemeSense[];
     text: string;
-    derivedLexemeIds: string[];
     related: WordRelation[];
 }
 
@@ -99,19 +99,19 @@ export class WordsController
     }
 
     //Private methods
+    private MapUnit(unit: OpenArabDictLexicalUnit, translationLanguage: TranslationLanguage): LexicalUnit
+    {
+        return {
+            derivedLexemeIds: this.wordsIndexService.GetChildLexemes(unit.id),
+            pos: unit.pos,
+            translations: this.translationIndexService.GetTranslationsOf(unit.id, translationLanguage),
+        };
+    }
+
     private MapSenses(senses: OpenArabDictSense[], translationLanguage: TranslationLanguage): LexemeSense[]
     {
-        const ctx = this;
-        function MapUnit(unit: OpenArabDictLexicalUnit): LexicalUnit
-        {
-            return {
-                pos: unit.pos,
-                translations: ctx.translationIndexService.GetTranslationsOf(unit.id, translationLanguage),
-            };
-        }
-
-        return senses.map(x => ({
-            units: x.units.map(MapUnit)
+        return senses.map(s => ({
+            units: s.units.map(u => this.MapUnit(u, translationLanguage))
         }));
     }
 
@@ -122,7 +122,6 @@ export class WordsController
             parent: lexeme.parent.map(x => ({ type: x.type, id: (x.type === OpenArabDictParentType.Root ? x.id : this.wordsIndexService.GetLexemeFromLexicalUnitId(x.id)!.id) })),
             senses: this.MapSenses(lexeme.senses, translationLanguage),
             text: lexeme.text,
-            derivedLexemeIds: this.wordsIndexService.GetChildLexemes(lexeme.id).ToArray(),
             related: await this.QueryRelatedWords(lexeme.id),
         };
 

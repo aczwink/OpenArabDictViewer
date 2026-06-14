@@ -21,11 +21,9 @@ import { WordRelation } from "../../dist/api";
 import { WordRelationshipTypeToString } from "../shared/words";
 import { RemoveTashkil } from "@aczwink/openarabicconjugation/dist/Util";
 import { LexemeIdReferenceComponent } from "./WordReferenceComponent";
-import { RenderDerivedTerm, WordDerivationComponent } from "./WordDerivationComponent";
-import { CachedAPIService, LexemeAPIData } from "../services/CachedAPIService";
-import { OpenArabDictParentType } from "@aczwink/openarabdict-domain";
+import { WordDerivationComponent } from "./WordDerivationComponent";
+import { CachedAPIService, LexemeAPIData, LexemeSenseAPIData } from "../services/CachedAPIService";
 import { ShowUnitComponent } from "./ShowUnitComponent";
-import { WordTableComponent } from "./WordTableComponent";
 
 @Injectable
 export class ShowWordComponent extends Component
@@ -37,7 +35,6 @@ export class ShowWordComponent extends Component
         this.wordId = routerState.routeParams.wordId!;
         this.notFound = false;
         this.data = null;
-        this.derived = [];
     }
 
     protected Render(): RenderValue
@@ -51,15 +48,14 @@ export class ShowWordComponent extends Component
             <div className="row">
                 <h1>{I18n("word.word")}: {this.data.text}</h1>
             </div>
+            <a href={"https://en.wiktionary.org/wiki/" + RemoveTashkil(this.data.text)} target="_blank">{I18n("word.seeOnWiktionary")}</a>
             <table>
                 <tbody>
                     {this.RenderDerivationData()}
                     {this.RenderRelated(this.data.related)}
-                    {this.RenderDerivedTerms()}
                 </tbody>
             </table>
-            <a href={"https://en.wiktionary.org/wiki/" + RemoveTashkil(this.data.text)} target="_blank">{I18n("word.seeOnWiktionary")}</a>
-            {this.data.senses[0].units.map(x => <ShowUnitComponent lexeme={this.data!} unit={x} />).Interleave(<hr />)}
+            {this.data.senses.map(x => this.RenderSense(x)).Interleave(<hr />)}
         </fragment>;
     }
 
@@ -69,29 +65,6 @@ export class ShowWordComponent extends Component
         return <tr>
             <th>{I18n("word.derivedFrom")}:</th>
             <td><WordDerivationComponent parent={this.data!.parent} /></td>
-        </tr>;
-    }
-
-    private RenderDerivedTerm(derived: LexemeAPIData)
-    {
-        const link = derived.parent.find(x => (x.type !== OpenArabDictParentType.Root) && (x.id === this.data!.id))!;
-        return RenderDerivedTerm(false, { id: derived.id, type: link.type });
-    }
-    
-    private RenderDerivedTerms()
-    {
-        if(this.data!.derivedLexemeIds.length === 0)
-            return null;
-
-        return <tr>
-            <th>Derived words/terms:</th>
-            <td>
-                <ul>{this.derived.map(x => <li>{this.RenderDerivedTerm(x)}</li>)}</ul>
-                <div className="mt-2">
-                    <h5>Derived words</h5>
-                    <WordTableComponent collapse={false} words={this.derived} />
-                </div>
-            </td>
         </tr>;
     }
 
@@ -120,6 +93,11 @@ export class ShowWordComponent extends Component
         </ul>;
     }
 
+    private RenderSense(sense: LexemeSenseAPIData)
+    {
+        return sense.units.map(x => <ShowUnitComponent lexeme={this.data!} unit={x} />).Interleave(<hr />);
+    }
+
     //Event handlers
     override async OnInitiated(): Promise<void>
     {
@@ -130,8 +108,6 @@ export class ShowWordComponent extends Component
             return;
         }
 
-        this.derived = await word.derivedLexemeIds.Values().Map(x => this.cachedAPIService.QueryLexeme(x)).Async().NotUndefined().ToArray();
-
         this.data = word;
         this.titleService.title = this.data.text;
     }
@@ -140,5 +116,4 @@ export class ShowWordComponent extends Component
     private wordId: string;
     private notFound: boolean;
     private data: LexemeAPIData | null;
-    private derived: LexemeAPIData[];
 }

@@ -32,6 +32,7 @@ export interface FullVerbData
 //TODO: acts util api :( //TODO: this is just because of the boolean complete-.-
 export interface LexicalUnitAPIData
 {
+    derivedLexemeIds: string[];
     pos: OpenArabDictPartOfSpeech;
     translations: OpenArabDictTranslationEntry[];
 }
