@@ -18,15 +18,23 @@
 
 import { Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "@aczwink/acfrontend";
 import { CachedAPIService, LexemeAPIData } from "../services/CachedAPIService";
-import { AdjectiveOrNounInput, Case, Gender, Numerus } from "@aczwink/openarabicconjugation/dist/Definitions";
-import { DisplayVocalized, ParseVocalizedText } from "@aczwink/openarabicconjugation/dist/Vocalization";
+import { Case, Gender, Numerus } from "@aczwink/openarabicconjugation/dist/Definitions";
+import { DisplayVocalized, ParseVocalizedText, VocalizedWordTostring } from "@aczwink/openarabicconjugation/dist/Vocalization";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { ConjugationService } from "../services/ConjugationService";
 import { OpenArabDictGender, OpenArabDictGendered, OpenArabDictLexeme, OpenArabDictParentType, OpenArabDictPOSType } from "@aczwink/openarabdict-domain";
 import { TargetAdjectiveNounDerivation } from "@aczwink/openarabicconjugation/dist/DialectConjugator";
 import { AdjectiveOrNounState } from "@aczwink/openarabicconjugation/dist/Definitions";
-import { DialectType } from "@aczwink/openarabicconjugation";
+import { ArabicText, DialectType } from "@aczwink/openarabicconjugation";
 import { WordLogic } from "@aczwink/openarabdict-openarabicconjugation-bridge";
+
+interface AdjNounData
+{
+    gender: Gender;
+    isDefinite: boolean;
+    numerus: Numerus;
+    vocalized: DisplayVocalized[];
+}
 
 @Injectable
 export class AdjectiveOrNounDeclensionTable extends Component<{ word: LexemeAPIData; pos: OpenArabDictGendered; derivedWordIds: string[]; }>
@@ -62,7 +70,7 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: LexemeAPID
     private plurals: LexemeAPIData[] | null;
 
     //Private methods
-    private DeriveBase(targetGender: Gender, targetState: AdjectiveOrNounState)
+    private DeriveBase(targetGender: Gender, targetState: AdjectiveOrNounState): AdjNounData
     {
         const sourceState = this.GetSourceState();
 
@@ -80,7 +88,7 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: LexemeAPID
             return {
                 ...sourceState,
                 gender: targetGender,
-                vocalized: feminine,
+                vocalized: feminine
             };
         }
         else if((targetState === AdjectiveOrNounState.Definite) && (this.definite !== null))
@@ -95,7 +103,7 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: LexemeAPID
         return sourceState;
     }
 
-    private DeriveBaseNumerus(sourceState: AdjectiveOrNounInput, targetNumerus: Numerus)
+    private DeriveBaseNumerus(sourceState: AdjNounData, targetNumerus: Numerus): AdjNounData
     {
         switch(targetNumerus)
         {
@@ -121,7 +129,7 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: LexemeAPID
         return derived.find(x => this.DoesParentExist(type, x));
     }
 
-    private GetSourceState(): AdjectiveOrNounInput
+    private GetSourceState(): AdjNounData
     {
         return {
             gender: (this.input.pos.gender === OpenArabDictGender.Male) ? Gender.Male : Gender.Female,
@@ -165,7 +173,10 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: LexemeAPID
         const base = this.DeriveBase(targetGender, targetState);
         const baseNumerused = this.DeriveBaseNumerus(base, targetNumerus);
 
-        const declined = this.conjugationService.DeclineAdjectiveOrNoun(DialectType.ModernStandardArabic, baseNumerused, {
+        const declined = this.conjugationService.DeclineAdjectiveOrNoun(DialectType.ModernStandardArabic, {
+            ...baseNumerused,
+            vocalized: ArabicText.ReconstructFullyVocalizedWord(VocalizedWordTostring(baseNumerused.vocalized), false)
+        }, {
             state: targetState,
             case: c,
         });

@@ -18,12 +18,12 @@
 
 import { Injectable } from "@aczwink/acfrontend";
 import { VerbRoot } from "@aczwink/openarabicconjugation/dist/VerbRoot";
-import { DisplayVocalized, VocalizedToString } from "@aczwink/openarabicconjugation/dist/Vocalization";
+import { DisplayVocalized, VocalizedToString, VocalizedWordTostring } from "@aczwink/openarabicconjugation/dist/Vocalization";
 import { ConjugationParams, Person, Tense, Voice, Gender, Numerus, Mood, AdvancedStemNumber, VerbType, AdjectiveOrNounInput } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { CreateVerb, Verb } from "@aczwink/openarabicconjugation/dist/Verb";
 import { TargetAdjectiveNounDerivation } from "@aczwink/openarabicconjugation/dist/DialectConjugator";
 import { AdjectiveOrNounDeclensionParams } from "@aczwink/openarabicconjugation/dist/Definitions";
-import { Conjugator, DialectType, TargetVerbBasedDerivationPatterns } from "@aczwink/openarabicconjugation";
+import { ArabicText, Conjugator, DialectType, TargetVerbBasedDerivationPatterns } from "@aczwink/openarabicconjugation";
 
 
 @Injectable
@@ -76,7 +76,8 @@ export class ConjugationService
 
     public DeriveSoundAdjectiveOrNoun(dialect: DialectType, singular: DisplayVocalized[], singularGender: Gender, target: TargetAdjectiveNounDerivation): DisplayVocalized[]
     {
-        return this.conjugator.DeriveSoundAdjectiveOrNoun(singular, singularGender, target, dialect);
+        const reconstructed = ArabicText.ReconstructFullyVocalizedWord(VocalizedWordTostring(singular), false);
+        return this.conjugator.DeriveSoundAdjectiveOrNoun(reconstructed, singularGender, target, dialect);
     }
 
     public GenerateAllPossibleVerbalNouns(verb: Verb<string>)
