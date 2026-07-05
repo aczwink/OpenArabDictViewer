@@ -3,5 +3,8 @@
     "source": "../backend/dist/openapi.json",
     "destination": "./dist/api.ts",
     "excludedStatusCodes": [],
-    "header": "interface OptionalRequestData{}"
+    "header": "interface OptionalRequestData{}",
+    "imports": {
+        "OpenArabDictTranslationEntry": "@aczwink/openarabdict-domain" 
+    }
 }

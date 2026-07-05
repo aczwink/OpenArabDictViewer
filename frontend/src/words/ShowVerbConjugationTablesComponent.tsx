@@ -293,6 +293,6 @@ export class ShowVerbConjugationTablesComponent extends Component<{ verbId: stri
         this.data = pos;
 
         if(this.data.form.variants !== undefined)
-            this.activeStemParameters = this.data.form.variants[0].stemParameters;
+            this.activeStemParameters = this.data.form.variants[0].stemParameters ?? null;
     }
 }

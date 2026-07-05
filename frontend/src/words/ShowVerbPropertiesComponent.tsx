@@ -259,7 +259,7 @@ export class ShowVerbPropertiesComponent extends Component<{ verbId: string }>
     private OnChangeVariant(variant: VerbVariant, event: Event)
     {
         event.preventDefault();
-        this.activeStemParameters = variant.stemParameters;
+        this.activeStemParameters = variant.stemParameters ?? null;
     }
 
     override async OnInitiated(): Promise<void>
@@ -276,7 +276,7 @@ export class ShowVerbPropertiesComponent extends Component<{ verbId: string }>
         this.data = pos;
 
         if(this.data.form.variants !== undefined)
-            this.activeStemParameters = this.data.form.variants[0].stemParameters;
+            this.activeStemParameters = this.data.form.variants[0].stemParameters ?? null;
 
         this.LoadDerivedWords();
     }
