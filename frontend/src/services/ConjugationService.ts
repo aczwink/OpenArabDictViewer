@@ -76,7 +76,7 @@ export class ConjugationService
 
     public DeriveSoundAdjectiveOrNoun(dialect: DialectType, singular: DisplayVocalized[], singularGender: Gender, target: TargetAdjectiveNounDerivation): DisplayVocalized[]
     {
-        const reconstructed = ArabicText.ReconstructFullyVocalizedWord(VocalizedWordTostring(singular), false);
+        const reconstructed = ArabicText.ReconstructFullyVocalizedWord(VocalizedWordTostring(singular));
         return this.conjugator.DeriveSoundAdjectiveOrNoun(reconstructed, singularGender, target, dialect);
     }
 

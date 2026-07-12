@@ -175,7 +175,7 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: LexemeAPID
 
         const declined = this.conjugationService.DeclineAdjectiveOrNoun(DialectType.ModernStandardArabic, {
             ...baseNumerused,
-            vocalized: ArabicText.ReconstructFullyVocalizedWord(VocalizedWordTostring(baseNumerused.vocalized), false)
+            vocalized: ArabicText.ReconstructFullyVocalizedWord(VocalizedWordTostring(baseNumerused.vocalized))
         }, {
             state: targetState,
             case: c,
