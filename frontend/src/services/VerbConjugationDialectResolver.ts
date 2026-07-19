@@ -23,7 +23,7 @@ import { DialectsService } from "./DialectsService";
 import { GetDialectMetadata } from "@aczwink/openarabicconjugation/dist/DialectsMetadata";
 import { CreateVerbFromOADVerbForm } from "@aczwink/openarabdict-openarabicconjugation-bridge";
 import { DialectType, GetAllConjugatableDialects } from "@aczwink/openarabicconjugation/dist/Dialects";
-import { LexemeAPIData } from "./CachedAPIService";
+import { LexemeData } from "../../dist/api";
 
 @Injectable
 export class VerbConjugationDialectResolver
@@ -33,7 +33,7 @@ export class VerbConjugationDialectResolver
     }
 
     //Public methods
-    public IsNativeConjugationPossible(dialectType: DialectType, word: LexemeAPIData)
+    public IsNativeConjugationPossible(dialectType: DialectType, word: LexemeData)
     {
         const unit = word.senses[0].units[0];
         const pos = unit.pos;

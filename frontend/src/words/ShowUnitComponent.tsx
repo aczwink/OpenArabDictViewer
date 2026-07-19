@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 import { Component, I18n, Injectable, JSX_CreateElement, JSX_Fragment } from "@aczwink/acfrontend";
-import { CachedAPIService, LexemeAPIData, LexicalUnitAPIData } from "../services/CachedAPIService";
+import { CachedAPIService } from "../services/CachedAPIService";
 import { WordMayHaveGender, WordTypeToText } from "../shared/words";
 import { OpenArabDictGender, OpenArabDictLexeme, OpenArabDictParentType, OpenArabDictPOSType } from "@aczwink/openarabdict-domain";
 import { ShowVerbConjugationTablesComponent } from "./ShowVerbConjugationTablesComponent";
@@ -28,9 +28,10 @@ import { AdjectiveOrNounDeclensionTable } from "./AdjectiveOrNounDeclensionTable
 import { WordTableComponent } from "./WordTableComponent";
 import { RenderDerivedTerm } from "./WordDerivationComponent";
 import { ShowVerbPropertiesComponent } from "./ShowVerbPropertiesComponent";
+import { LexemeData, LexicalUnit } from "../../dist/api";
 
 @Injectable
-export class ShowUnitComponent extends Component<{ lexeme: LexemeAPIData; unit: LexicalUnitAPIData }>
+export class ShowUnitComponent extends Component<{ lexeme: LexemeData; unit: LexicalUnit }>
 {
     constructor(private cachedAPIService: CachedAPIService)
     {
@@ -73,7 +74,7 @@ export class ShowUnitComponent extends Component<{ lexeme: LexemeAPIData; unit: 
         return WordLogic.IsSingular(this.input.lexeme as unknown as OpenArabDictLexeme);
     }
 
-    private RenderDerivedTerm(derived: LexemeAPIData)
+    private RenderDerivedTerm(derived: LexemeData)
     {
         const link = derived.parent.find(x => (x.type !== OpenArabDictParentType.Root) && (x.id === this.input.lexeme.id))!;
         return RenderDerivedTerm(false, { id: derived.id, type: link.type });
@@ -170,5 +171,5 @@ export class ShowUnitComponent extends Component<{ lexeme: LexemeAPIData; unit: 
     }
 
     //State
-    private derived: LexemeAPIData[];
+    private derived: LexemeData[];
 }

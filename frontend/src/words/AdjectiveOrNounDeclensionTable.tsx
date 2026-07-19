@@ -17,7 +17,7 @@
  * */
 
 import { Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "@aczwink/acfrontend";
-import { CachedAPIService, LexemeAPIData } from "../services/CachedAPIService";
+import { CachedAPIService } from "../services/CachedAPIService";
 import { Case, Gender, Numerus } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { DisplayVocalized, ParseVocalizedText, VocalizedWordTostring } from "@aczwink/openarabicconjugation/dist/Vocalization";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
@@ -27,6 +27,7 @@ import { TargetAdjectiveNounDerivation } from "@aczwink/openarabicconjugation/di
 import { AdjectiveOrNounState } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { ArabicText, DialectType } from "@aczwink/openarabicconjugation";
 import { WordLogic } from "@aczwink/openarabdict-openarabicconjugation-bridge";
+import { LexemeData } from "../../dist/api";
 
 interface AdjNounData
 {
@@ -37,7 +38,7 @@ interface AdjNounData
 }
 
 @Injectable
-export class AdjectiveOrNounDeclensionTable extends Component<{ word: LexemeAPIData; pos: OpenArabDictGendered; derivedWordIds: string[]; }>
+export class AdjectiveOrNounDeclensionTable extends Component<{ word: LexemeData; pos: OpenArabDictGendered; derivedWordIds: string[]; }>
 {
     constructor(private cachedAPIService: CachedAPIService, private conjugationService: ConjugationService)
     {
@@ -65,9 +66,9 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: LexemeAPID
     }
 
     //State
-    private definite: LexemeAPIData | null;
-    private feminine: LexemeAPIData | null;
-    private plurals: LexemeAPIData[] | null;
+    private definite: LexemeData | null;
+    private feminine: LexemeData | null;
+    private plurals: LexemeData[] | null;
 
     //Private methods
     private DeriveBase(targetGender: Gender, targetState: AdjectiveOrNounState): AdjNounData
@@ -119,12 +120,12 @@ export class AdjectiveOrNounDeclensionTable extends Component<{ word: LexemeAPID
         }
     }
 
-    private DoesParentExist(type: OpenArabDictParentType, word: LexemeAPIData)
+    private DoesParentExist(type: OpenArabDictParentType, word: LexemeData)
     {
         return word.parent.find(x => x.type === type) !== undefined;
     }
 
-    private FindDerivedWord(type: OpenArabDictParentType, derived: LexemeAPIData[])
+    private FindDerivedWord(type: OpenArabDictParentType, derived: LexemeData[])
     {
         return derived.find(x => this.DoesParentExist(type, x));
     }

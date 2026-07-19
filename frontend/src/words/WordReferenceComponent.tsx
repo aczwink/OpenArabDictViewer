@@ -19,7 +19,7 @@
 import { Anchor, Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "@aczwink/acfrontend";
 import { WordGenderToAbbreviation, WordMayHaveGender, WordTypeToAbbreviationText } from "../shared/words";
 import { OpenArabDictParentType, OpenArabDictPOSType, OpenArabDictRoot } from "@aczwink/openarabdict-domain";
-import { CachedAPIService, LexemeAPIData } from "../services/CachedAPIService";
+import { CachedAPIService } from "../services/CachedAPIService";
 import { DialectsService } from "../services/DialectsService";
 import { VerbConjugationService } from "../services/VerbConjugationService";
 import { ModernStandardArabicStem1ParametersType } from "@aczwink/openarabicconjugation/dist/dialects/msa/conjugation/r2tashkil";
@@ -27,9 +27,10 @@ import { VerbType } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { GlobalSettingsService } from "../services/GlobalSettingsService";
 import { Verb } from "@aczwink/openarabicconjugation/dist/Verb";
 import { DialectType } from "@aczwink/openarabicconjugation";
+import { LexemeData } from "../../dist/api";
 
 @Injectable
-export class WordReferenceComponent extends Component<{ word: LexemeAPIData; }>
+export class WordReferenceComponent extends Component<{ word: LexemeData; }>
 {
     constructor(private dialectsService: DialectsService, private verbConjugationService: VerbConjugationService, private cachedAPIService: CachedAPIService, private globalSettingsService: GlobalSettingsService
     )
@@ -172,7 +173,7 @@ export class LexemeIdReferenceComponent extends Component<{ lexemeId: string }>
     }
 
     //Private state
-    private word: LexemeAPIData | null;
+    private word: LexemeData | null;
 
     //Event handlers
     override async OnInitiated(): Promise<void>

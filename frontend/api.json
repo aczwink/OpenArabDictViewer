@@ -5,6 +5,7 @@
     "excludedStatusCodes": [],
     "header": "interface OptionalRequestData{}",
     "imports": {
+        "OpenArabDictPartOfSpeech": "@aczwink/openarabdict-domain",
         "OpenArabDictTranslationEntry": "@aczwink/openarabdict-domain" 
     }
 }

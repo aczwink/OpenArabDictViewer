@@ -19,7 +19,7 @@
 import { Injectable } from "@aczwink/acfrontend";
 import { APIService } from "./APIService";
 import { Dictionary } from "@aczwink/acts-util-core";
-import { OpenArabDictPartOfSpeech, OpenArabDictRoot, OpenArabDictTranslationEntry, OpenArabDictVerb } from "@aczwink/openarabdict-domain";
+import { OpenArabDictRoot, OpenArabDictVerb } from "@aczwink/openarabdict-domain";
 import { GlobalSettingsService } from "./GlobalSettingsService";
 import { LexemeData } from "../../dist/api";
 
@@ -28,25 +28,6 @@ export interface FullVerbData
     rootData: OpenArabDictRoot;
     verbData: OpenArabDictVerb;
 }
-
-//TODO: acts util api :( //TODO: this is just because of the boolean complete-.-
-export interface LexicalUnitAPIData
-{
-    derivedLexemeIds: string[];
-    pos: OpenArabDictPartOfSpeech;
-    translations: OpenArabDictTranslationEntry[];
-}
-
-export interface LexemeSenseAPIData
-{
-    units: LexicalUnitAPIData[];
-}
-
-export interface LexemeAPIData extends LexemeData
-{
-    senses: LexemeSenseAPIData[];
-}
-//end of TODO: acts util api :(
 
 @Injectable
 export class CachedAPIService
@@ -73,13 +54,13 @@ export class CachedAPIService
         };
     }
 
-    public async QueryLexeme(lexemeId: string): Promise<LexemeAPIData | undefined>
+    public async QueryLexeme(lexemeId: string): Promise<LexemeData | undefined>
     {
         const translationLanguage = this.pageLanguageService.activeLanguage;
 
         const cached = this.wordsCache[lexemeId + "-" + translationLanguage];
         if(cached !== undefined)
-            return cached as LexemeAPIData;
+            return cached as LexemeData;
 
         const response = await this.apiService.lexemes._any_.get(lexemeId, { translationLanguage });
         switch(response.statusCode)
@@ -93,7 +74,7 @@ export class CachedAPIService
         }
         this.CacheWord(response.data);
 
-        return response.data as LexemeAPIData;
+        return response.data as LexemeData;
     }
 
     public async QueryRootData(rootId: string)
@@ -120,7 +101,7 @@ export class CachedAPIService
         for (const word of words)
             this.CacheWord(word);
 
-        return words as LexemeAPIData[];
+        return words as LexemeData[];
     }
 
     //Private methods

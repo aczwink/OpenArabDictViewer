@@ -18,8 +18,7 @@
 
 import { BootstrapIcon, JSX_CreateElement, JSX_Fragment, RootInjector } from "@aczwink/acfrontend";
 import { DialectsService } from "../services/DialectsService";
-import { OpenArabDictTranslationEntry } from "../../dist/api";
-import { OpenArabDictTranslationUsageType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictTranslationEntry, OpenArabDictTranslationUsageType } from "@aczwink/openarabdict-domain";
 
 function RenderExample(example: { text: string; translation: string[]; }): RenderValue
 {

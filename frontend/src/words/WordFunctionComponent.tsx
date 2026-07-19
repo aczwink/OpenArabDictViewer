@@ -19,10 +19,10 @@
 import { Component, Injectable, JSX_CreateElement } from "@aczwink/acfrontend";
 import { RenderTranslations } from "../shared/translations";
 import { WordDerivationComponent } from "./WordDerivationComponent";
-import { LexemeAPIData } from "../services/CachedAPIService";
+import { LexemeData } from "../../dist/api";
 
 @Injectable
-export class WordFunctionComponent extends Component<{ word: LexemeAPIData; }>
+export class WordFunctionComponent extends Component<{ word: LexemeData; }>
 {
     protected Render(): RenderValue
     {

@@ -18,17 +18,18 @@
 
 import { BootstrapIcon, Component, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner } from "@aczwink/acfrontend";
 import { WordFunctionComponent } from "./WordFunctionComponent";
-import { CachedAPIService, LexemeAPIData } from "../services/CachedAPIService";
+import { CachedAPIService } from "../services/CachedAPIService";
 import { WordReferenceComponent } from "./WordReferenceComponent";
+import { LexemeData } from "../../dist/api";
 
 interface WordWithLevel
 {
     level: number;
-    word: LexemeAPIData;
+    word: LexemeData;
 }
 
 @Injectable
-export class WordTableComponent extends Component<{ collapse: boolean; words: LexemeAPIData[] }>
+export class WordTableComponent extends Component<{ collapse: boolean; words: LexemeData[] }>
 {
     constructor(private cachedAPIService: CachedAPIService)
     {
@@ -83,7 +84,7 @@ export class WordTableComponent extends Component<{ collapse: boolean; words: Le
         return s;
     }
 
-    private async LoadAllChildren(level: number, lexeme: LexemeAPIData, container: WordWithLevel[])
+    private async LoadAllChildren(level: number, lexeme: LexemeData, container: WordWithLevel[])
     {
         const derivedLexemeIds = lexeme.senses.Values().Map(x => x.units.Values()).Flatten().Map(x => x.derivedLexemeIds.Values()).Flatten().Distinct(x => x).ToArray();
 

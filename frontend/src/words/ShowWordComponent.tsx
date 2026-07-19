@@ -17,12 +17,12 @@
  * */
 
 import { Component, I18n, Injectable, JSX_CreateElement, ProgressSpinner, RouterState, TitleService } from "@aczwink/acfrontend";
-import { WordRelation } from "../../dist/api";
+import { LexemeData, LexemeSense, WordRelation } from "../../dist/api";
 import { WordRelationshipTypeToString } from "../shared/words";
 import { RemoveTashkil } from "@aczwink/openarabicconjugation/dist/Util";
 import { LexemeIdReferenceComponent } from "./WordReferenceComponent";
 import { WordDerivationComponent } from "./WordDerivationComponent";
-import { CachedAPIService, LexemeAPIData, LexemeSenseAPIData } from "../services/CachedAPIService";
+import { CachedAPIService } from "../services/CachedAPIService";
 import { ShowUnitComponent } from "./ShowUnitComponent";
 
 @Injectable
@@ -93,7 +93,7 @@ export class ShowWordComponent extends Component
         </ul>;
     }
 
-    private RenderSense(sense: LexemeSenseAPIData)
+    private RenderSense(sense: LexemeSense)
     {
         return sense.units.map(x => <ShowUnitComponent lexeme={this.data!} unit={x} />).Interleave(<hr />);
     }
@@ -115,5 +115,5 @@ export class ShowWordComponent extends Component
     //Private state
     private wordId: string;
     private notFound: boolean;
-    private data: LexemeAPIData | null;
+    private data: LexemeData | null;
 }

@@ -20,9 +20,10 @@ import { CheckBox, Component, FormField, I18n, Injectable, JSX_CreateElement, Pr
 import { APIService } from "./services/APIService";
 import { RenderTranslations } from "./shared/translations";
 import { WordTypeToText } from "./shared/words";
-import { CachedAPIService, LexemeAPIData } from "./services/CachedAPIService";
+import { CachedAPIService } from "./services/CachedAPIService";
 import { RemoveTashkilButKeepShadda } from "@aczwink/openarabicconjugation/dist/Util";
 import { GlobalSettingsService } from "./services/GlobalSettingsService";
+import { LexemeData } from "../dist/api";
 
 @Injectable
 export class LearnComponent extends Component
@@ -72,7 +73,7 @@ export class LearnComponent extends Component
     }
 
     //Private state
-    private data: LexemeAPIData | null;
+    private data: LexemeData | null;
     private showTashkil: boolean;
     private resolve: boolean;
 
@@ -90,7 +91,7 @@ export class LearnComponent extends Component
         this.data = word!;
     }
 
-    private RenderFunction(func: LexemeAPIData)
+    private RenderFunction(func: LexemeData)
     {
         const unit = func.senses[0].units[0];
         return <fragment>

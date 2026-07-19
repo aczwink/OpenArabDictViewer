@@ -101,7 +101,6 @@ export class ArabicTextIndexService
 
         const document = await this.databaseController.GetDocumentDB();
 
-        //TODO
         for (const word of document.lexemes)
             this.AddWordToIndex(word, trie);
 
@@ -408,10 +407,18 @@ export class ArabicTextIndexService
             }
         }
 
-        if(!hasActiveParticiple)
-            this.AddParticipleToIndex(Voice.Active, lexeme, verb, verbInstance, trie);
-        if(dialectMeta.hasPassive && !hasPassiveParticiple)
-            this.AddParticipleToIndex(Voice.Passive, lexeme, verb, verbInstance, trie);
+        try
+        {
+            if(!hasActiveParticiple)
+                this.AddParticipleToIndex(Voice.Active, lexeme, verb, verbInstance, trie);
+            if(dialectMeta.hasPassive && !hasPassiveParticiple)
+                this.AddParticipleToIndex(Voice.Passive, lexeme, verb, verbInstance, trie);
+        }
+        catch(e) //TODO REMOVE THIS
+        {
+            console.log("TODO PART ERROR", e);
+        }
+        
         if(!hasVerbalNoun)
             this.AddVerbalNounIfUnique(lexeme, verbInstance, trie);
     }
@@ -428,7 +435,14 @@ export class ArabicTextIndexService
                         this.AddAdjectiveToIndex(word, unit.pos, trie);
                         break;
                     case OpenArabDictPOSType.Noun:
-                        this.AddNounToIndex(word, unit.pos, trie);
+                        try
+                        {
+                            this.AddNounToIndex(word, unit.pos, trie);
+                        }
+                        catch(e)
+                        {
+                            console.log("TODO NOUN ERR", e); //TODO FIX THIS
+                        }
                         break;
                     case OpenArabDictPOSType.Verb:
                         this.AddVerbToIndex(word, unit.pos, trie);

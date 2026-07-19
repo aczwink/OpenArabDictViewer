@@ -26,7 +26,7 @@ import { VerbConjugationDialectResolver } from "./VerbConjugationDialectResolver
 import { CreateVerbFromOADVerbForm } from "@aczwink/openarabdict-openarabicconjugation-bridge";
 import { DialectType } from "@aczwink/openarabicconjugation/dist/Dialects";
 import { GetDialectMetadata } from "@aczwink/openarabicconjugation/dist/DialectsMetadata";
-import { LexemeAPIData } from "./CachedAPIService";
+import { LexemeData } from "../../dist/api";
 
 @Injectable
 export class VerbConjugationService
@@ -58,7 +58,7 @@ export class VerbConjugationService
         return this.RenderContexts(diffed);
     }
 
-    public IsNativeConjugationPossible(dialectType: DialectType, word: LexemeAPIData)
+    public IsNativeConjugationPossible(dialectType: DialectType, word: LexemeData)
     {
         return this.verbConjugationDialectResolver.IsNativeConjugationPossible(dialectType, word);
     }

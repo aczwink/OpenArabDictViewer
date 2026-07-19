@@ -17,7 +17,7 @@
  * */
 
 import { Anchor, Component, Injectable, JSX_CreateElement, ProgressSpinner } from "@aczwink/acfrontend";
-import { VerbVariant, WordRelation } from "../../dist/api";
+import { LexemeData, VerbVariant, WordRelation } from "../../dist/api";
 import { StemNumberComponent } from "../shared/RomanNumberComponent";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { ConjugationService } from "../services/ConjugationService";
@@ -29,7 +29,7 @@ import { DialectsService } from "../services/DialectsService";
 import { VerbConjugationService } from "../services/VerbConjugationService";
 import { OpenArabDictParentType, OpenArabDictPOSType, OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbForm } from "@aczwink/openarabdict-domain";
 import { LexemeIdReferenceComponent } from "./WordReferenceComponent";
-import { CachedAPIService, LexemeAPIData } from "../services/CachedAPIService";
+import { CachedAPIService } from "../services/CachedAPIService";
 import { Verb } from "@aczwink/openarabicconjugation/dist/Verb";
 import { DialectType } from "@aczwink/openarabicconjugation/dist/Dialects";
 import { GlobalSettingsService } from "../services/GlobalSettingsService";
@@ -69,9 +69,9 @@ export class ShowVerbPropertiesComponent extends Component<{ verbId: string }>
 
     //Private state
     private data: OpenArabDictVerb | null;
-    private fullWord: LexemeAPIData | null;
+    private fullWord: LexemeData | null;
     private root: OpenArabDictRoot;
-    private derivedWords: LexemeAPIData[] | null;
+    private derivedWords: LexemeData[] | null;
     private activeStemParameters: string | null;
 
     //Private properties
