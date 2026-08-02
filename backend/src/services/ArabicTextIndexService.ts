@@ -18,7 +18,7 @@
 
 import { Injectable } from "@aczwink/acts-util-node";
 import { DatabaseController } from "../data-access/DatabaseController";
-import { OpenArabDictGender, OpenArabDictGendered, OpenArabDictLexeme, OpenArabDictParent, OpenArabDictParentType, OpenArabDictPOSType, OpenArabDictRoot, OpenArabDictVerb } from "@aczwink/openarabdict-domain";
+import { OpenArabDictGender, OpenArabDictGendered, OpenArabDictLexeme, OpenArabDictNounPOS, OpenArabDictParent, OpenArabDictParentType, OpenArabDictPOSType, OpenArabDictRoot, OpenArabDictVerb } from "@aczwink/openarabdict-domain";
 import { Conjugator, TargetVerbBasedDerivationPatterns } from "@aczwink/openarabicconjugation/dist/Conjugator";
 import { RootsIndexService } from "./RootsIndexService";
 import { AdjectiveOrNounState, Case, Gender, Letter, Mood, Numerus, Person, Tense, Voice } from "@aczwink/openarabicconjugation/dist/Definitions";
@@ -162,7 +162,7 @@ export class ArabicTextIndexService
         }, trie);
     }
 
-    private AddNounToIndex(word: OpenArabDictLexeme, unit: OpenArabDictGendered, trie: PrefixTree<IndexEntry>)
+    private AddNounToIndex(word: OpenArabDictLexeme, unit: OpenArabDictNounPOS, trie: PrefixTree<IndexEntry>)
     {
         const vocalized = ParseVocalizedPhrase(word.text);
         this.AddToIndex({
@@ -197,7 +197,7 @@ export class ArabicTextIndexService
             this.AddDerivedWordToIndex(trie, informal, ImplicitWordDerivation.NounDeclension, word);
         }
 
-        if(!isDefinite && !hasDefiniteChild)
+        if(!isDefinite && !hasDefiniteChild && !unit.inConstructState)
         {
             const definite = conjugator.DeclineAdjectiveOrNoun({
                 gender,
@@ -423,36 +423,29 @@ export class ArabicTextIndexService
             this.AddVerbalNounIfUnique(lexeme, verbInstance, trie);
     }
 
-    private AddWordToIndex(word: OpenArabDictLexeme, trie: PrefixTree<IndexEntry>)
+    private AddWordToIndex(lexeme: OpenArabDictLexeme, trie: PrefixTree<IndexEntry>)
     {
-        for (const sense of word.senses)
+        for (const sense of lexeme.senses)
         {
             for (const unit of sense.units)
             {
                 switch(unit.pos.type)
                 {
                     case OpenArabDictPOSType.Adjective:
-                        this.AddAdjectiveToIndex(word, unit.pos, trie);
+                        this.AddAdjectiveToIndex(lexeme, unit.pos, trie);
                         break;
                     case OpenArabDictPOSType.Noun:
-                        try
-                        {
-                            this.AddNounToIndex(word, unit.pos, trie);
-                        }
-                        catch(e)
-                        {
-                            console.log("TODO NOUN ERR", e); //TODO FIX THIS
-                        }
+                        this.AddNounToIndex(lexeme, unit.pos, trie);
                         break;
                     case OpenArabDictPOSType.Verb:
-                        this.AddVerbToIndex(word, unit.pos, trie);
+                        this.AddVerbToIndex(lexeme, unit.pos, trie);
                         break;
                     default:
                     {
-                        const vocalized = ParseVocalizedPhrase(word.text);
+                        const vocalized = ParseVocalizedPhrase(lexeme.text);
                         this.AddToIndex({
                             vocalized,
-                            word,
+                            word: lexeme,
                         }, trie);
                     }
                 }

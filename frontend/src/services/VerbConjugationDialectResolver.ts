@@ -79,7 +79,7 @@ export class VerbConjugationDialectResolver
     private FindConjugatableDialects(rootRadicals: string, verbForm: OpenArabDictVerbForm)
     {
         let dialects;
-        if(verbForm.variants === undefined)
+        if((verbForm.variants === undefined) || (verbForm.stem > 1))
             dialects = GetAllConjugatableDialects();
         else
             dialects = verbForm.variants.map(x => this.dialectsService.MapIdToType(x.dialectId)).filter(x => x !== undefined);

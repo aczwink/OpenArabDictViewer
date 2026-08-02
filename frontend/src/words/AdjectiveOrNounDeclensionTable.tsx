@@ -22,7 +22,7 @@ import { Case, Gender, Numerus } from "@aczwink/openarabicconjugation/dist/Defin
 import { DisplayVocalized, ParseVocalizedText, VocalizedWordTostring } from "@aczwink/openarabicconjugation/dist/Vocalization";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { ConjugationService } from "../services/ConjugationService";
-import { OpenArabDictGender, OpenArabDictGendered, OpenArabDictLexeme, OpenArabDictParentType, OpenArabDictPOSType } from "@aczwink/openarabdict-domain";
+import { OpenArabDictGender, OpenArabDictGendered, OpenArabDictLexeme, OpenArabDictNounPOS, OpenArabDictParentType, OpenArabDictPOSType } from "@aczwink/openarabdict-domain";
 import { TargetAdjectiveNounDerivation } from "@aczwink/openarabicconjugation/dist/DialectConjugator";
 import { AdjectiveOrNounState } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { ArabicText, DialectType } from "@aczwink/openarabicconjugation";
@@ -38,7 +38,7 @@ interface AdjNounData
 }
 
 @Injectable
-export class AdjectiveOrNounDeclensionTable extends Component<{ word: LexemeData; pos: OpenArabDictGendered; derivedWordIds: string[]; }>
+export class AdjectiveOrNounDeclensionTable extends Component<{ word: LexemeData; pos: OpenArabDictGendered | OpenArabDictNounPOS; derivedWordIds: string[]; }>
 {
     constructor(private cachedAPIService: CachedAPIService, private conjugationService: ConjugationService)
     {
