@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { BootstrapIcon, Component, I18n, Injectable, JSX_CreateElement, Navigation, NavItem, ProgressSpinner, RouterComponent, ThemingService } from "@aczwink/acfrontend";
+import { BootstrapIcon, Component, I18n, Injectable, JSX_CreateElement, JSX_Fragment, Navigation, NavItem, ProgressSpinner, RouterComponent, ThemingService } from "@aczwink/acfrontend";
 import { DialectsService } from "./services/DialectsService";
 import { GlobalSettingsService } from "./services/GlobalSettingsService";
 import { PageLanguageSelectionComponent } from "./PageLanguageSelectionComponent";
@@ -35,46 +35,94 @@ export class RootComponent extends Component
     
     protected Render()
     {
+        return <fragment>
+            {this.RenderNav()}
+            {this.RenderContent()}
+            {this.RenderFooter()}
+        </fragment>;
+    }
+
+    //Private methods
+    private RenderBanner()
+    {
+        const logo = this.themingService.IsDarkModeEnabled() ? "/openarabdict_logo_dark.svg" : "/openarabdict_logo.svg";
+
+        return <div className="col-auto p-1" style="display: inline">
+            <div className="row align-items-start">
+                <div className="col-auto align-self-center pe-0">
+                    <img src={logo} style="height: 2.5rem; margin:auto;" />
+                </div>
+                <div className="col-auto ps-0">
+                    <h4>OpenArabDict</h4>
+                </div>
+            </div>
+        </div>;
+    }
+
+    private RenderContent()
+    {
         if(this.cachingFailed)
-            return "OpenArabDict - Error contacting backend";
+            return <h1 className="text-center">Error contacting backend</h1>;
         if(this.loading)
             return <ProgressSpinner />;
 
-        const logo = this.themingService.IsDarkModeEnabled() ? "/openarabdict_logo_dark.svg" : "/openarabdict_logo.svg";
+        return <div className="container-fluid">
+            <RouterComponent />
+        </div>;
+    }
 
-        return <fragment>
-            <Navigation>
-                <div className="row m-auto">
-                    <div className="col-auto p-1" style="display: inline">
-                        <div className="row align-items-start">
-                            <div className="col-auto align-self-center pe-0">
-                                <img src={logo} style="height: 2.5rem; margin:auto;" />
-                            </div>
-                            <div className="col-auto ps-0">
-                                <h4>OpenArabDict</h4>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="col">
-                        <ul className="nav nav-pills">
-                            <NavItem route="/search"><BootstrapIcon>search</BootstrapIcon></NavItem>
-                            <NavItem route="/roots"><I18n key="nav.roots" /></NavItem>
-                            <NavItem route="/learn"><I18n key="nav.learn" /></NavItem>
-                            <NavItem route="/statistics"><I18n key="nav.statistics" /></NavItem>
-                        </ul>
-                    </div>
-                    <div className="col-auto">
-                        <DialectSelectionComponent onDialectChanged={this.OnLanguageChanged.bind(this)} />
-                    </div>
-                    <div className="col-auto">
-                        <PageLanguageSelectionComponent onLanguageChanged={this.OnLanguageChanged.bind(this)} />
-                    </div>
-                </div>
-            </Navigation>
-            <div className="container-fluid">
-                <RouterComponent />
+    private RenderFooter()
+    {
+        const d = new Date();
+        return <ul className="list-unstyled text-body-secondary d-flex justify-content-center">
+            <li>© 2023-{d.getUTCFullYear()} Amir Czwink</li>
+            <li className="ms-3">
+                <a className="text-body-secondary" href="https://www.gnu.org/licenses/agpl-3.0.en.html" target="_blank">AGPL-3.0 Licensed</a>
+            </li>
+            <li className="ms-3">Source code:</li>
+            <li className="ms-3">
+                <a className="text-body-secondary" href="https://github.com/aczwink/OpenArabDictViewer" target="_blank" title="Web app"><BootstrapIcon>github</BootstrapIcon> Web app</a>
+            </li>
+            <li className="ms-3">
+                <a className="text-body-secondary" href="https://github.com/aczwink/OpenArabDict" target="_blank" title="Dictionary"><BootstrapIcon>github</BootstrapIcon> Dictionary</a>
+            </li>
+            <li className="ms-3">
+                <a className="text-body-secondary" href="https://github.com/aczwink/OpenArabicConjugation" target="_blank" title="Conjugation engine"><BootstrapIcon>github</BootstrapIcon> Conjugation engine</a>
+            </li>
+        </ul>;
+    }
+
+    private RenderNav()
+    {
+        return <Navigation>
+            <div className="row m-auto">
+                {this.RenderBanner()}
+                {this.RenderNavItems()}
             </div>
-        </fragment>;
+        </Navigation>;
+    }
+
+    private RenderNavItems()
+    {
+        if(this.cachingFailed || this.loading)
+            return null;
+
+        return <>
+            <div className="col">
+                <ul className="nav nav-pills">
+                    <NavItem route="/search"><BootstrapIcon>search</BootstrapIcon></NavItem>
+                    <NavItem route="/roots"><I18n key="nav.roots" /></NavItem>
+                    <NavItem route="/learn"><I18n key="nav.learn" /></NavItem>
+                    <NavItem route="/statistics"><I18n key="nav.statistics" /></NavItem>
+                </ul>
+            </div>
+            <div className="col-auto">
+                <DialectSelectionComponent onDialectChanged={this.OnLanguageChanged.bind(this)} />
+            </div>
+            <div className="col-auto">
+                <PageLanguageSelectionComponent onLanguageChanged={this.OnLanguageChanged.bind(this)} />
+            </div>
+        </>;
     }
 
     //Event handlers

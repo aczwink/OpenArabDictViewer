@@ -155,7 +155,7 @@ export function WordTypeToAbbreviationText(wordType: OpenArabDictPOSType)
     }
 }
 
-function WordTypeToDictionaryKey(wordType: OpenArabDictPOSType)
+function WordTypeToDictionaryKey(wordType: OpenArabDictPOSType): string
 {
     switch(wordType)
     {
@@ -183,6 +183,8 @@ function WordTypeToDictionaryKey(wordType: OpenArabDictPOSType)
             return "Verb";
         case OpenArabDictPOSType.Numeral:
             return "numeral";
+        case OpenArabDictPOSType.ProperNoun:
+            return "properNoun";
     }
 }
 

@@ -56,3 +56,4 @@ word:
     particle: Particle
     preposition: Preposition
     pronoun: Pronoun
+    properNoun: Proper noun
