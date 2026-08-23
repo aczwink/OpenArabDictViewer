@@ -49,7 +49,6 @@ export class ShowUnitComponent extends Component<{ lexeme: LexemeData; unit: Lex
                 </tbody>
             </table>
             {this.RenderDerivedTerms()}
-            {this.RenderWordDeclensionTables()}
         </>;
     }
 
@@ -132,7 +131,7 @@ export class ShowUnitComponent extends Component<{ lexeme: LexemeData; unit: Lex
     private RenderProperties()
     {
         if(this.input.unit.pos.type === OpenArabDictPOSType.Verb)
-            return <ShowVerbPropertiesComponent verbId={this.input.lexeme.id} />;
+            return <ShowVerbPropertiesComponent lexeme={this.input.lexeme} verb={this.input.unit.pos} unit={this.input.unit} />;
 
         return <>
             {this.RenderGenderLine()}
@@ -145,23 +144,6 @@ export class ShowUnitComponent extends Component<{ lexeme: LexemeData; unit: Lex
                 <td>{RenderTranslations(this.input.unit.translations)}</td>
             </tr>
         </>;
-    }
-
-    private RenderWordDeclensionTables()
-    {
-        const pos = this.input.unit.pos;
-        switch(pos.type)
-        {
-            case OpenArabDictPOSType.Adjective:
-            case OpenArabDictPOSType.Noun:
-                return <div className="mt-2">
-                    <h5>{I18n("word.declension")}</h5>
-                    <AdjectiveOrNounDeclensionTable word={this.input.lexeme} pos={pos} derivedWordIds={this.input.unit.derivedLexemeIds} />
-                </div>;
-            case OpenArabDictPOSType.Verb:
-                return <ShowVerbConjugationTablesComponent verbId={this.input.lexeme.id} />;
-        }
-        return null;
     }
 
     //Event handlers

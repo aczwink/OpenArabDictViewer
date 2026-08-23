@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * */
 
-import { Component, I18n, Injectable, JSX_CreateElement, ProgressSpinner, RouterState, TitleService } from "@aczwink/acfrontend";
+import { Component, I18n, Injectable, JSX_CreateElement, JSX_Fragment, ProgressSpinner, RouterState, TitleService } from "@aczwink/acfrontend";
 import { LexemeData, LexemeSense, WordRelation } from "../../dist/api";
 import { WordRelationshipTypeToString } from "../shared/words";
 import { RemoveTashkil } from "@aczwink/openarabicconjugation/dist/Util";
@@ -24,6 +24,8 @@ import { LexemeIdReferenceComponent } from "./WordReferenceComponent";
 import { WordDerivationComponent } from "./WordDerivationComponent";
 import { CachedAPIService } from "../services/CachedAPIService";
 import { ShowUnitComponent } from "./ShowUnitComponent";
+import { EqualsAny } from "@aczwink/acts-util-core";
+import { ShowDeclensionTablesComponent } from "./ShowDeclensionTablesComponent";
 
 @Injectable
 export class ShowWordComponent extends Component
@@ -55,17 +57,45 @@ export class ShowWordComponent extends Component
                     {this.RenderRelated(this.data.related)}
                 </tbody>
             </table>
-            {this.data.senses.map(x => this.RenderSense(x)).Interleave(<hr />)}
+            {this.RenderMain()}
         </fragment>;
     }
 
     //Private methods
+    private IsMultiSenseWordSpecialCase()
+    {
+        const data = this.data!;
+
+        if(data.senses.length <= 1)
+            return false;
+
+        return data.senses.Values()
+            .Map(x => x.units.Values()).Flatten()
+            .Map(x => EqualsAny(x.pos, data.senses[0]!.units[0]!.pos)).All();
+    }
+
     private RenderDerivationData()
     {
         return <tr>
             <th>{I18n("word.derivedFrom")}:</th>
             <td><WordDerivationComponent parent={this.data!.parent} /></td>
         </tr>;
+    }
+
+    private RenderMain()
+    {
+        const data = this.data!;
+
+        if(this.IsMultiSenseWordSpecialCase())
+        {
+            return <>
+                {data.senses.map(x => this.RenderSenseWithoutTables(x)).Interleave(<hr />)}
+                <hr />
+                <ShowDeclensionTablesComponent lexeme={this.data!} unit={data.senses[0].units[0]} />
+            </>;
+        }
+
+        return data.senses.map(x => this.RenderSense(x)).Interleave(<hr />);
     }
 
     private RenderRelated(related: WordRelation[])
@@ -93,9 +123,21 @@ export class ShowWordComponent extends Component
         </ul>;
     }
 
+    private RenderSenseWithoutTables(sense: LexemeSense)
+    {
+        return sense.units.map(x => <>
+            <ShowUnitComponent lexeme={this.data!} unit={x} />
+            </>
+        ).Interleave(<hr />);
+    }
+
     private RenderSense(sense: LexemeSense)
     {
-        return sense.units.map(x => <ShowUnitComponent lexeme={this.data!} unit={x} />).Interleave(<hr />);
+        return sense.units.map(x => <>
+            <ShowUnitComponent lexeme={this.data!} unit={x} />
+            <ShowDeclensionTablesComponent lexeme={this.data!} unit={x} />
+            </>
+        ).Interleave(<hr />);
     }
 
     //Event handlers

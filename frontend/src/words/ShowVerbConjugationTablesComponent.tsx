@@ -29,6 +29,7 @@ import { CachedAPIService } from "../services/CachedAPIService";
 import { Verb } from "@aczwink/openarabicconjugation/dist/Verb";
 import { DialectType } from "@aczwink/openarabicconjugation/dist/Dialects";
 import { Dialects } from "@aczwink/openarabicconjugation";
+import { VerbVariant } from "../../dist/api";
 
 @Injectable
 export class ShowVerbConjugationTablesComponent extends Component<{ verbId: string }>
@@ -127,7 +128,14 @@ export class ShowVerbConjugationTablesComponent extends Component<{ verbId: stri
             : null;
 
         return <div className="mt-2">
-            <h4>Conjugation</h4>
+            <div className="row">
+                <div className="col-auto">
+                    <h4>Conjugation</h4>
+                </div>
+                <div className="col-auto">
+                    {this.RenderVariantSelection(verb)}
+                </div>
+            </div>
             <h5>Active voice الْفِعْل الْمَعْلُوم</h5>
             {this.RenderConjugationTable("Past الْمَاضِي", verb, Tense.Perfect, Voice.Active, Mood.Indicative, () => past)}
             {this.RenderConjugationTable("Present indicative الْمُضَارِع الْمَرْفُوع", verb, Tense.Present, Voice.Active, Mood.Indicative, () => past)}
@@ -279,7 +287,41 @@ export class ShowVerbConjugationTablesComponent extends Component<{ verbId: stri
         </fragment>;
     }
 
+    private RenderVariantSelection(verb: Verb<string>)
+    {
+        const variants = this.GetMultipleVariants(verb.dialect);
+        if(variants !== undefined)
+        {
+            return <span className="flex-shrink-0 py-2">
+                <a href="#" className="text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                    {this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(verb.dialect, this.rootRadicals, this.GetForm(verb.dialect))}
+                </a>
+                <ul className="dropdown-menu shadow">
+                    {variants.map(this.RenderVariantSelectionChoice.bind(this, verb))}
+                </ul>
+            </span>;
+        }
+        return this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(verb.dialect, this.rootRadicals, this.data!.form);
+    }
+
+    private RenderVariantSelectionChoice(verb: Verb<string>, variant: VerbVariant)
+    {
+        const className = (this.activeStemParameters === variant.stemParameters) ? "dropdown-item active" : "dropdown-item";
+        return <li>
+            <a className={className} href="#" onclick={this.OnChangeVariant.bind(this, variant)}>{this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(verb.dialect, this.rootRadicals, {
+                ...this.data!.form,
+                variants: [variant]
+            })}</a>
+        </li>;
+    }
+
     //Event handlers
+    private OnChangeVariant(variant: VerbVariant, event: Event)
+    {
+        event.preventDefault();
+        this.activeStemParameters = variant.stemParameters ?? null;
+    }
+
     override async OnInitiated(): Promise<void>
     {
         const full = await this.cachedAPIService.QueryLexeme(this.input.verbId);

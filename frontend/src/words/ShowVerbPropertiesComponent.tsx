@@ -17,7 +17,7 @@
  * */
 
 import { Anchor, Component, Injectable, JSX_CreateElement, ProgressSpinner } from "@aczwink/acfrontend";
-import { LexemeData, VerbVariant, WordRelation } from "../../dist/api";
+import { LexemeData, LexicalUnit, VerbVariant, WordRelation } from "../../dist/api";
 import { StemNumberComponent } from "../shared/RomanNumberComponent";
 import { RenderWithDiffHighlights } from "../shared/RenderWithDiffHighlights";
 import { ConjugationService } from "../services/ConjugationService";
@@ -27,7 +27,7 @@ import { Person, Numerus, Gender, Mood, Voice } from "@aczwink/openarabicconjuga
 import { Tense } from "@aczwink/openarabicconjugation/dist/Definitions";
 import { DialectsService } from "../services/DialectsService";
 import { VerbConjugationService } from "../services/VerbConjugationService";
-import { OpenArabDictParentType, OpenArabDictPOSType, OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbForm } from "@aczwink/openarabdict-domain";
+import { OpenArabDictParentType, OpenArabDictRoot, OpenArabDictVerb, OpenArabDictVerbForm } from "@aczwink/openarabdict-domain";
 import { LexemeIdReferenceComponent } from "./WordReferenceComponent";
 import { CachedAPIService } from "../services/CachedAPIService";
 import { Verb } from "@aczwink/openarabicconjugation/dist/Verb";
@@ -38,7 +38,7 @@ import { Dialects } from "@aczwink/openarabicconjugation";
 import { ConjugationSchemeToString } from "../verbs/ToStringStuff";
 
 @Injectable
-export class ShowVerbPropertiesComponent extends Component<{ verbId: string }>
+export class ShowVerbPropertiesComponent extends Component<{ lexeme: LexemeData; verb: OpenArabDictVerb; unit: LexicalUnit }>
 {
     constructor(private conjugationService: ConjugationService, private dialectsService: DialectsService, private verbConjugationService: VerbConjugationService, private cachedAPIService: CachedAPIService,
         private globalSettingsService: GlobalSettingsService,
@@ -46,33 +46,27 @@ export class ShowVerbPropertiesComponent extends Component<{ verbId: string }>
     {
         super();
 
-        this.data = null;
-        this.fullWord = null;
         this.root = { radicals: "", id: "" };
         this.derivedWords = null;
-        this.activeStemParameters = null;
     }
     
     protected Render(): RenderValue
     {
-        if(this.data === null)
+        if(this.derivedWords === null)
             return <ProgressSpinner />;
 
-        const dialectType = this.verbConjugationService.SelectDialect(this.rootRadicals, this.data.form);
+        const dialectType = this.verbConjugationService.SelectDialect(this.rootRadicals, this.input.verb.form);
         if(dialectType === null)
             return "This verb can not be conjugated in any dialect unfortunately...";
 
-        const verb = this.verbConjugationService.ConstructVerb(dialectType, this.rootRadicals, this.GetForm(dialectType));
+        const verb = this.verbConjugationService.ConstructVerb(dialectType, this.rootRadicals, this.input.verb.form);
 
         return this.RenderProperties(verb);
     }
 
     //Private state
-    private data: OpenArabDictVerb | null;
-    private fullWord: LexemeData | null;
     private root: OpenArabDictRoot;
     private derivedWords: LexemeData[] | null;
-    private activeStemParameters: string | null;
 
     //Private properties
     private get rootRadicals()
@@ -81,24 +75,10 @@ export class ShowVerbPropertiesComponent extends Component<{ verbId: string }>
     }
 
     //Private methods
-    private GetForm(dialectType: DialectType): OpenArabDictVerbForm
-    {
-        const variants = this.GetMultipleVariants(dialectType);
-        if(variants !== undefined)
-        {
-            const variant = variants.find(x => this.activeStemParameters === x.stemParameters)!;
-            return {
-                ...this.data!.form,
-                variants: [variant]
-            };
-        }
-        return this.data!.form;
-    }
-
     private GetMultipleVariants(dialectType: DialectType)
     {
         const dialectId = this.dialectsService.FindDialect(dialectType)!.id;
-        const variants = this.data?.form.variants?.filter(x => x.dialectId === dialectId);
+        const variants = this.input.verb.form.variants?.filter(x => x.dialectId === dialectId);
 
         if((variants !== undefined) && (variants.length > 1))
             return variants;
@@ -107,7 +87,7 @@ export class ShowVerbPropertiesComponent extends Component<{ verbId: string }>
 
     private HasPassive(verb: Verb<string>)
     {
-        if(!this.data?.form.hasPassive)
+        if(!this.input.verb.form.hasPassive)
             return false;
 
         const dialectMetaData = Dialects.GetDialectMetadata(verb.dialect);
@@ -116,21 +96,21 @@ export class ShowVerbPropertiesComponent extends Component<{ verbId: string }>
 
     private async LoadDerivedWords()
     {
-        this.derivedWords = await this.fullWord!.senses[0].units[0].derivedLexemeIds.Values().Map(x => this.cachedAPIService.QueryLexeme(x)).Async().NotUndefined().ToArray();
+        this.derivedWords = await this.input.unit.derivedLexemeIds.Values().Map(x => this.cachedAPIService.QueryLexeme(x)).Async().NotUndefined().ToArray();
     }
 
     private RenderDialectHint(dialect: DialectType)
     {
         if(dialect !== this.globalSettingsService.dialectType)
             return <span className="badge rounded-pill text-bg-danger">This verb can not be conjugated in your favorite dialect.</span>;
-        if(!this.verbConjugationService.IsNativeConjugationPossible(this.globalSettingsService.dialectType, this.fullWord!))
+        if(!this.verbConjugationService.IsNativeConjugationPossible(this.globalSettingsService.dialectType, this.input.lexeme))
             return <span className="badge rounded-pill text-bg-warning">This verb is not native to your favorite dialect.</span>;
         return null;
     }
 
     private RenderProperties(verb: Verb<string>)
     {
-        const data = this.data!;
+        const data = this.input.verb;
         const dialect = this.dialectsService.FindDialect(verb.dialect)!;
         const past = this.conjugationService.ConjugateArgs(verb.dialect, this.rootRadicals, verb.stem, Tense.Perfect, Voice.Active, Gender.Male, Person.Third, Numerus.Singular, Mood.Indicative, verb.type, (verb.stem === 1) ? verb.stemParameterization : undefined);
 
@@ -152,7 +132,7 @@ export class ShowVerbPropertiesComponent extends Component<{ verbId: string }>
                         {" "}
                         {ConjugationSchemeToString(type)}
                         {" "}
-                        {this.RenderVariantSelection(verb)}
+                        {this.RenderVariants(verb)}
                     </td>
                 </tr>
                 <tr>
@@ -164,11 +144,11 @@ export class ShowVerbPropertiesComponent extends Component<{ verbId: string }>
                 {this.RenderVerbalNounPatterns(verb)}
                 <tr>
                     <th>Related:</th>
-                    <td>{this.RenderRelations(this.fullWord!.related)}</td>
+                    <td>{this.RenderRelations(this.input.lexeme.related)}</td>
                 </tr>
                 <tr>
                     <th>Translation:</th>
-                    <td>{RenderTranslations(this.fullWord!.senses[0].units[0].translations)}</td>
+                    <td>{RenderTranslations(this.input.unit.translations)}</td>
                 </tr>
             </tbody>
         </table>;
@@ -188,32 +168,20 @@ export class ShowVerbPropertiesComponent extends Component<{ verbId: string }>
         </ul>;
     }
 
-    private RenderVariantSelection(verb: Verb<string>)
+    private RenderVariant(verb: Verb<string>, variant: VerbVariant)
+    {
+        return this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(verb.dialect, this.rootRadicals, {
+            ...this.input.verb.form,
+            variants: [variant]
+        });
+    }
+
+    private RenderVariants(verb: Verb<string>)
     {
         const variants = this.GetMultipleVariants(verb.dialect);
         if(variants !== undefined)
-        {
-            return <span className="flex-shrink-0 py-2">
-                <a href="#" className="text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-                    {this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(verb.dialect, this.rootRadicals, this.GetForm(verb.dialect))}
-                </a>
-                <ul className="dropdown-menu shadow">
-                    {variants.map(this.RenderVariantSelectionChoice.bind(this, verb))}
-                </ul>
-            </span>;
-        }
-        return this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(verb.dialect, this.rootRadicals, this.data!.form);
-    }
-
-    private RenderVariantSelectionChoice(verb: Verb<string>, variant: VerbVariant)
-    {
-        const className = (this.activeStemParameters === variant.stemParameters) ? "dropdown-item active" : "dropdown-item";
-        return <li>
-            <a className={className} href="#" onclick={this.OnChangeVariant.bind(this, variant)}>{this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(verb.dialect, this.rootRadicals, {
-                ...this.data!.form,
-                variants: [variant]
-            })}</a>
-        </li>;
+            return variants.map(this.RenderVariant.bind(this, verb)).Interleave(" / ");
+        return this.verbConjugationService.CreateDefaultDisplayVersionOfVerb(verb.dialect, this.rootRadicals, this.input.verb.form);
     }
 
     private RenderVerbalNouns(verb: Verb<string>)
@@ -256,27 +224,11 @@ export class ShowVerbPropertiesComponent extends Component<{ verbId: string }>
     }
 
     //Event handlers
-    private OnChangeVariant(variant: VerbVariant, event: Event)
-    {
-        event.preventDefault();
-        this.activeStemParameters = variant.stemParameters ?? null;
-    }
-
     override async OnInitiated(): Promise<void>
     {
-        const full = await this.cachedAPIService.QueryLexeme(this.input.verbId);
-        const pos = full?.senses[0].units[0].pos;
-        if((full === undefined) || pos?.type !== OpenArabDictPOSType.Verb)
-            throw new Error("Programming error!");
+        const root = await this.cachedAPIService.QueryRootData(this.input.verb.rootId);
 
-        const root = await this.cachedAPIService.QueryRootData(pos.rootId);
-
-        this.fullWord = full;
         this.root = root;
-        this.data = pos;
-
-        if(this.data.form.variants !== undefined)
-            this.activeStemParameters = this.data.form.variants[0].stemParameters ?? null;
 
         this.LoadDerivedWords();
     }
